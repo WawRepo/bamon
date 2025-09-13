@@ -192,8 +192,6 @@ function start_daemon() {
     # Create log directory if it doesn't exist
     mkdir -p "$(dirname "$log_file")"
     
-    # Debug: Write to debug file before starting daemon
-    echo "DEBUG: Starting daemon in background mode" > /tmp/bamon_debug.log
     
     # Start daemon in background with both stdout and stderr redirected to single log file
 
@@ -203,8 +201,6 @@ function start_daemon() {
     echo "Daemon started in background (PID: $daemon_pid)"
     echo "Logs: $log_file"
     
-    # Debug: Write PID to debug file
-    echo "DEBUG: Daemon PID: $daemon_pid" >> /tmp/bamon_debug.log
   else
     # Start in foreground
     daemon_loop
@@ -355,8 +351,6 @@ function daemon_loop() {
   # Set daemon mode for logging
   export BAMON_DAEMON_MODE=true
   
-  # Debug: Write to a debug file to see if daemon loop starts
-  echo "DEBUG: Daemon loop started (PID: $$)" > /tmp/bamon_debug.log
   
   # Initialize performance monitoring
   init_performance_monitoring
