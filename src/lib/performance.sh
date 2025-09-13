@@ -1,0 +1,472 @@
+#!/usr/bin/env bash
+# Performance Optimization Library for BAMON
+# Provides system load monitoring, resource management, and execution optimization
+# Requires Bash 4.0+ for associative array support
+
+# Libraries are included via bashly custom_includes
+
+# Performance monitoring variables using associative arrays (Bash 4.0+ feature)
+declare -A PERFORMANCE_CACHE
+declare -A PERFORMANCE_CACHE_TIMES
+declare -A SCRIPT_EXECUTION_TIMES
+declare -A SCRIPT_FAILURE_COUNTS
+declare -A SYSTEM_LOAD_VALUES
+
+# Persistent storage file for execution data
+PERFORMANCE_DATA_FILE="$HOME/.config/bamon/performance_data.json"
+
+# Cache TTL (Time To Live) in seconds
+CACHE_TTL=30
+LAST_CACHE_UPDATE=0
+
+# Cache statistics tracking
+CACHE_HITS=0
+CACHE_MISSES=0
+CACHE_EVICTIONS=0
+CACHE_SIZE=0
+
+# Cache configuration
+MAX_CACHE_SIZE=1000
+
+# Performance configuration functions
+function get_performance_config() {
+  local key="$1"
+  local default="$2"
+  get_config_value "performance.$key" "$default"
+}
+
+# Get enabled scripts function (needed for performance reporting)
+function get_enabled_scripts() {
+  local scripts_json=$(get_all_scripts)
+  local script_names=()
+  
+  # Extract script names from YAML
+  while IFS= read -r line; do
+    if [[ "$line" =~ ^name:\ (.+)$ ]]; then
+      script_names+=("${BASH_REMATCH[1]}")
+    fi
+  done <<< "$scripts_json"
+  
+  printf '%s\n' "${script_names[@]}"
+}
+
+function is_performance_monitoring_enabled() {
+  get_performance_config "enable_monitoring" "true"
+}
+
+function get_load_threshold() {
+  get_performance_config "load_threshold" "0.8"
+}
+
+function get_cache_ttl() {
+  get_performance_config "cache_ttl" "30"
+}
+
+function is_scheduling_optimized() {
+  local result=$(get_performance_config "optimize_scheduling" "true")
+  [[ "$result" == "true" ]]
+}
+
+# System load monitoring
+function get_system_load() {
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    # macOS: use sysctl - extract first number from { 1.91 2.12 2.01 }
+    sysctl -n vm.loadavg | sed 's/{ //' | awk '{print $1}'
+  else
+    # Linux: use /proc/loadavg
+    cat /proc/loadavg | cut -d' ' -f1
+  fi
+}
+
+function get_cpu_cores() {
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    sysctl -n hw.ncpu
+  else
+    nproc
+  fi
+}
+
+function is_system_overloaded() {
+  if ! is_performance_monitoring_enabled; then
+    return 1
+  fi
+  
+  local load=$(get_system_load)
+  local cores=$(get_cpu_cores)
+  local threshold=$(get_load_threshold)
+  local max_load=$(echo "$cores * $threshold" | bc -l)
+  
+  if (( $(echo "$load > $max_load" | bc -l) )); then
+    log_warn "System load is high: $load (threshold: $max_load)"
+    return 0  # true, system is overloaded
+  fi
+  return 1  # false, system is not overloaded
+}
+
+# Resource monitoring
+function get_memory_usage() {
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    # macOS: use vm_stat
+    vm_stat | grep "Pages free" | awk '{print $3}' | sed 's/\.//'
+  else
+    # Linux: use /proc/meminfo
+    free | grep Mem | awk '{print $3/$2 * 100.0}'
+  fi
+}
+
+function get_disk_usage() {
+  df -h / | awk 'NR==2 {print $5}' | sed 's/%//'
+}
+
+# Concurrent execution management
+function count_running_scripts() {
+  local count=0
+  local pid_file=$(get_pid_file)
+  
+  if [[ -f "$pid_file" ]]; then
+    local daemon_pid=$(cat "$pid_file")
+    if kill -0 "$daemon_pid" 2>/dev/null; then
+      count=$(pgrep -P "$daemon_pid" | wc -l)
+    fi
+  fi
+  
+  echo "$count"
+}
+
+function can_run_more_scripts() {
+  local max_concurrent=$(get_max_concurrent)
+  local running=$(count_running_scripts)
+  
+  if [[ $running -ge $max_concurrent ]]; then
+    log_debug "At max concurrent capacity: $running/$max_concurrent"
+    return 1  # false, at max capacity
+  fi
+  
+  # Check system load
+  if is_system_overloaded; then
+    return 1  # false, system is overloaded
+  fi
+  
+  return 0  # true, can run more scripts
+}
+
+# Caching system using associative arrays (Bash 4.0+)
+function get_cached_value() {
+  local key="$1"
+  local current_time=$(date +%s)
+  
+  if [[ -n "${PERFORMANCE_CACHE[$key]}" ]]; then
+    local cached_time="${PERFORMANCE_CACHE_TIMES[$key]}"
+    local age=$((current_time - cached_time))
+    
+    if [[ $age -lt $CACHE_TTL ]]; then
+      # Cache hit
+      CACHE_HITS=$((CACHE_HITS + 1))
+      echo "${PERFORMANCE_CACHE[$key]}"
+      return 0
+    else
+      # Cache miss due to TTL expiration
+      CACHE_MISSES=$((CACHE_MISSES + 1))
+      # Remove expired entry
+      unset PERFORMANCE_CACHE[$key]
+      unset PERFORMANCE_CACHE_TIMES[$key]
+      CACHE_SIZE=$((CACHE_SIZE - 1))
+    fi
+  else
+    # Cache miss - key not found
+    CACHE_MISSES=$((CACHE_MISSES + 1))
+  fi
+  
+  return 1
+}
+
+function set_cached_value() {
+  local key="$1"
+  local value="$2"
+  local current_time=$(date +%s)
+  
+  # Check if this is a new key (for size tracking)
+  local is_new_key=false
+  if [[ -z "${PERFORMANCE_CACHE[$key]}" ]]; then
+    is_new_key=true
+  fi
+  
+  PERFORMANCE_CACHE[$key]="$value"
+  PERFORMANCE_CACHE_TIMES[$key]="$current_time"
+  
+  # Update cache size if it's a new key
+  if [[ "$is_new_key" == "true" ]]; then
+    CACHE_SIZE=$((CACHE_SIZE + 1))
+  fi
+  
+  # Enforce cache size limits
+  enforce_cache_size_limit
+}
+
+# Script execution tracking using associative arrays (Bash 4.0+)
+function track_script_execution() {
+  local script_name="$1"
+  local execution_time="$2"
+  local success="$3"
+  
+  # Load existing performance data first
+  load_performance_data
+  
+  # Update execution time
+  SCRIPT_EXECUTION_TIMES[$script_name]="$execution_time"
+  
+  # Update failure count if script failed
+  if [[ "$success" == "false" ]]; then
+    local failures="${SCRIPT_FAILURE_COUNTS[$script_name]:-0}"
+    SCRIPT_FAILURE_COUNTS[$script_name]=$((failures + 1))
+  fi
+  
+  # Save to persistent storage
+  save_performance_data
+}
+
+# Save performance data to persistent storage
+function save_performance_data() {
+  local data_file="$PERFORMANCE_DATA_FILE"
+  
+  # Create directory if it doesn't exist
+  mkdir -p "$(dirname "$data_file")"
+  
+  # Create JSON data
+  local json_data="{"
+  json_data+="\"execution_times\":{"
+  local first=true
+  for key in "${!SCRIPT_EXECUTION_TIMES[@]}"; do
+    if [[ "$first" == "true" ]]; then
+      first=false
+    else
+      json_data+=","
+    fi
+    json_data+="\"$key\":${SCRIPT_EXECUTION_TIMES[$key]}"
+  done
+  json_data+="},"
+  
+  json_data+="\"failure_counts\":{"
+  first=true
+  for key in "${!SCRIPT_FAILURE_COUNTS[@]}"; do
+    if [[ "$first" == "true" ]]; then
+      first=false
+    else
+      json_data+=","
+    fi
+    json_data+="\"$key\":${SCRIPT_FAILURE_COUNTS[$key]}"
+  done
+  json_data+="}"
+  json_data+="}"
+  
+  # Save to file
+  echo "$json_data" > "$data_file"
+}
+
+# Load performance data from persistent storage
+function load_performance_data() {
+  local data_file="$PERFORMANCE_DATA_FILE"
+  
+  if [[ -f "$data_file" ]]; then
+    # Load execution times
+    local execution_times=$(cat "$data_file" | jq -r '.execution_times | to_entries[] | "\(.key)=\(.value)"' 2>/dev/null)
+    if [[ -n "$execution_times" ]]; then
+      while IFS='=' read -r key value; do
+        SCRIPT_EXECUTION_TIMES["$key"]="$value"
+      done <<< "$execution_times"
+    fi
+    
+    # Load failure counts
+    local failure_counts=$(cat "$data_file" | jq -r '.failure_counts | to_entries[] | "\(.key)=\(.value)"' 2>/dev/null)
+    if [[ -n "$failure_counts" ]]; then
+      while IFS='=' read -r key value; do
+        SCRIPT_FAILURE_COUNTS["$key"]="$value"
+      done <<< "$failure_counts"
+    fi
+  fi
+}
+
+function get_script_avg_execution_time() {
+  local script_name="$1"
+  echo "${SCRIPT_EXECUTION_TIMES[$script_name]:-0}"
+}
+
+function get_script_failure_count() {
+  local script_name="$1"
+  echo "${SCRIPT_FAILURE_COUNTS[$script_name]:-0}"
+}
+
+function get_script_interval() {
+  local script_name="$1"
+  local script_info=$(get_script "$script_name")
+  
+  if [[ -z "$script_info" || "$script_info" == "{}" ]]; then
+    echo "60"  # default interval
+    return
+  fi
+  
+  echo "$script_info" | yq eval '.interval' - 2>/dev/null || echo "60"
+}
+
+# Optimized script scheduling
+function optimize_schedule() {
+  if ! is_scheduling_optimized; then
+    get_enabled_scripts
+    return
+  fi
+  
+  # Get all enabled scripts with their intervals and execution times
+  local scripts_info=()
+  
+  while IFS= read -r script_name; do
+    local interval=$(get_script_interval "$script_name")
+    local avg_time=$(get_script_avg_execution_time "$script_name")
+    local failures=$(get_script_failure_count "$script_name")
+    
+    # Calculate priority score (lower is better)
+    # Prioritize: shorter intervals, faster execution, fewer failures
+    local priority_score=$(echo "$interval + $avg_time - ($failures * 10)" | bc -l)
+    
+    
+    scripts_info+=("$priority_score:$script_name")
+  done < <(get_enabled_scripts)
+  
+  # Sort by priority score and return script names
+  printf '%s\n' "${scripts_info[@]}" | sort -n | cut -d: -f2
+}
+
+# Performance metrics collection
+function collect_performance_metrics() {
+  local metrics=()
+  
+  metrics+=("load:$(get_system_load)")
+  metrics+=("memory:$(get_memory_usage)")
+  metrics+=("disk:$(get_disk_usage)")
+  metrics+=("running_scripts:$(count_running_scripts)")
+  metrics+=("max_concurrent:$(get_max_concurrent)")
+  
+  printf '%s\n' "${metrics[@]}"
+}
+
+# Performance report
+function generate_performance_report() {
+  # Load persistent performance data
+  load_performance_data
+  
+  echo "=== BAMON Performance Report ==="
+  echo "Timestamp: $(date)"
+  echo ""
+  
+  echo "System Metrics:"
+  collect_performance_metrics | while IFS=: read -r metric value; do
+    echo "  $metric: $value"
+  done
+  echo ""
+  
+  echo "Script Performance:"
+  for script_name in $(get_enabled_scripts); do
+    local avg_time=$(get_script_avg_execution_time "$script_name")
+    local failures=$(get_script_failure_count "$script_name")
+    echo "  $script_name: avg_time=${avg_time}s, failures=$failures"
+  done
+  echo ""
+  
+  echo "Cache Status:"
+  echo "  Cache TTL: ${CACHE_TTL}s"
+  echo "  Cached items: ${#PERFORMANCE_CACHE[@]}"
+  echo "  Cache hits: $CACHE_HITS"
+  echo "  Cache misses: $CACHE_MISSES"
+  echo "  Cache evictions: $CACHE_EVICTIONS"
+  echo "  Hit rate: $(get_cache_hit_rate)%"
+}
+
+# Cache statistics functions
+function get_cache_hit_rate() {
+  local total_requests=$((CACHE_HITS + CACHE_MISSES))
+  if [[ $total_requests -eq 0 ]]; then
+    echo "0"
+    return
+  fi
+  
+  local hit_rate=$(echo "scale=2; $CACHE_HITS * 100 / $total_requests" | bc -l)
+  echo "$hit_rate"
+}
+
+function get_cache_stats() {
+  echo "Cache Statistics:"
+  echo "  Hits: $CACHE_HITS"
+  echo "  Misses: $CACHE_MISSES"
+  echo "  Evictions: $CACHE_EVICTIONS"
+  echo "  Current size: ${#PERFORMANCE_CACHE[@]}"
+  echo "  Hit rate: $(get_cache_hit_rate)%"
+}
+
+function reset_cache_stats() {
+  CACHE_HITS=0
+  CACHE_MISSES=0
+  CACHE_EVICTIONS=0
+  CACHE_SIZE=0
+}
+
+function enforce_cache_size_limit() {
+  local current_size=${#PERFORMANCE_CACHE[@]}
+  
+  if [[ $current_size -gt $MAX_CACHE_SIZE ]]; then
+    # Remove oldest entries (LRU eviction)
+    local entries_to_remove=$((current_size - MAX_CACHE_SIZE))
+    local evicted_count=0
+    
+    # Sort by timestamp and remove oldest entries
+    for key in "${!PERFORMANCE_CACHE_TIMES[@]}"; do
+      if [[ $evicted_count -ge $entries_to_remove ]]; then
+        break
+      fi
+      
+      unset PERFORMANCE_CACHE[$key]
+      unset PERFORMANCE_CACHE_TIMES[$key]
+      evicted_count=$((evicted_count + 1))
+    done
+    
+    # Update statistics
+    CACHE_EVICTIONS=$((CACHE_EVICTIONS + evicted_count))
+    CACHE_SIZE=$((CACHE_SIZE - evicted_count))
+    
+    log_debug "Cache size limit enforced: evicted $evicted_count entries"
+  fi
+}
+
+# Cleanup old cache entries using associative arrays (Bash 4.0+)
+function cleanup_cache() {
+  local current_time=$(date +%s)
+  local evicted_count=0
+  
+  for key in "${!PERFORMANCE_CACHE[@]}"; do
+    local cached_time="${PERFORMANCE_CACHE_TIMES[$key]}"
+    local age=$((current_time - cached_time))
+    
+    if [[ $age -gt $CACHE_TTL ]]; then
+      unset PERFORMANCE_CACHE[$key]
+      unset PERFORMANCE_CACHE_TIMES[$key]
+      evicted_count=$((evicted_count + 1))
+    fi
+  done
+  
+  # Update statistics
+  CACHE_EVICTIONS=$((CACHE_EVICTIONS + evicted_count))
+  CACHE_SIZE=$((CACHE_SIZE - evicted_count))
+  
+  # Ensure cache size doesn't go negative
+  if [[ $CACHE_SIZE -lt 0 ]]; then
+    CACHE_SIZE=0
+  fi
+}
+
+# Initialize performance monitoring
+function init_performance_monitoring() {
+  if is_performance_monitoring_enabled; then
+    log_info "Performance monitoring enabled"
+    CACHE_TTL=$(get_cache_ttl)
+  else
+    log_info "Performance monitoring disabled"
+  fi
+}

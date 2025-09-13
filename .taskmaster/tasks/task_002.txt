@@ -1,0 +1,68 @@
+# Task ID: 2
+# Title: Implement Configuration File Management
+# Status: done
+# Dependencies: 1
+# Priority: high
+# Description: Create functionality to read, write, and validate the YAML configuration file that stores script definitions and global settings.
+# Details:
+1. Create a lib directory for helper functions: `mkdir -p src/lib`
+2. Create configuration management functions in `src/lib/config.sh`:
+```bash
+#!/usr/bin/env bash
+
+CONFIG_FILE="${HOME}/.config/bamon/config.yaml"
+
+# Create default config if it doesn't exist
+function init_config() {
+  local config_dir="$(dirname "${CONFIG_FILE}")"
+  
+  if [[ ! -d "$config_dir" ]]; then
+    mkdir -p "$config_dir"
+  fi
+  
+  if [[ ! -f "${CONFIG_FILE}" ]]; then
+    cat > "${CONFIG_FILE}" << EOF
+daemon:
+  default_interval: 60
+  log_file: "${HOME}/.local/share/bamon/logs/bamon.log"
+  pid_file: "${HOME}/.local/share/bamon/bamon.pid"
+  max_concurrent: 10
+
+scripts: []
+EOF
+  fi
+}
+
+# Load config file
+function load_config() {
+  if [[ ! -f "${CONFIG_FILE}" ]]; then
+    init_config
+  fi
+  
+  # Use yq or another YAML parser to read config
+  # For simplicity, we'll assume yq is installed
+  # In a real implementation, you might want to include a pure bash YAML parser
+}
+
+# Save config file
+function save_config() {
+  # Implementation to save config changes
+}
+
+# Validate config file
+function validate_config() {
+  # Check if config file is valid YAML
+  # Verify required fields exist
+  # Return 0 if valid, 1 if invalid
+}
+```
+3. Create functions to add, remove, and update script entries
+4. Implement config file path customization via environment variable or command line option
+5. Add error handling for file operations
+
+# Test Strategy:
+1. Test creating a new config file with default values
+2. Verify reading from an existing config file works correctly
+3. Test adding, updating, and removing script entries
+4. Validate error handling for invalid YAML or missing required fields
+5. Test with custom config file paths

@@ -1,0 +1,64 @@
+# Task ID: 10
+# Title: Implement List Command
+# Status: done
+# Dependencies: 2
+# Priority: low
+# Description: Create the list command to display all configured scripts with filtering options for enabled and disabled scripts.
+# Details:
+1. Implement the list command in `src/list_command.sh`:
+```bash
+#!/usr/bin/env bash
+
+source "${BASH_SOURCE%/*}/lib/config.sh"
+
+function list_command() {
+  local enabled_only=${args[--enabled-only]}
+  local disabled_only=${args[--disabled-only]}
+  
+  # Load config
+  load_config
+  
+  # Get all scripts
+  local scripts=$(get_all_scripts)
+  if [[ -z "$scripts" ]]; then
+    echo "No scripts configured. Use 'bamon add' to add scripts."
+    return 0
+  fi
+  
+  # Print header
+  printf "%-20s %-10s %-10s %-40s\n" "NAME" "ENABLED" "INTERVAL" "DESCRIPTION"
+  printf "%s\n" "$(printf '%.0s-' {1..80})"
+  
+  # Print each script
+  for script in $scripts; do
+    local enabled=$(is_script_enabled "$script" && echo "true" || echo "false")
+    local interval=$(get_script_interval "$script")
+    local description=$(get_script_description "$script")
+    
+    # Apply filters
+    if [[ "$enabled_only" == "true" && "$enabled" != "true" ]]; then
+      continue
+    fi
+    if [[ "$disabled_only" == "true" && "$enabled" != "false" ]]; then
+      continue
+    fi
+    
+    # Print script info
+    printf "%-20s %-10s %-10s %-40s\n" "$script" "$enabled" "${interval}s" "${description:0:40}"
+  done
+  
+  return 0
+}
+```
+2. Implement filtering for enabled and disabled scripts
+3. Format output in a readable table format
+4. Add helper functions to get script properties
+5. Provide feedback when no scripts are configured
+
+# Test Strategy:
+1. Test listing all scripts
+2. Test filtering for only enabled scripts
+3. Test filtering for only disabled scripts
+4. Verify formatting is consistent and readable
+5. Test with no scripts configured
+6. Verify long descriptions are truncated appropriately
