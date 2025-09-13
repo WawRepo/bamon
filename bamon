@@ -576,7 +576,12 @@ function get_config_value() {
   local default_value="${2:-}"
 
   if command -v yq >/dev/null 2>&1; then
-    yq eval ".${key}" "${CONFIG_FILE}" 2>/dev/null || echo "$default_value"
+    local result=$(yq eval ".${key}" "${CONFIG_FILE}" 2>/dev/null)
+    if [[ "$result" == "null" || -z "$result" ]]; then
+      echo "$default_value"
+    else
+      echo "$result"
+    fi
   else
     echo "$default_value"
   fi
@@ -927,31 +932,47 @@ function execute_all_scripts() {
 function is_daemon_running() {
   local pid_file=$(get_pid_file)
 
-  if [[ ! -f "$pid_file" ]]; then
-    return 1
+  # First check PID file
+  if [[ -f "$pid_file" ]]; then
+    local pid=$(cat "$pid_file" 2>/dev/null)
+    if [[ -n "$pid" ]] && kill -0 "$pid" 2>/dev/null; then
+      return 0
+    else
+      # Clean up stale PID file
+      rm -f "$pid_file"
+    fi
   fi
 
-  local pid=$(cat "$pid_file" 2>/dev/null)
-  if [[ -z "$pid" ]]; then
-    return 1
+  # Fallback: check for running bamon daemon processes (exclude current process)
+  local current_pid=$$
+  local daemon_pids=$(ps aux | grep -E "bamon start --daemon|daemon_loop" | grep -v grep | awk -v current="$current_pid" '$2 != current {print $2}')
+  if [[ -n "$daemon_pids" ]]; then
+    # Check if any of the found PIDs are actually running
+    for pid in $daemon_pids; do
+      if kill -0 "$pid" 2>/dev/null; then
+        # Update PID file with the first running daemon PID
+        echo "$pid" > "$pid_file"
+        return 0
+      fi
+    done
   fi
 
-  # Check if process is actually running
-  if kill -0 "$pid" 2>/dev/null; then
-    return 0
-  else
-    # Clean up stale PID file
-    rm -f "$pid_file"
-    return 1
-  fi
+  return 1
 }
 
 # Start daemon
 function start_daemon() {
   local daemon_mode="${1:-false}"
 
+  # Check if daemon is running and get PID before any cleanup
+  local pid_file=$(get_pid_file)
+  local existing_pid=""
+  if [[ -f "$pid_file" ]]; then
+    existing_pid=$(cat "$pid_file" 2>/dev/null)
+  fi
+
   if is_daemon_running; then
-    echo "Daemon is already running (PID: $(cat $(get_pid_file)))"
+    echo "Daemon is already running (PID: $existing_pid)"
     return 0
   fi
 
@@ -959,17 +980,24 @@ function start_daemon() {
 
   if [[ "$daemon_mode" == "true" ]]; then
     # Start in background with output redirected to single log file
-    local log_file="$HOME/.config/bamon/daemon.log"
+    local log_file=$(get_log_file)
 
     # Create log directory if it doesn't exist
     mkdir -p "$(dirname "$log_file")"
 
+    # Debug: Write to debug file before starting daemon
+    echo "DEBUG: Starting daemon in background mode" > /tmp/bamon_debug.log
+
     # Start daemon in background with both stdout and stderr redirected to single log file
+
     daemon_loop > "$log_file" 2>&1 &
     local daemon_pid=$!
     echo "$daemon_pid" > "$(get_pid_file)"
     echo "Daemon started in background (PID: $daemon_pid)"
     echo "Logs: $log_file"
+
+    # Debug: Write PID to debug file
+    echo "DEBUG: Daemon PID: $daemon_pid" >> /tmp/bamon_debug.log
   else
     # Start in foreground
     daemon_loop
@@ -1041,8 +1069,15 @@ function execute_scheduled_scripts() {
   for script_name in "${script_names[@]}"; do
     if should_execute_script "$script_name" "$current_time"; then
       log_info "Executing scheduled script: $script_name"
-      execute_script "$script_name"
-      update_script_execution_time "$script_name" "$current_time"
+
+      # Get script command from YAML array
+      local script_command=$(yq eval ".scripts[] | select(.name == \"$script_name\") | .command" ~/.config/bamon/config.yaml 2>/dev/null)
+      if [[ -n "$script_command" ]]; then
+        execute_script "$script_name" "$script_command"
+        update_script_execution_time "$script_name" "$current_time"
+      else
+        log_error "No command found for script '$script_name'"
+      fi
     fi
   done
 }
@@ -1110,11 +1145,11 @@ function get_script_interval() {
 
 # Main daemon loop
 function daemon_loop() {
-  local pid_file=$(get_pid_file)
-  echo $$ > "$pid_file"
-
   # Set daemon mode for logging
   export BAMON_DAEMON_MODE=true
+
+  # Debug: Write to a debug file to see if daemon loop starts
+  echo "DEBUG: Daemon loop started (PID: $$)" > /tmp/bamon_debug.log
 
   # Initialize performance monitoring
   init_performance_monitoring

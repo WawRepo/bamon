@@ -73,7 +73,12 @@ function get_config_value() {
   local default_value="${2:-}"
   
   if command -v yq >/dev/null 2>&1; then
-    yq eval ".${key}" "${CONFIG_FILE}" 2>/dev/null || echo "$default_value"
+    local result=$(yq eval ".${key}" "${CONFIG_FILE}" 2>/dev/null)
+    if [[ "$result" == "null" || -z "$result" ]]; then
+      echo "$default_value"
+    else
+      echo "$result"
+    fi
   else
     echo "$default_value"
   fi
