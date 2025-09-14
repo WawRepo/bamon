@@ -6,8 +6,6 @@
 # Libraries are included via bashly custom_includes
 
 # Performance monitoring variables using associative arrays (Bash 4.0+ feature)
-declare -A PERFORMANCE_CACHE
-declare -A PERFORMANCE_CACHE_TIMES
 declare -A SCRIPT_EXECUTION_TIMES
 declare -A SCRIPT_FAILURE_COUNTS
 declare -A SCRIPT_LAST_STATUS
@@ -18,19 +16,6 @@ declare -A SYSTEM_LOAD_VALUES
 
 # Persistent storage file for execution data
 PERFORMANCE_DATA_FILE="$HOME/.config/bamon/performance_data.json"
-
-# Cache TTL (Time To Live) in seconds
-CACHE_TTL=30
-LAST_CACHE_UPDATE=0
-
-# Cache statistics tracking
-CACHE_HITS=0
-CACHE_MISSES=0
-CACHE_EVICTIONS=0
-CACHE_SIZE=0
-
-# Cache configuration
-MAX_CACHE_SIZE=1000
 
 # Performance configuration functions
 function get_performance_config() {
@@ -62,9 +47,6 @@ function get_load_threshold() {
   get_performance_config "load_threshold" "0.8"
 }
 
-function get_cache_ttl() {
-  get_performance_config "cache_ttl" "30"
-}
 
 function is_scheduling_optimized() {
   local result=$(get_performance_config "optimize_scheduling" "true")
@@ -154,58 +136,6 @@ function can_run_more_scripts() {
   return 0  # true, can run more scripts
 }
 
-# Caching system using associative arrays (Bash 4.0+)
-function get_cached_value() {
-  local key="$1"
-  local current_time=$(date +%s)
-  
-  if [[ -n "${PERFORMANCE_CACHE[$key]}" ]]; then
-    local cached_time="${PERFORMANCE_CACHE_TIMES[$key]}"
-    local age=$((current_time - cached_time))
-    
-    if [[ $age -lt $CACHE_TTL ]]; then
-      # Cache hit
-      CACHE_HITS=$((CACHE_HITS + 1))
-      echo "${PERFORMANCE_CACHE[$key]}"
-      return 0
-    else
-      # Cache miss due to TTL expiration
-      CACHE_MISSES=$((CACHE_MISSES + 1))
-      # Remove expired entry
-      unset PERFORMANCE_CACHE[$key]
-      unset PERFORMANCE_CACHE_TIMES[$key]
-      CACHE_SIZE=$((CACHE_SIZE - 1))
-    fi
-  else
-    # Cache miss - key not found
-    CACHE_MISSES=$((CACHE_MISSES + 1))
-  fi
-  
-  return 1
-}
-
-function set_cached_value() {
-  local key="$1"
-  local value="$2"
-  local current_time=$(date +%s)
-  
-  # Check if this is a new key (for size tracking)
-  local is_new_key=false
-  if [[ -z "${PERFORMANCE_CACHE[$key]}" ]]; then
-    is_new_key=true
-  fi
-  
-  PERFORMANCE_CACHE[$key]="$value"
-  PERFORMANCE_CACHE_TIMES[$key]="$current_time"
-  
-  # Update cache size if it's a new key
-  if [[ "$is_new_key" == "true" ]]; then
-    CACHE_SIZE=$((CACHE_SIZE + 1))
-  fi
-  
-  # Enforce cache size limits
-  enforce_cache_size_limit
-}
 
 # Script execution tracking using associative arrays (Bash 4.0+)
 function track_script_execution() {
@@ -470,101 +400,13 @@ function generate_performance_report() {
   done
   echo ""
   
-  echo "Cache Status:"
-  echo "  Cache TTL: ${CACHE_TTL}s"
-  echo "  Cached items: ${#PERFORMANCE_CACHE[@]}"
-  echo "  Cache hits: $CACHE_HITS"
-  echo "  Cache misses: $CACHE_MISSES"
-  echo "  Cache evictions: $CACHE_EVICTIONS"
-  echo "  Hit rate: $(get_cache_hit_rate)%"
 }
 
-# Cache statistics functions
-function get_cache_hit_rate() {
-  local total_requests=$((CACHE_HITS + CACHE_MISSES))
-  if [[ $total_requests -eq 0 ]]; then
-    echo "0"
-    return
-  fi
-  
-  local hit_rate=$(echo "scale=2; $CACHE_HITS * 100 / $total_requests" | bc -l)
-  echo "$hit_rate"
-}
-
-function get_cache_stats() {
-  echo "Cache Statistics:"
-  echo "  Hits: $CACHE_HITS"
-  echo "  Misses: $CACHE_MISSES"
-  echo "  Evictions: $CACHE_EVICTIONS"
-  echo "  Current size: ${#PERFORMANCE_CACHE[@]}"
-  echo "  Hit rate: $(get_cache_hit_rate)%"
-}
-
-function reset_cache_stats() {
-  CACHE_HITS=0
-  CACHE_MISSES=0
-  CACHE_EVICTIONS=0
-  CACHE_SIZE=0
-}
-
-function enforce_cache_size_limit() {
-  local current_size=${#PERFORMANCE_CACHE[@]}
-  
-  if [[ $current_size -gt $MAX_CACHE_SIZE ]]; then
-    # Remove oldest entries (LRU eviction)
-    local entries_to_remove=$((current_size - MAX_CACHE_SIZE))
-    local evicted_count=0
-    
-    # Sort by timestamp and remove oldest entries
-    for key in "${!PERFORMANCE_CACHE_TIMES[@]}"; do
-      if [[ $evicted_count -ge $entries_to_remove ]]; then
-        break
-      fi
-      
-      unset PERFORMANCE_CACHE[$key]
-      unset PERFORMANCE_CACHE_TIMES[$key]
-      evicted_count=$((evicted_count + 1))
-    done
-    
-    # Update statistics
-    CACHE_EVICTIONS=$((CACHE_EVICTIONS + evicted_count))
-    CACHE_SIZE=$((CACHE_SIZE - evicted_count))
-    
-    log_debug "Cache size limit enforced: evicted $evicted_count entries"
-  fi
-}
-
-# Cleanup old cache entries using associative arrays (Bash 4.0+)
-function cleanup_cache() {
-  local current_time=$(date +%s)
-  local evicted_count=0
-  
-  for key in "${!PERFORMANCE_CACHE[@]}"; do
-    local cached_time="${PERFORMANCE_CACHE_TIMES[$key]}"
-    local age=$((current_time - cached_time))
-    
-    if [[ $age -gt $CACHE_TTL ]]; then
-      unset PERFORMANCE_CACHE[$key]
-      unset PERFORMANCE_CACHE_TIMES[$key]
-      evicted_count=$((evicted_count + 1))
-    fi
-  done
-  
-  # Update statistics
-  CACHE_EVICTIONS=$((CACHE_EVICTIONS + evicted_count))
-  CACHE_SIZE=$((CACHE_SIZE - evicted_count))
-  
-  # Ensure cache size doesn't go negative
-  if [[ $CACHE_SIZE -lt 0 ]]; then
-    CACHE_SIZE=0
-  fi
-}
 
 # Initialize performance monitoring
 function init_performance_monitoring() {
   if is_performance_monitoring_enabled; then
     log_info "Performance monitoring enabled"
-    CACHE_TTL=$(get_cache_ttl)
   else
     log_info "Performance monitoring disabled"
   fi

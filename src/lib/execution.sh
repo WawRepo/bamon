@@ -170,8 +170,6 @@ function execute_scripts() {
 
 # Execute all enabled scripts
 function execute_all_scripts() {
-  # Cleanup old cache entries
-  cleanup_cache
   
   # Use optimized scheduling if enabled
   local script_names=()

@@ -40,9 +40,9 @@ function status_command() {
   
   # Print header if not JSON output
   if [[ "$json_output" != "1" ]]; then
-    printf "%-20s %-10s %-20s %-10s %-15s %-20s %-20s %s\n" \
-      "NAME" "STATUS" "LAST EXECUTION" "EXIT CODE" "DURATION" "TIME SINCE" "NEXT EXECUTION" "OUTPUT"
-    printf "%s\n" "$(printf '=%.0s' {1..140})"
+    printf "%-20s %-10s %-10s %-25s %-8s %-15s %-20s\n" \
+      "NAME" "STATUS" "EXIT CODE" "OUTPUT" "DURATION" "TIME SINCE" "NEXT EXECUTION"
+    printf "%s\n" "$(printf '=%.0s' {1..125})"
   else
     echo "{"
     echo "  \"scripts\": ["
@@ -105,20 +105,24 @@ function status_command() {
     if [[ "$last_status" == "SUCCESS" ]]; then
       # For successful executions, show stdout
       if [[ -n "$last_output" && "$last_output" != "null" ]]; then
-        if [[ ${#last_output} -gt 20 ]]; then
+        if [[ ${#last_output} -gt 25 ]]; then
           output_msg="truncated (use --json)"
         else
           output_msg="$last_output"
         fi
+      else
+        output_msg="(no output)"
       fi
     else
       # For failed executions, show error message
       if [[ -n "$last_error" && "$last_error" != "null" ]]; then
-        if [[ ${#last_error} -gt 20 ]]; then
+        if [[ ${#last_error} -gt 25 ]]; then
           output_msg="truncated (use --json)"
         else
           output_msg="$last_error"
         fi
+      else
+        output_msg="(no error info)"
       fi
     fi
     
@@ -148,15 +152,14 @@ function status_command() {
       echo "      \"error\": \"${last_error:-null}\""
       echo -n "    }"
     else
-      printf "%-20s %-10s %-20s %-10s %-15s %-20s %-20s %s\n" \
+      printf "%-20s %-10s %-10s %-25s %-8s %-15s %-20s\n" \
         "$script" \
         "$result" \
-        "$last_execution_display" \
         "$exit_code" \
+        "$output_msg" \
         "$duration" \
         "$time_since" \
-        "$next_execution" \
-        "$output_msg"
+        "$next_execution"
     fi
   done
   

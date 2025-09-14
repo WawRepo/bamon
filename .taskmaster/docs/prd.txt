@@ -40,7 +40,7 @@ A configurable bash daemon that monitors and executes bash scripts/code snippets
       - **Network Issues**: "Network error" for connection problems
       - **Custom Scripts**: Show actual output for custom failing scripts
       - **Generic Failures**: "Failed (exit code: X)" for other errors
-    - **Table View**: Output truncated to 20 characters with "truncated (use --json)" hint for full details
+    - **Table View**: Output truncated to 25 characters with "truncated (use --json)" hint for full details
     - **JSON View**: Complete output available without truncation
   - **JSON Support**: Optional JSON output format for programmatic access
   - **Real-time Data**: Show current status without triggering new executions
@@ -87,7 +87,6 @@ sandbox:
 performance:
   enable_monitoring: true
   load_threshold: 0.8
-  cache_ttl: 30
   optimize_scheduling: true
 
 scripts:
@@ -140,12 +139,17 @@ bamon/
   - Intelligent error message generation
 - **Status Display Format**:
   - **Human-readable**: Tabular format with clear status indicators
+    - **Column Layout**: NAME | STATUS | EXIT CODE | OUTPUT | DURATION | TIME SINCE | NEXT EXECUTION
+    - **Column Widths**: Optimized widths based on data patterns (OUTPUT: 25 chars, DURATION: 8 chars)
+    - **Table View**: Removed LAST EXECUTION column for cleaner layout (available in JSON)
   - **JSON format**: Structured data with `--json` flag for API integration
-  - **Filtering**: Show only failed scripts with `--failed` flag
+    - **Complete Data**: Includes all execution details including last execution timestamp
+  - **Filtering**: Show only failed scripts with `--failed-only` flag
   - **Sorting**: Sort by status, execution time, or script name
   - **Output Column**: Context-aware output display for all scripts
-    - **Success**: Shows stdout output (truncated to 20 chars in table view)
-    - **Failure**: Shows error messages (truncated to 20 chars in table view)
+    - **Success**: Shows stdout output (truncated to 25 chars in table view)
+    - **Failure**: Shows error messages (truncated to 25 chars in table view)
+    - **Empty Output**: Shows "(no output)" placeholder for scripts with no output
     - **Truncation Hint**: "truncated (use --json)" for table view
 - **Output Intelligence**:
   - **Success Output**: Captures and displays stdout from successful script execution
@@ -173,10 +177,9 @@ bamon/
 - **Queue Management**: Queue scripts when system is at capacity
 - **Priority Scheduling**: Execute high-priority scripts first
 
-### 3. Caching and Optimization
-- **Configuration Caching**: Cache frequently accessed config values
-- **Result Caching**: Cache script results for short periods to reduce redundant execution
+### 3. Optimization
 - **Efficient File Operations**: Minimize disk I/O with optimized file handling
+- **Associative Arrays**: Use Bash 4.0+ associative arrays for O(1) performance
 
 ### 4. Performance Metrics
 - **Execution Times**: Track and optimize script execution duration
@@ -264,7 +267,6 @@ bamon/
 - **Response Time**: CLI commands respond within 1 second
 - **Concurrent Execution**: Support up to 10 simultaneous scripts
 - **System Load**: Adapt to system load and prevent overload
-- **Caching**: Improve performance for frequent operations
 
 ### 3. Security Requirements
 - **Sandboxing**: All scripts run in isolated environment

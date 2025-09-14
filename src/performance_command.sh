@@ -106,19 +106,6 @@ if [[ "$FORMAT" == "json" ]]; then
   echo ""
   
   echo "  },"
-  echo "  \"cache_status\": {"
-  echo "    \"ttl\": $CACHE_TTL,"
-  echo "    \"cached_items\": ${#PERFORMANCE_CACHE_KEYS[@]},"
-  echo "    \"cache_hits\": $CACHE_HITS,"
-  echo "    \"cache_misses\": $CACHE_MISSES,"
-  echo "    \"cache_evictions\": $CACHE_EVICTIONS,"
-  local total_requests=$((CACHE_HITS + CACHE_MISSES))
-  if [[ $total_requests -gt 0 ]]; then
-    echo "    \"hit_rate\": \"$((CACHE_HITS * 100 / total_requests))%\""
-  else
-    echo "    \"hit_rate\": \"0%\""
-  fi
-  echo "  }"
   echo "}"
 else
   # Table format output (default)
@@ -129,22 +116,6 @@ else
     echo "=== Detailed System Information ==="
     echo "Performance Monitoring: $(is_performance_monitoring_enabled && echo "Enabled" || echo "Disabled")"
     echo "Load Threshold: $(get_load_threshold)"
-    echo "Cache TTL: $(get_cache_ttl) seconds"
     echo "Scheduling Optimization: $(is_scheduling_optimized && echo "Enabled" || echo "Disabled")"
-    echo ""
-    
-    echo "=== Cache Contents ==="
-    if [[ ${#PERFORMANCE_CACHE_KEYS[@]} -eq 0 ]]; then
-      echo "No cached items"
-    else
-      for i in "${!PERFORMANCE_CACHE_KEYS[@]}"; do
-        local key="${PERFORMANCE_CACHE_KEYS[$i]}"
-        local value="${PERFORMANCE_CACHE_VALUES[$i]}"
-        local cached_time="${PERFORMANCE_CACHE_TIMES[$i]}"
-        local current_time=$(date +%s)
-        local age=$((current_time - cached_time))
-        echo "  $key: $value (age: ${age}s)"
-      done
-    fi
   fi
 fi
