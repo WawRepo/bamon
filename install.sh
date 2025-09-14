@@ -173,7 +173,23 @@ echo "Installing binary to $INSTALL_DIR/bamon..."
 cp "./bamon" "$INSTALL_DIR/"
 chmod +x "$INSTALL_DIR/bamon"
 
-# Install default config with performance settings
+# Install sample scripts
+echo "Installing sample scripts..."
+mkdir -p "$CONFIG_DIR/samples"
+if [[ -f "samples/health_check.sh" ]]; then
+  cp "samples/health_check.sh" "$CONFIG_DIR/samples/"
+  chmod +x "$CONFIG_DIR/samples/health_check.sh"
+fi
+if [[ -f "samples/disk_usage.sh" ]]; then
+  cp "samples/disk_usage.sh" "$CONFIG_DIR/samples/"
+  chmod +x "$CONFIG_DIR/samples/disk_usage.sh"
+fi
+if [[ -f "samples/github_status.sh" ]]; then
+  cp "samples/github_status.sh" "$CONFIG_DIR/samples/"
+  chmod +x "$CONFIG_DIR/samples/github_status.sh"
+fi
+
+# Install default config with sample scripts
 if [[ ! -f "$CONFIG_DIR/config.yaml" ]]; then
   echo "Installing default config to $CONFIG_DIR/config.yaml..."
   cat > "$CONFIG_DIR/config.yaml" << EOF
@@ -184,7 +200,7 @@ daemon:
   max_concurrent: 10
 
 sandbox:
-  timeout: 3
+  timeout: 30
   max_cpu_time: 60
   max_file_size: 10240
   max_virtual_memory: 102400
@@ -192,10 +208,33 @@ sandbox:
 performance:
   enable_monitoring: true
   load_threshold: 0.8
-  cache_ttl: 30
   optimize_scheduling: true
 
-scripts: []
+scripts:
+  - name: "health_check"
+    command: "curl -s -o /dev/null -w '%{http_code}' https://httpbin.org/status/200"
+    interval: 30
+    enabled: true
+  - name: "disk_usage"
+    command: "df -h / | awk 'NR==2 {print \$5}' | sed 's/%//'"
+    interval: 300
+    enabled: true
+  - name: "github_status"
+    command: "curl -s https://www.githubstatus.com/api/v2/status.json | jq -e '.status.indicator == \"none\"' > /dev/null || { echo \"not green\"; exit 1; }"
+    interval: 30
+    enabled: true
+  - name: "sample_health_check"
+    command: "$CONFIG_DIR/samples/health_check.sh"
+    interval: 60
+    enabled: false
+  - name: "sample_disk_usage"
+    command: "$CONFIG_DIR/samples/disk_usage.sh"
+    interval: 300
+    enabled: false
+  - name: "sample_github_status"
+    command: "$CONFIG_DIR/samples/github_status.sh"
+    interval: 30
+    enabled: false
 EOF
 fi
 
@@ -211,4 +250,23 @@ fi
 
 echo ""
 echo "Installation complete!"
-echo "Run 'bamon --help' to get started"
+echo ""
+echo "Quick Start:"
+echo "1. Check status: bamon status"
+echo "2. Start daemon: bamon start --daemon"
+echo "3. View logs: tail -f $CONFIG_DIR/bamon.log"
+echo ""
+echo "Sample Scripts:"
+echo "- health_check: HTTP health check (enabled by default)"
+echo "- disk_usage: Disk usage monitor (enabled by default)"
+echo "- github_status: GitHub status check (enabled by default)"
+echo "- sample_health_check: Advanced health check script (disabled)"
+echo "- sample_disk_usage: Advanced disk usage script (disabled)"
+echo "- sample_github_status: Advanced GitHub status script (disabled)"
+echo ""
+echo "Enable sample scripts:"
+echo "  bamon add sample_health_check '$CONFIG_DIR/samples/health_check.sh' --interval 60"
+echo "  bamon add sample_disk_usage '$CONFIG_DIR/samples/disk_usage.sh' --interval 300"
+echo "  bamon add sample_github_status '$CONFIG_DIR/samples/github_status.sh' --interval 30"
+echo ""
+echo "Run 'bamon --help' for more commands"
