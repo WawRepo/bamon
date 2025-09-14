@@ -4,10 +4,10 @@
 # Source the library functions
 
 # Get parsed arguments from bashly
-DAEMON_MODE=false
+DAEMON_MODE=true  # Restart always starts in daemon mode by default
 CONFIG_FILE=""
 
-# Check for daemon mode flag
+# Check for daemon mode flag (restart always runs as daemon)
 if [[ -n "${args['--daemon']:-}" ]]; then
   DAEMON_MODE=true
 fi
