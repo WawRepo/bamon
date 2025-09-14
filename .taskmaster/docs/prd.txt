@@ -40,7 +40,7 @@ A configurable bash daemon that monitors and executes bash scripts/code snippets
       - **Network Issues**: "Network error" for connection problems
       - **Custom Scripts**: Show actual output for custom failing scripts
       - **Generic Failures**: "Failed (exit code: X)" for other errors
-    - **Table View**: Output truncated to 30 characters with "..." and hint for full details
+    - **Table View**: Output truncated to 20 characters with "truncated (use --json)" hint for full details
     - **JSON View**: Complete output available without truncation
   - **JSON Support**: Optional JSON output format for programmatic access
   - **Real-time Data**: Show current status without triggering new executions
@@ -144,9 +144,9 @@ bamon/
   - **Filtering**: Show only failed scripts with `--failed` flag
   - **Sorting**: Sort by status, execution time, or script name
   - **Output Column**: Context-aware output display for all scripts
-    - **Success**: Shows stdout output (truncated to 30 chars in table view)
-    - **Failure**: Shows error messages (truncated to 30 chars in table view)
-    - **Truncation Hint**: "...( more details please run with --json flag )" for table view
+    - **Success**: Shows stdout output (truncated to 20 chars in table view)
+    - **Failure**: Shows error messages (truncated to 20 chars in table view)
+    - **Truncation Hint**: "truncated (use --json)" for table view
 - **Output Intelligence**:
   - **Success Output**: Captures and displays stdout from successful script execution
   - **Failure Analysis**: Analyzes exit codes and output patterns for intelligent error reporting

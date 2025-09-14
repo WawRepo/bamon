@@ -2376,8 +2376,8 @@ bamon_status_command() {
       if [[ "$last_status" == "SUCCESS" ]]; then
         # For successful executions, show stdout
         if [[ -n "$last_output" && "$last_output" != "null" ]]; then
-          if [[ ${#last_output} -gt 30 ]]; then
-            output_msg="${last_output:0:27}...( more details please run with --json flag )"
+          if [[ ${#last_output} -gt 20 ]]; then
+            output_msg="truncated (use --json)"
           else
             output_msg="$last_output"
           fi
@@ -2385,8 +2385,8 @@ bamon_status_command() {
       else
         # For failed executions, show error message
         if [[ -n "$last_error" && "$last_error" != "null" ]]; then
-          if [[ ${#last_error} -gt 30 ]]; then
-            output_msg="${last_error:0:27}...( more details please run with --json flag )"
+          if [[ ${#last_error} -gt 20 ]]; then
+            output_msg="truncated (use --json)"
           else
             output_msg="$last_error"
           fi
