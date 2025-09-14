@@ -10,6 +10,10 @@ declare -A PERFORMANCE_CACHE
 declare -A PERFORMANCE_CACHE_TIMES
 declare -A SCRIPT_EXECUTION_TIMES
 declare -A SCRIPT_FAILURE_COUNTS
+declare -A SCRIPT_LAST_STATUS
+declare -A SCRIPT_LAST_ERROR
+declare -A SCRIPT_LAST_OUTPUT
+declare -A SCRIPT_LAST_EXIT_CODE
 declare -A SYSTEM_LOAD_VALUES
 
 # Persistent storage file for execution data
@@ -208,12 +212,23 @@ function track_script_execution() {
   local script_name="$1"
   local execution_time="$2"
   local success="$3"
+  local exit_code="${4:-0}"
+  local output="${5:-}"
+  local error_msg="${6:-}"
   
   # Load existing performance data first
   load_performance_data
   
   # Update execution time
   SCRIPT_EXECUTION_TIMES[$script_name]="$execution_time"
+  
+  # Update last execution status
+  SCRIPT_LAST_STATUS[$script_name]="$success"
+  
+  # Update last execution details
+  SCRIPT_LAST_EXIT_CODE[$script_name]="$exit_code"
+  SCRIPT_LAST_OUTPUT[$script_name]="$output"
+  SCRIPT_LAST_ERROR[$script_name]="$error_msg"
   
   # Update failure count if script failed
   if [[ "$success" == "false" ]]; then
@@ -256,6 +271,58 @@ function save_performance_data() {
     fi
     json_data+="\"$key\":${SCRIPT_FAILURE_COUNTS[$key]}"
   done
+  json_data+="},"
+  
+  json_data+="\"last_status\":{"
+  first=true
+  for key in "${!SCRIPT_LAST_STATUS[@]}"; do
+    if [[ "$first" == "true" ]]; then
+      first=false
+    else
+      json_data+=","
+    fi
+    json_data+="\"$key\":\"${SCRIPT_LAST_STATUS[$key]}\""
+  done
+  json_data+="},"
+  
+  json_data+="\"last_exit_codes\":{"
+  first=true
+  for key in "${!SCRIPT_LAST_EXIT_CODE[@]}"; do
+    if [[ "$first" == "true" ]]; then
+      first=false
+    else
+      json_data+=","
+    fi
+    json_data+="\"$key\":${SCRIPT_LAST_EXIT_CODE[$key]}"
+  done
+  json_data+="},"
+  
+  json_data+="\"last_outputs\":{"
+  first=true
+  for key in "${!SCRIPT_LAST_OUTPUT[@]}"; do
+    if [[ "$first" == "true" ]]; then
+      first=false
+    else
+      json_data+=","
+    fi
+    # Escape quotes in output
+    local escaped_output="${SCRIPT_LAST_OUTPUT[$key]//\"/\\\"}"
+    json_data+="\"$key\":\"$escaped_output\""
+  done
+  json_data+="},"
+  
+  json_data+="\"last_errors\":{"
+  first=true
+  for key in "${!SCRIPT_LAST_ERROR[@]}"; do
+    if [[ "$first" == "true" ]]; then
+      first=false
+    else
+      json_data+=","
+    fi
+    # Escape quotes in error message
+    local escaped_error="${SCRIPT_LAST_ERROR[$key]//\"/\\\"}"
+    json_data+="\"$key\":\"$escaped_error\""
+  done
   json_data+="}"
   json_data+="}"
   
@@ -282,6 +349,38 @@ function load_performance_data() {
       while IFS='=' read -r key value; do
         SCRIPT_FAILURE_COUNTS["$key"]="$value"
       done <<< "$failure_counts"
+    fi
+    
+    # Load last status
+    local last_status=$(cat "$data_file" | jq -r '.last_status | to_entries[] | "\(.key)=\(.value)"' 2>/dev/null)
+    if [[ -n "$last_status" ]]; then
+      while IFS='=' read -r key value; do
+        SCRIPT_LAST_STATUS["$key"]="$value"
+      done <<< "$last_status"
+    fi
+    
+    # Load last exit codes
+    local last_exit_codes=$(cat "$data_file" | jq -r '.last_exit_codes | to_entries[] | "\(.key)=\(.value)"' 2>/dev/null)
+    if [[ -n "$last_exit_codes" ]]; then
+      while IFS='=' read -r key value; do
+        SCRIPT_LAST_EXIT_CODE["$key"]="$value"
+      done <<< "$last_exit_codes"
+    fi
+    
+    # Load last outputs
+    local last_outputs=$(cat "$data_file" | jq -r '.last_outputs | to_entries[] | "\(.key)=\(.value)"' 2>/dev/null)
+    if [[ -n "$last_outputs" ]]; then
+      while IFS='=' read -r key value; do
+        SCRIPT_LAST_OUTPUT["$key"]="$value"
+      done <<< "$last_outputs"
+    fi
+    
+    # Load last errors
+    local last_errors=$(cat "$data_file" | jq -r '.last_errors | to_entries[] | "\(.key)=\(.value)"' 2>/dev/null)
+    if [[ -n "$last_errors" ]]; then
+      while IFS='=' read -r key value; do
+        SCRIPT_LAST_ERROR["$key"]="$value"
+      done <<< "$last_errors"
     fi
   fi
 }

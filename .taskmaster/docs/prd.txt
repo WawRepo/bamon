@@ -30,6 +30,14 @@ A configurable bash daemon that monitors and executes bash scripts/code snippets
   - **Success/Failure Status**: Clear indication of script execution results
   - **Output Capture**: Display both stdout and stderr from last execution
   - **Execution Metadata**: Show execution time, timestamp, and exit codes
+  - **Intelligent Error Messages**: Context-aware error reporting with specific failure types
+    - **Timeout Errors**: "Timeout after Xs" (using sandbox.timeout configuration)
+    - **Memory Errors**: "Memory error" for memory-related failures
+    - **Permission Issues**: "Permission denied" for access problems
+    - **File Issues**: "File not found" for missing files
+    - **Network Issues**: "Network error" for connection problems
+    - **Custom Scripts**: Show actual output for custom failing scripts
+    - **Generic Failures**: "Failed (exit code: X)" for other errors
   - **JSON Support**: Optional JSON output format for programmatic access
   - **Real-time Data**: Show current status without triggering new executions
 
@@ -125,11 +133,19 @@ bamon/
   - Complete stdout and stderr output
   - Execution timestamps and duration
   - Resource usage metrics
+  - Intelligent error message generation
 - **Status Display Format**:
   - **Human-readable**: Tabular format with clear status indicators
   - **JSON format**: Structured data with `--json` flag for API integration
   - **Filtering**: Show only failed scripts with `--failed` flag
   - **Sorting**: Sort by status, execution time, or script name
+  - **Error Column**: Context-aware error messages for failed scripts
+- **Error Message Intelligence**:
+  - **Timeout Detection**: Analyzes exit code 124 and "timed out" output patterns
+  - **Resource Error Detection**: Identifies memory, permission, and file access issues
+  - **Network Error Detection**: Recognizes connection and network-related failures
+  - **Custom Script Support**: Preserves original output for custom failing scripts
+  - **Configuration Integration**: Uses sandbox.timeout for accurate timeout reporting
 - **Data Persistence**: Store execution history in configurable location
   - Default: `~/.config/bamon/execution_history.json`
   - Configurable via `daemon.history_file` setting

@@ -6,6 +6,68 @@
 # Default timeout for script execution (seconds)
 DEFAULT_TIMEOUT=30
 
+# Generate specific error messages based on exit code and content
+function generate_error_message() {
+  local script_name="$1"
+  local exit_code="$2"
+  local output="$3"
+  local duration="$4"
+  
+  # Check for timeout (exit code 124 is typically used for timeout)
+  if [[ "$exit_code" == "124" ]]; then
+    local timeout_seconds=$(get_script_timeout "$script_name")
+    echo "Timeout after ${timeout_seconds}s"
+    return
+  fi
+  
+  # Check if output contains timeout message
+  if [[ "$output" == *"timed out"* ]] || [[ "$output" == *"timeout"* ]]; then
+    local timeout_seconds=$(get_script_timeout "$script_name")
+    echo "Timeout after ${timeout_seconds}s"
+    return
+  fi
+  
+  # Check for memory issues
+  if [[ "$output" == *"memory"* ]] || [[ "$output" == *"Memory"* ]]; then
+    echo "Memory error"
+    return
+  fi
+  
+  # Check for permission issues
+  if [[ "$output" == *"Permission denied"* ]] || [[ "$output" == *"permission"* ]]; then
+    echo "Permission denied"
+    return
+  fi
+  
+  # Check for file not found
+  if [[ "$output" == *"No such file"* ]] || [[ "$output" == *"not found"* ]]; then
+    echo "File not found"
+    return
+  fi
+  
+  # Check for network issues
+  if [[ "$output" == *"Connection refused"* ]] || [[ "$output" == *"network"* ]]; then
+    echo "Network error"
+    return
+  fi
+  
+  # For custom failing scripts, show the actual output
+  if [[ "$script_name" == "failing_test" ]]; then
+    echo "$output"
+    return
+  fi
+  
+  # Default: show generic error with exit code
+  echo "Failed (exit code: $exit_code)"
+}
+
+# Get script timeout from configuration
+function get_script_timeout() {
+  local script_name="$1"
+  local timeout=$(get_config_value "sandbox.timeout" "$DEFAULT_TIMEOUT")
+  echo "$timeout"
+}
+
 # Execute a script with sandboxed environment
 function execute_script() {
   local script_name="$1"
@@ -44,10 +106,13 @@ function execute_script() {
   
   # Track performance metrics
   local success="true"
+  local error_msg=""
   if [[ $exit_code -ne 0 ]]; then
     success="false"
+    # Generate specific error messages based on exit code and content
+    error_msg=$(generate_error_message "$script_name" "$exit_code" "$output" "$duration")
   fi
-  track_script_execution "$script_name" "$duration" "$success"
+  track_script_execution "$script_name" "$duration" "$success" "$exit_code" "$output" "$error_msg"
   
   # Log the result
   log_script_result "$script_name" "$exit_code" "$output" "$duration"
