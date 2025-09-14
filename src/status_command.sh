@@ -39,7 +39,7 @@ function status_command() {
   fi
   
   # Print header if not JSON output
-  if [[ "$json_output" != "true" ]]; then
+  if [[ "$json_output" != "1" ]]; then
     printf "%-20s %-10s %-20s %-10s %-15s %-20s %-20s %s\n" \
       "NAME" "STATUS" "LAST EXECUTION" "EXIT CODE" "DURATION" "TIME SINCE" "NEXT EXECUTION" "ERROR"
     printf "%s\n" "$(printf '=%.0s' {1..140})"
@@ -146,7 +146,7 @@ function status_command() {
     fi
   done
   
-  if [[ "$json_output" == "true" ]]; then
+    if [[ "$json_output" == "1" ]]; then
     echo ""
     echo "  ]"
     echo "}"
