@@ -291,7 +291,7 @@
             "id": 4,
             "title": "Test with Bash 4.0+ versions",
             "description": "Verify the performance library works correctly with Bash 4.0+ on different platforms",
-            "status": "not-started",
+            "status": "done",
             "dependencies": [],
             "details": "1. Test with system default bash on macOS (if 4.0+)\n2. Test with Homebrew bash on macOS\n3. Test with modern bash on Linux\n4. Verify all features work consistently across all bash versions\n5. Utilize Bash 4.0+ features for optimal performance",
             "testStrategy": "1. Create test scripts that exercise all performance functions\n2. Run tests with explicit bash version specification\n3. Verify output is consistent across all bash versions\n4. Check for any syntax errors or compatibility issues\n5. Measure performance to ensure optimal speed with modern Bash features"
@@ -484,18 +484,33 @@
         "title": "Implement execution history storage and retrieval",
         "description": "Enhance the configuration system to store and retrieve execution history data for status reporting",
         "details": "Update the configuration system to properly store and retrieve execution history data including last run time, status, duration, and error messages. Ensure the status check command can access this data efficiently without triggering new executions. Handle cases where execution data is incomplete or missing.",
-        "status": "in-progress",
+        "status": "done",
         "dependencies": [
           "15.1",
           "15.3",
           15
         ],
         "priority": "high"
+      },
+      {
+        "id": 20,
+        "title": "Update Status Command to Show Output Instead of Error Column",
+        "description": "Modify the status command to display an \"Output\" column instead of \"Error\" column, showing stdout for successful executions and error messages for failed executions, with appropriate truncation in table view.",
+        "details": "1. Update the status check command implementation in `src/status_check_command.sh` to:\n\n- Change the column header from \"ERROR\" to \"OUTPUT\" in the table formatting\n- Modify the data retrieval logic to fetch both stdout and stderr data from execution history\n- For successful executions (exit code 0), display stdout content in the OUTPUT column\n- For failed executions (non-zero exit code), display error messages in the OUTPUT column\n- Implement truncation logic for the table view:\n  - Limit output to 30 characters\n  - Add \"...( more details please run with --json flag )\" hint for truncated content\n- Ensure JSON view shows complete output without truncation\n\n2. Code changes required:\n\n```bash\n# Update the table header in the status_check_command function\n# Change this line:\nprintf \"%-20s %-15s %-20s %-10s %-30s\\n\" \"NAME\" \"STATUS\" \"LAST RUN\" \"DURATION\" \"ERROR\"\n\n# To:\nprintf \"%-20s %-15s %-20s %-10s %-30s\\n\" \"NAME\" \"STATUS\" \"LAST RUN\" \"DURATION\" \"OUTPUT\"\n\n# Update the output display logic:\nfor script in $scripts; do\n  # Existing code to get status, last_run, duration, etc.\n  \n  # New logic for output column\n  local output=\"\"\n  if [[ \"$status\" == \"OK\" ]]; then\n    # For successful executions, show stdout\n    output=$(get_script_stdout \"$script\")\n  else\n    # For failed executions, show error message\n    output=$(get_script_error \"$script\")\n  fi\n  \n  # Truncate output for table view\n  if [[ ${#output} -gt 30 && \"$json_output\" != \"true\" ]]; then\n    output=\"${output:0:30}...( more details please run with --json flag )\"\n  fi\n  \n  # Display in table format\n  printf \"%-20s %-15s %-20s %-10s %-30s\\n\" \"$script\" \"$status\" \"$last_run\" \"$duration\" \"$output\"\ndone\n\n# For JSON output, ensure we include the full output without truncation\nif [[ \"$json_output\" == \"true\" ]]; then\n  # Existing JSON formatting code, but include full stdout/stderr based on status\n  # ...\n}\n```\n\n3. Update any related functions in the configuration library to support retrieving both stdout and stderr data:\n\n```bash\n# Add or modify these functions in src/lib/config.sh\n\nfunction get_script_stdout() {\n  local script_name=\"$1\"\n  local stdout_file=\"$CONFIG_DIR/scripts/$script_name/stdout.log\"\n  \n  if [[ -f \"$stdout_file\" ]]; then\n    cat \"$stdout_file\"\n  else\n    echo \"\"\n  fi\n}\n\nfunction get_script_error() {\n  local script_name=\"$1\"\n  local stderr_file=\"$CONFIG_DIR/scripts/$script_name/stderr.log\"\n  \n  if [[ -f \"$stderr_file\" ]]; then\n    cat \"$stderr_file\"\n  else\n    echo \"\"\n  fi\n}\n```\n\n4. Update any tests that rely on the status command output format to expect \"OUTPUT\" instead of \"ERROR\" column.",
+        "testStrategy": "1. Test the status command with scripts in different states:\n   - Verify successful scripts show stdout content in the OUTPUT column\n   - Verify failed scripts show error messages in the OUTPUT column\n   - Check scripts with no output show empty OUTPUT column\n\n2. Test truncation logic:\n   - Create a script that produces more than 30 characters of output\n   - Verify table view truncates to 30 characters with the hint text\n   - Verify JSON view shows the complete output without truncation\n\n3. Test with various output types:\n   - Test with output containing special characters\n   - Test with multi-line output\n   - Test with output containing control characters\n   - Test with very long output (>1000 characters)\n\n4. Test backward compatibility:\n   - Verify scripts that were configured before this change still display correctly\n   - Check that any code that might parse the status output still works\n\n5. Test edge cases:\n   - Scripts with both stdout and stderr output\n   - Scripts with no output but non-zero exit code\n   - Scripts that have never been executed\n\n6. Verify column alignment and formatting:\n   - Check that the table remains properly aligned with the new column header\n   - Verify the truncation doesn't break table formatting",
+        "status": "done",
+        "dependencies": [
+          5,
+          15,
+          19
+        ],
+        "priority": "high",
+        "subtasks": []
       }
     ],
     "metadata": {
       "created": "2025-09-12T23:10:00.761Z",
-      "updated": "2025-09-14T08:37:41.722Z",
+      "updated": "2025-09-14T10:29:48.936Z",
       "description": "Tasks for master context"
     }
   }
