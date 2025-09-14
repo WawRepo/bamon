@@ -39,11 +39,17 @@ fi
 
 # Stop the daemon first
 echo "Stopping daemon..."
-stop_daemon false
+if ! stop_daemon false; then
+  echo "Error: Failed to stop daemon" >&2
+  exit 1
+fi
 
 # Wait a moment
 sleep 2
 
 # Start the daemon
 echo "Starting daemon..."
-start_daemon "$DAEMON_MODE"
+if ! start_daemon "$DAEMON_MODE"; then
+  echo "Error: Failed to start daemon" >&2
+  exit 1
+fi

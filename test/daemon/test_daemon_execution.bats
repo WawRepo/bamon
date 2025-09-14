@@ -14,10 +14,37 @@ setup() {
 
 @test "Daemon starts successfully" {
   run run_bamon "user" start --daemon
+  
+  # Debug output on failure
+  if [ "$status" -ne 0 ]; then
+    echo "=== START COMMAND FAILED ==="
+    echo "Exit code: $status"
+    echo "STDOUT: $output"
+    echo "Config file exists: $(test -f "$HOME/.config/bamon/config.yaml" && echo "yes" || echo "no")"
+    if [ -f "$HOME/.config/bamon/config.yaml" ]; then
+      echo "Config file contents:"
+      cat "$HOME/.config/bamon/config.yaml"
+    fi
+    echo "============================"
+  fi
+  
   [ "$status" -eq 0 ]
   
   # Wait for daemon to start
   wait_for_daemon
+  
+  # Debug output on failure
+  if [ "$?" -ne 0 ]; then
+    echo "=== WAIT FOR DAEMON FAILED ==="
+    echo "PID file location: $(yq e '.daemon.pid_file' "$HOME/.config/bamon/config.yaml" 2>/dev/null || echo "not found")"
+    echo "PID file exists: $(test -f "$(yq e '.daemon.pid_file' "$HOME/.config/bamon/config.yaml" 2>/dev/null)" && echo "yes" || echo "no")"
+    if [ -f "$(yq e '.daemon.pid_file' "$HOME/.config/bamon/config.yaml" 2>/dev/null)" ]; then
+      echo "PID file contents:"
+      cat "$(yq e '.daemon.pid_file' "$HOME/.config/bamon/config.yaml" 2>/dev/null)"
+    fi
+    echo "============================="
+  fi
+  
   [ "$?" -eq 0 ]
 }
 
@@ -50,14 +77,42 @@ setup() {
   
   # Stop daemon
   run run_bamon "user" stop
+  
+  # Debug output on failure
+  if [ "$status" -ne 0 ]; then
+    echo "=== STOP COMMAND FAILED ==="
+    echo "Exit code: $status"
+    echo "STDOUT: $output"
+    echo "Config file exists: $(test -f "$HOME/.config/bamon/config.yaml" && echo "yes" || echo "no")"
+    if [ -f "$HOME/.config/bamon/config.yaml" ]; then
+      echo "Config file contents:"
+      cat "$HOME/.config/bamon/config.yaml"
+    fi
+    echo "PID file location: $(yq e '.daemon.pid_file' "$HOME/.config/bamon/config.yaml" 2>/dev/null || echo "not found")"
+    echo "PID file exists: $(test -f "$(yq e '.daemon.pid_file' "$HOME/.config/bamon/config.yaml" 2>/dev/null)" && echo "yes" || echo "no")"
+    if [ -f "$(yq e '.daemon.pid_file' "$HOME/.config/bamon/config.yaml" 2>/dev/null)" ]; then
+      echo "PID file contents:"
+      cat "$(yq e '.daemon.pid_file' "$HOME/.config/bamon/config.yaml" 2>/dev/null)"
+    fi
+    echo "========================="
+  fi
+  
   [ "$status" -eq 0 ]
   
   # Wait a bit for cleanup
   sleep 2
   
   # Verify daemon is stopped
-  if [[ -f "$BAMON_CONFIG_DIR/bamon.pid" ]]; then
-    local pid=$(cat "$BAMON_CONFIG_DIR/bamon.pid")
+  local pid_file="/tmp/bamon.pid"
+  if [[ -f "$HOME/.config/bamon/config.yaml" ]]; then
+    local config_pid_file=$(yq e '.daemon.pid_file' "$HOME/.config/bamon/config.yaml" 2>/dev/null)
+    if [[ -n "$config_pid_file" && "$config_pid_file" != "null" ]]; then
+      pid_file="$config_pid_file"
+    fi
+  fi
+  
+  if [[ -f "$pid_file" ]]; then
+    local pid=$(cat "$pid_file")
     ! kill -0 "$pid" 2>/dev/null
   fi
 }
@@ -73,6 +128,26 @@ setup() {
   
   # Restart daemon
   run run_bamon "user" restart
+  
+  # Debug output on failure
+  if [ "$status" -ne 0 ]; then
+    echo "=== RESTART COMMAND FAILED ==="
+    echo "Exit code: $status"
+    echo "STDOUT: $output"
+    echo "Config file exists: $(test -f "$HOME/.config/bamon/config.yaml" && echo "yes" || echo "no")"
+    if [ -f "$HOME/.config/bamon/config.yaml" ]; then
+      echo "Config file contents:"
+      cat "$HOME/.config/bamon/config.yaml"
+    fi
+    echo "PID file location: $(yq e '.daemon.pid_file' "$HOME/.config/bamon/config.yaml" 2>/dev/null || echo "not found")"
+    echo "PID file exists: $(test -f "$(yq e '.daemon.pid_file' "$HOME/.config/bamon/config.yaml" 2>/dev/null)" && echo "yes" || echo "no")"
+    if [ -f "$(yq e '.daemon.pid_file' "$HOME/.config/bamon/config.yaml" 2>/dev/null)" ]; then
+      echo "PID file contents:"
+      cat "$(yq e '.daemon.pid_file' "$HOME/.config/bamon/config.yaml" 2>/dev/null)"
+    fi
+    echo "============================="
+  fi
+  
   [ "$status" -eq 0 ]
   
   # Wait for daemon to restart

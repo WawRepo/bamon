@@ -24,8 +24,16 @@ setup() {
 # Teardown function to run after each test
 teardown() {
   # Stop any running daemon
-  if [[ -f "$BAMON_CONFIG_DIR/bamon.pid" ]]; then
-    PID=$(cat "$BAMON_CONFIG_DIR/bamon.pid")
+  local pid_file="/tmp/bamon.pid"
+  if [[ -f "$HOME/.config/bamon/config.yaml" ]]; then
+    local config_pid_file=$(yq e '.daemon.pid_file' "$HOME/.config/bamon/config.yaml" 2>/dev/null)
+    if [[ -n "$config_pid_file" && "$config_pid_file" != "null" ]]; then
+      pid_file="$config_pid_file"
+    fi
+  fi
+  
+  if [[ -f "$pid_file" ]]; then
+    PID=$(cat "$pid_file")
     if kill -0 "$PID" 2>/dev/null; then
       kill "$PID" 2>/dev/null || true
     fi
@@ -54,23 +62,33 @@ install_bamon() {
     # Create default config (no need to copy install.sh)
     # Extract config from install script (simplified version)
     cat > "$HOME/.config/bamon/config.yaml" << 'EOF'
-default_interval: 300
-log_file: "/tmp/bamon.log"
-pid_file: "/tmp/bamon.pid"
-max_concurrent: 3
+daemon:
+  default_interval: 300
+  log_file: "/tmp/bamon.log"
+  pid_file: "/tmp/bamon.pid"
+  max_concurrent: 3
+
+sandbox:
+  timeout: 30
+  max_cpu_time: 60
+  max_file_size: 10240
+  max_virtual_memory: 102400
+
+performance:
+  enable_monitoring: true
+  load_threshold: 0.8
+  optimize_scheduling: true
+
 scripts:
-  health_check:
-    name: "health_check"
+  - name: "health_check"
     command: "curl -s -o /dev/null -w \"%{http_code}\" https://httpbin.org/status/200"
     interval: 300
     enabled: true
-  disk_usage:
-    name: "disk_usage"
+  - name: "disk_usage"
     command: "df -h / | awk 'NR==2 {print $5}' | sed 's/%//'"
     interval: 300
     enabled: true
-  github_status:
-    name: "github_status"
+  - name: "github_status"
     command: "curl -s https://www.githubstatus.com/api/v2/status.json | jq -r '.status.indicator'"
     interval: 300
     enabled: true
@@ -86,23 +104,33 @@ EOF
     sudo chmod +x /etc/bamon/samples/*.sh
     # Create default config
     sudo tee /etc/bamon/config.yaml > /dev/null << 'EOF'
-default_interval: 300
-log_file: "/var/log/bamon.log"
-pid_file: "/var/run/bamon.pid"
-max_concurrent: 3
+daemon:
+  default_interval: 300
+  log_file: "/var/log/bamon.log"
+  pid_file: "/var/run/bamon.pid"
+  max_concurrent: 3
+
+sandbox:
+  timeout: 30
+  max_cpu_time: 60
+  max_file_size: 10240
+  max_virtual_memory: 102400
+
+performance:
+  enable_monitoring: true
+  load_threshold: 0.8
+  optimize_scheduling: true
+
 scripts:
-  health_check:
-    name: "health_check"
+  - name: "health_check"
     command: "curl -s -o /dev/null -w \"%{http_code}\" https://httpbin.org/status/200"
     interval: 300
     enabled: true
-  disk_usage:
-    name: "disk_usage"
+  - name: "disk_usage"
     command: "df -h / | awk 'NR==2 {print $5}' | sed 's/%//'"
     interval: 300
     enabled: true
-  github_status:
-    name: "github_status"
+  - name: "github_status"
     command: "curl -s https://www.githubstatus.com/api/v2/status.json | jq -r '.status.indicator'"
     interval: 300
     enabled: true
@@ -119,23 +147,33 @@ EOF
     chmod +x .config/bamon/samples/*.sh
     # Create default config
     cat > .config/bamon/config.yaml << 'EOF'
-default_interval: 300
-log_file: "/tmp/bamon.log"
-pid_file: "/tmp/bamon.pid"
-max_concurrent: 3
+daemon:
+  default_interval: 300
+  log_file: "/tmp/bamon.log"
+  pid_file: "/tmp/bamon.pid"
+  max_concurrent: 3
+
+sandbox:
+  timeout: 30
+  max_cpu_time: 60
+  max_file_size: 10240
+  max_virtual_memory: 102400
+
+performance:
+  enable_monitoring: true
+  load_threshold: 0.8
+  optimize_scheduling: true
+
 scripts:
-  health_check:
-    name: "health_check"
+  - name: "health_check"
     command: "curl -s -o /dev/null -w \"%{http_code}\" https://httpbin.org/status/200"
     interval: 300
     enabled: true
-  disk_usage:
-    name: "disk_usage"
+  - name: "disk_usage"
     command: "df -h / | awk 'NR==2 {print $5}' | sed 's/%//'"
     interval: 300
     enabled: true
-  github_status:
-    name: "github_status"
+  - name: "github_status"
     command: "curl -s https://www.githubstatus.com/api/v2/status.json | jq -r '.status.indicator'"
     interval: 300
     enabled: true
@@ -179,9 +217,18 @@ wait_for_daemon() {
   local timeout=10
   local count=0
   
+  # Get PID file location from config
+  local pid_file="/tmp/bamon.pid"
+  if [[ -f "$HOME/.config/bamon/config.yaml" ]]; then
+    local config_pid_file=$(yq e '.daemon.pid_file' "$HOME/.config/bamon/config.yaml" 2>/dev/null)
+    if [[ -n "$config_pid_file" && "$config_pid_file" != "null" ]]; then
+      pid_file="$config_pid_file"
+    fi
+  fi
+  
   while [[ $count -lt $timeout ]]; do
-    if [[ -f "$BAMON_CONFIG_DIR/bamon.pid" ]]; then
-      local pid=$(cat "$BAMON_CONFIG_DIR/bamon.pid")
+    if [[ -f "$pid_file" ]]; then
+      local pid=$(cat "$pid_file")
       if kill -0 "$pid" 2>/dev/null; then
         return 0
       fi
@@ -195,8 +242,17 @@ wait_for_daemon() {
 
 # Helper to stop daemon
 stop_daemon() {
-  if [[ -f "$BAMON_CONFIG_DIR/bamon.pid" ]]; then
-    local pid=$(cat "$BAMON_CONFIG_DIR/bamon.pid")
+  # Get PID file location from config
+  local pid_file="/tmp/bamon.pid"
+  if [[ -f "$HOME/.config/bamon/config.yaml" ]]; then
+    local config_pid_file=$(yq e '.daemon.pid_file' "$HOME/.config/bamon/config.yaml" 2>/dev/null)
+    if [[ -n "$config_pid_file" && "$config_pid_file" != "null" ]]; then
+      pid_file="$config_pid_file"
+    fi
+  fi
+  
+  if [[ -f "$pid_file" ]]; then
+    local pid=$(cat "$pid_file")
     if kill -0 "$pid" 2>/dev/null; then
       kill "$pid" 2>/dev/null || true
       sleep 2

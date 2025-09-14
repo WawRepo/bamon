@@ -15,12 +15,14 @@ RUN useradd -m testuser && \
 # Set working directory
 WORKDIR /app
 
-# Copy test scripts and source code
+# Copy only test scripts first
 COPY test/ /app/test/
-COPY . /app/
 
-# Run setup script to install BATS and dependencies
+# Run setup script to install BATS and dependencies (before copying source code)
 RUN /app/test/container/setup.sh
+
+# Copy source code (this layer will be invalidated more frequently)
+COPY . /app/
 
 # Set default command
 CMD ["/bin/bash"]
