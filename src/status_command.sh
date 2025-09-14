@@ -60,7 +60,7 @@ function status_command() {
     local interval=$(get_script_interval "$script")
     
     # Skip if failed_only is set and script didn't fail
-    if [[ "$failed_only" == "true" && "$last_status" != "FAILED" ]]; then
+    if [[ "$failed_only" == "1" && "$last_status" != "FAILED" ]]; then
       continue
     fi
     

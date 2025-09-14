@@ -300,7 +300,7 @@
             "id": 5,
             "title": "Update performance CLI command",
             "description": "Ensure the performance command works with the refactored library and displays metrics correctly",
-            "status": "not-started",
+            "status": "done",
             "dependencies": [],
             "details": "",
             "testStrategy": ""
@@ -309,7 +309,7 @@
             "id": 6,
             "title": "Integrate with fixed sandbox timeout configuration",
             "description": "Ensure performance monitoring works correctly with the fixed sandbox timeout configuration in execute_sandboxed_from_config function",
-            "status": "not-started",
+            "status": "done",
             "dependencies": [],
             "details": "1. Verify that performance monitoring correctly tracks script execution with the fixed sandbox timeout\n2. Update performance metrics to include timeout information\n3. Test with scripts that should timeout after 3 seconds as configured in config.yaml",
             "testStrategy": "1. Run long-running scripts and verify they timeout after 3 seconds\n2. Check that performance metrics correctly record timeouts\n3. Verify that the performance report includes timeout information"
@@ -318,7 +318,7 @@
             "id": 7,
             "title": "Test performance with sandbox timeout configuration",
             "description": "Test performance optimization with the fixed sandbox timeout configuration to ensure proper resource management",
-            "status": "not-started",
+            "status": "done",
             "dependencies": [
               6
             ],
@@ -439,16 +439,17 @@
         "testStrategy": "1. Verify README.md content is complete and accurate:\n   - Ensure all sections listed in the implementation details are present\n   - Check that all commands and options are documented correctly\n   - Verify examples match the actual implementation\n\n2. Test README.md formatting:\n   - Validate markdown syntax using a markdown linter\n   - Ensure proper heading hierarchy (h1 > h2 > h3)\n   - Check that code blocks are properly formatted with appropriate language tags\n   - Verify tables are correctly formatted and aligned\n\n3. Validate technical accuracy:\n   - Cross-reference command documentation with actual implementation\n   - Ensure all command options are documented with correct syntax\n   - Verify installation instructions work on a clean system\n   - Test troubleshooting steps to confirm they resolve the issues they claim to address\n\n4. Review for completeness:\n   - Ensure all CLI commands are documented\n   - Verify all configuration options are explained\n   - Check that common error scenarios have troubleshooting guidance\n   - Confirm that security considerations are adequately addressed\n\n5. Usability testing:\n   - Have a team member unfamiliar with the project follow the README instructions\n   - Note any points of confusion or missing information\n   - Verify they can successfully install and use the tool following only the README\n\n6. Accessibility and readability:\n   - Check for clear language and avoid unnecessary jargon\n   - Ensure examples are easy to understand\n   - Verify proper use of formatting to enhance readability\n   - Check that diagrams and visual elements have appropriate text descriptions",
         "status": "pending",
         "dependencies": [
-          13,
-          18,
-          11,
-          12,
-          4,
           2,
           3,
+          4,
           6,
           7,
-          9
+          9,
+          11,
+          12,
+          13,
+          18,
+          "21"
         ],
         "priority": "medium",
         "subtasks": []
@@ -474,7 +475,8 @@
           11,
           12,
           13,
-          14
+          14,
+          "21"
         ],
         "status": "pending",
         "subtasks": []
@@ -506,11 +508,30 @@
         ],
         "priority": "high",
         "subtasks": []
+      },
+      {
+        "id": 21,
+        "title": "Create Ubuntu Container Testing Environment",
+        "description": "Set up a comprehensive testing infrastructure in a fresh Ubuntu container to validate bamon installation, functionality, and cross-platform compatibility.",
+        "details": "1. Create a `test/container` directory with Docker configuration:\n```bash\nmkdir -p test/container\n```\n\n2. Create a Dockerfile for Ubuntu testing:\n```dockerfile\nFROM ubuntu:latest\n\n# Install minimal dependencies for testing\nRUN apt-get update && apt-get install -y \\\n    curl \\\n    git \\\n    sudo \\\n    && rm -rf /var/lib/apt/lists/*\n\n# Create test user with sudo access\nRUN useradd -m testuser && \\\n    echo \"testuser ALL=(ALL) NOPASSWD:ALL\" > /etc/sudoers.d/testuser\n\n# Set working directory\nWORKDIR /app\n\n# Copy test scripts\nCOPY test/ /app/test/\n\n# Set default command\nCMD [\"/bin/bash\"]\n```\n\n3. Create a test configuration file at `test/config.yaml`:\n```yaml\ntest_settings:\n  timeout: 60\n  retry_count: 3\n  verbose: true\n  \ntest_cases:\n  - name: installation\n    description: \"Test installation script functionality\"\n    tests:\n      - \"test_user_installation.bats\"\n      - \"test_system_installation.bats\"\n      - \"test_dependency_detection.bats\"\n  \n  - name: commands\n    description: \"Test all CLI commands\"\n    tests:\n      - \"test_status_command.bats\"\n      - \"test_add_command.bats\"\n      - \"test_remove_command.bats\"\n      - \"test_list_command.bats\"\n      - \"test_now_command.bats\"\n      - \"test_start_stop_restart_commands.bats\"\n      - \"test_status_check_command.bats\"\n  \n  - name: daemon\n    description: \"Test daemon functionality\"\n    tests:\n      - \"test_daemon_execution.bats\"\n      - \"test_daemon_scheduling.bats\"\n      - \"test_daemon_logging.bats\"\n      - \"test_daemon_performance.bats\"\n```\n\n4. Install BATS testing framework in the container setup script:\n```bash\n#!/usr/bin/env bash\n# test/container/setup.sh\n\nset -e\n\n# Install BATS and dependencies\ngit clone https://github.com/bats-core/bats-core.git\ncd bats-core\n./install.sh /usr/local\ncd ..\nrm -rf bats-core\n\n# Install BATS support libraries\ngit clone https://github.com/bats-core/bats-support.git /usr/local/lib/bats-support\ngit clone https://github.com/bats-core/bats-assert.git /usr/local/lib/bats-assert\n\n# Install required dependencies for bamon\napt-get update\napt-get install -y bash curl jq\n# Install yq\ncurl -sL https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -o /usr/local/bin/yq\nchmod +x /usr/local/bin/yq\n\necho \"Test environment setup complete\"\n```\n\n5. Create a test runner script:\n```bash\n#!/usr/bin/env bash\n# test/container/run_tests.sh\n\nset -e\n\n# Source common test functions\nsource \"$(dirname \"$0\")/test_helpers.sh\"\n\n# Load test configuration\nCONFIG_FILE=\"$(dirname \"$0\")/../config.yaml\"\nif [[ ! -f \"$CONFIG_FILE\" ]]; then\n  echo \"Error: Test configuration file not found: $CONFIG_FILE\"\n  exit 1\nfi\n\n# Run installation tests\necho \"=== Running Installation Tests ===\"\nbats \"$(dirname \"$0\")/../installation/\"*.bats\n\n# Run command tests\necho \"=== Running Command Tests ===\"\nbats \"$(dirname \"$0\")/../commands/\"*.bats\n\n# Run daemon tests\necho \"=== Running Daemon Tests ===\"\nbats \"$(dirname \"$0\")/../daemon/\"*.bats\n\n# Run performance tests\necho \"=== Running Performance Tests ===\"\nbats \"$(dirname \"$0\")/../performance/\"*.bats\n\necho \"All tests completed successfully!\"\n```\n\n6. Create test helper functions:\n```bash\n#!/usr/bin/env bash\n# test/container/test_helpers.sh\n\n# Setup function to run before each test\nsetup() {\n  # Create temporary test directory\n  TEST_DIR=\"$(mktemp -d)\"\n  cd \"$TEST_DIR\"\n  \n  # Initialize test environment\n  export BAMON_TEST_MODE=true\n  export BAMON_CONFIG_DIR=\"$TEST_DIR/.config/bamon\"\n  mkdir -p \"$BAMON_CONFIG_DIR\"\n}\n\n# Teardown function to run after each test\nteardown() {\n  # Stop any running daemon\n  if [[ -f \"$BAMON_CONFIG_DIR/bamon.pid\" ]]; then\n    PID=$(cat \"$BAMON_CONFIG_DIR/bamon.pid\")\n    if kill -0 \"$PID\" 2>/dev/null; then\n      kill \"$PID\"\n    fi\n  fi\n  \n  # Clean up test directory\n  cd /\n  rm -rf \"$TEST_DIR\"\n}\n\n# Helper to install bamon in test environment\ninstall_bamon() {\n  local mode=$1\n  \n  # Copy installation script to test directory\n  cp /app/install.sh ./install.sh\n  \n  # Run installation\n  if [[ \"$mode\" == \"user\" ]]; then\n    ./install.sh --user\n  elif [[ \"$mode\" == \"system\" ]]; then\n    sudo ./install.sh --system\n  else\n    ./install.sh --dev\n  fi\n}\n\n# Helper to verify bamon is installed correctly\nverify_installation() {\n  # Check binary exists and is executable\n  if [[ \"$1\" == \"user\" ]]; then\n    test -x \"$HOME/.local/bin/bamon\"\n  else\n    test -x \"/usr/local/bin/bamon\"\n  fi\n  \n  # Check configuration exists\n  if [[ \"$1\" == \"user\" ]]; then\n    test -d \"$HOME/.config/bamon\"\n  else\n    test -d \"/etc/bamon\"\n  fi\n}\n```\n\n7. Create a Docker Compose file for easy testing:\n```yaml\n# test/container/docker-compose.yml\nversion: '3'\n\nservices:\n  bamon-test:\n    build:\n      context: ../..\n      dockerfile: test/container/Dockerfile\n    volumes:\n      - ../..:/app\n    command: /app/test/container/run_tests.sh\n```\n\n8. Create a main test script to build and run the container:\n```bash\n#!/usr/bin/env bash\n# test/run_container_tests.sh\n\nset -e\n\nSCRIPT_DIR=\"$(cd \"$(dirname \"${BASH_SOURCE[0]}\")\" && pwd)\"\ncd \"$SCRIPT_DIR/container\"\n\n# Build and run the test container\ndocker-compose build\ndocker-compose run --rm bamon-test\n\necho \"Container tests completed successfully!\"\n```\n\n9. Create sample BATS test files for each test category:\n\nInstallation test example:\n```bash\n#!/usr/bin/env bats\n# test/installation/test_user_installation.bats\n\nload \"../container/test_helpers.sh\"\n\n@test \"User installation creates binary in ~/.local/bin\" {\n  install_bamon \"user\"\n  [ -x \"$HOME/.local/bin/bamon\" ]\n}\n\n@test \"User installation creates config directory\" {\n  install_bamon \"user\"\n  [ -d \"$HOME/.config/bamon\" ]\n}\n\n@test \"User installation creates default config file\" {\n  install_bamon \"user\"\n  [ -f \"$HOME/.config/bamon/config.yaml\" ]\n}\n```\n\nCommand test example:\n```bash\n#!/usr/bin/env bats\n# test/commands/test_add_command.bats\n\nload \"../container/test_helpers.sh\"\n\nsetup() {\n  # Common setup\n  install_bamon \"user\"\n}\n\n@test \"Add command creates new script entry\" {\n  run \"$HOME/.local/bin/bamon\" add test_script --command \"echo 'test'\" --interval 60\n  [ \"$status\" -eq 0 ]\n  \n  # Verify script was added to config\n  run yq e '.scripts.test_script' \"$HOME/.config/bamon/config.yaml\"\n  [ \"$status\" -eq 0 ]\n  [ -n \"$output\" ]\n}\n```\n\nDaemon test example:\n```bash\n#!/usr/bin/env bats\n# test/daemon/test_daemon_execution.bats\n\nload \"../container/test_helpers.sh\"\n\nsetup() {\n  # Common setup\n  install_bamon \"user\"\n  \n  # Add test script\n  \"$HOME/.local/bin/bamon\" add test_script --command \"echo 'executed' > /tmp/test_execution\" --interval 5\n}\n\n@test \"Daemon executes scripts at specified intervals\" {\n  # Start daemon\n  \"$HOME/.local/bin/bamon\" start\n  \n  # Wait for execution\n  sleep 10\n  \n  # Check if script was executed\n  [ -f \"/tmp/test_execution\" ]\n  run cat \"/tmp/test_execution\"\n  [ \"$output\" = \"executed\" ]\n}\n```",
+        "testStrategy": "1. Verify Docker container setup:\n   - Build the Ubuntu container using the provided Dockerfile\n   - Confirm all required dependencies are installed correctly\n   - Verify BATS testing framework is properly installed\n\n2. Test installation process in container:\n   - Run user installation tests to verify ~/.local/bin installation works\n   - Run system installation tests to verify /usr/local/bin installation works\n   - Verify dependency detection correctly identifies missing dependencies\n   - Confirm configuration files are created in the expected locations\n\n3. Test CLI commands:\n   - Verify each command (status, add, remove, list, now, start, stop, restart) works correctly\n   - Test with various parameters and edge cases\n   - Confirm error handling works as expected for invalid inputs\n   - Verify JSON output formatting is correct\n\n4. Test daemon functionality:\n   - Verify daemon starts and stops correctly\n   - Confirm scripts are executed at the specified intervals\n   - Test concurrent execution limits\n   - Verify logging works correctly\n   - Test performance monitoring and resource management\n\n5. Test cross-platform compatibility:\n   - Verify all functionality works correctly in the Ubuntu container\n   - Compare results with other platforms to ensure consistent behavior\n\n6. Verify error handling:\n   - Test with invalid configurations\n   - Test with missing dependencies\n   - Test with malformed commands\n   - Verify appropriate error messages are displayed\n\n7. Run comprehensive test suite:\n   - Execute all BATS tests in the container\n   - Verify all tests pass with no errors\n   - Confirm test coverage includes all major functionality\n\n8. Validate container test environment:\n   - Verify the test environment accurately represents a fresh installation\n   - Confirm no pre-existing dependencies affect test results\n   - Ensure tests are repeatable and consistent",
+        "status": "pending",
+        "dependencies": [
+          13,
+          11,
+          12,
+          3,
+          4,
+          9,
+          14
+        ],
+        "priority": "high",
+        "subtasks": []
       }
     ],
     "metadata": {
       "created": "2025-09-12T23:10:00.761Z",
-      "updated": "2025-09-14T10:29:48.936Z",
+      "updated": "2025-09-14T15:42:22.720Z",
       "description": "Tasks for master context"
     }
   }

@@ -226,6 +226,27 @@ bamon/
 - **Linux**: Native support with package manager dependencies
 - **Windows**: WSL2 support with Linux dependencies
 
+### 5. Ubuntu Container Testing Environment
+- **Purpose**: Comprehensive testing in isolated Ubuntu environment to validate installation, functionality, and cross-platform compatibility
+- **Container Setup**: Fresh Ubuntu container (latest LTS) with no pre-installed dependencies
+- **Installation Testing**: Test complete installation process including all required binaries
+- **Test Framework**: BATS (Bash Automated Testing System) for comprehensive test coverage
+- **Test Structure**:
+  - `test/` directory with complete test suite
+  - `test/config.yaml` with test configuration
+  - All CLI commands and paths tested
+  - Daemon functionality validation
+  - Performance monitoring verification
+  - JSON output validation
+  - Error handling and edge cases
+- **Deployment Process**:
+  1. Start fresh Ubuntu container
+  2. Install system dependencies (bash, curl, jq, yq, etc.)
+  3. Install bamon via installation script
+  4. Run comprehensive test suite
+  5. Validate all functionality works correctly
+- **Success Criteria**: All tests pass in clean Ubuntu environment
+
 ## Success Criteria
 
 ### 1. Functional Requirements
