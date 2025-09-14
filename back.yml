@@ -11,29 +11,6 @@ custom_includes:
   - src/lib/execution.sh
 
 commands:
-  - name: status
-    help: Display current status of all configured scripts
-    flags:
-      - long: --verbose
-        short: -v
-        help: Show detailed information including full output
-      - long: --failed-only
-        short: -f
-        help: Show only failed scripts
-      - long: --json
-        short: -j
-        help: Output in JSON format
-      - long: --name
-        short: -n
-        arg: script_name
-        help: Check status of a specific script
-    examples:
-      - "bamon status"
-      - "bamon status --verbose"
-      - "bamon status --failed-only"
-      - "bamon status --json"
-      - "bamon status --name health_check"
-
   - name: add
     help: Add a new script to monitor
     args:
@@ -143,6 +120,47 @@ commands:
       - "bamon list"
       - "bamon list --enabled-only"
       - "bamon list --disabled-only"
+
+  - name: performance
+    help: Display system performance metrics and optimization status
+    flags:
+      - long: --verbose
+        short: -v
+        help: Show detailed performance information
+      - long: --format
+        short: -f
+        arg: format
+        help: "Output format: table, json (default: table)"
+      - long: --json
+        short: -j
+        help: Output in JSON format
+    examples:
+      - "bamon performance"
+      - "bamon performance --verbose"
+      - "bamon performance --json"
+
+  - name: status
+    help: Display current status of all configured scripts
+    flags:
+      - long: --verbose
+        short: -v
+        help: Show detailed information including full output
+      - long: --failed-only
+        short: -f
+        help: Show only failed scripts
+      - long: --json
+        short: -j
+        help: Output in JSON format
+      - long: --name
+        short: -n
+        arg: script_name
+        help: Check status of a specific script
+    examples:
+      - "bamon status"
+      - "bamon status --verbose"
+      - "bamon status --failed-only"
+      - "bamon status --json"
+      - "bamon status --name health_check"
 
 flags:
   - long: --version

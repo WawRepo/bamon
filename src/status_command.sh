@@ -8,7 +8,7 @@
 function status_command() {
   local name="${args[--name]:-}"
   local json_output="${args[--json]:-}"
-  local failed_only="${args[--failed]:-}"
+  local failed_only="${args[--failed-only]:-}"
   local verbose="${args[--verbose]:-}"
   
   # Handle case when args array is not available (direct function call)
@@ -116,7 +116,7 @@ function status_command() {
     fi
     
     # Output in requested format
-    if [[ "$json_output" == "true" ]]; then
+    if [[ "$json_output" == "1" ]]; then
       if [[ "$first" != "true" ]]; then
         echo "    ,"
       fi

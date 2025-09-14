@@ -12,10 +12,19 @@ commands:
       - long: --failed-only
         short: -f
         help: Show only failed scripts
+      - long: --json
+        short: -j
+        help: Output in JSON format
+      - long: --name
+        short: -n
+        arg: script_name
+        help: Check status of a specific script
     examples:
       - "bamon status"
       - "bamon status --verbose"
       - "bamon status --failed-only"
+      - "bamon status --json"
+      - "bamon status --name health_check"
 
   - name: add
     help: Add a new script to monitor
