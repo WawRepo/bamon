@@ -35,6 +35,7 @@ bamon_usage() {
   printf "  %s   Restart the daemon process\n" "restart    "
   printf "  %s   List all configured scripts\n" "list       "
   printf "  %s   Show system performance metrics and optimization status\n" "performance"
+  printf "  %s   Configuration management commands\n" "config     "
   echo
 
   # :command.long_usage
@@ -448,6 +449,133 @@ bamon_performance_usage() {
   fi
 }
 
+# :command.usage
+bamon_config_usage() {
+  printf "bamon config - Configuration management commands\n\n"
+
+  printf "%s\n" "Usage:"
+  printf "  bamon config COMMAND\n"
+  printf "  bamon config [COMMAND] --help | -h\n"
+  echo
+  # :command.usage_commands
+  printf "%s\n" "Commands:"
+  printf "  %s   Open configuration file in default editor\n" "edit    "
+  printf "  %s   Display current configuration in YAML format\n" "show    "
+  printf "  %s   Validate configuration file syntax and structure\n" "validate"
+  echo
+
+  # :command.long_usage
+  if [[ -n "$long_usage" ]]; then
+    printf "%s\n" "Options:"
+
+    # :command.usage_fixed_flags
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+  fi
+}
+
+# :command.usage
+bamon_config_edit_usage() {
+  printf "bamon config edit - Open configuration file in default editor\n\n"
+
+  printf "%s\n" "Usage:"
+  printf "  bamon config edit [OPTIONS]\n"
+  printf "  bamon config edit --help | -h\n"
+  echo
+
+  # :command.long_usage
+  if [[ -n "$long_usage" ]]; then
+    printf "%s\n" "Options:"
+
+    # :command.usage_flags
+    # :flag.usage
+    printf "  %s\n" "--editor, -e EDITOR"
+    printf "    Specify editor to use (default: EDITOR env var or vi)\n"
+    echo
+
+    # :command.usage_fixed_flags
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+    # :command.usage_examples
+    printf "%s\n" "Examples:"
+    printf "  bamon config edit\n"
+    printf "  bamon config edit --editor nano\n"
+    printf "  bamon config edit --editor code\n"
+    echo
+
+  fi
+}
+
+# :command.usage
+bamon_config_show_usage() {
+  printf "bamon config show - Display current configuration in YAML format\n\n"
+
+  printf "%s\n" "Usage:"
+  printf "  bamon config show [OPTIONS]\n"
+  printf "  bamon config show --help | -h\n"
+  echo
+
+  # :command.long_usage
+  if [[ -n "$long_usage" ]]; then
+    printf "%s\n" "Options:"
+
+    # :command.usage_flags
+    # :flag.usage
+    printf "  %s\n" "--pretty, -p"
+    printf "    Pretty print the YAML output\n"
+    echo
+
+    # :command.usage_fixed_flags
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+    # :command.usage_examples
+    printf "%s\n" "Examples:"
+    printf "  bamon config show\n"
+    printf "  bamon config show --pretty\n"
+    echo
+
+  fi
+}
+
+# :command.usage
+bamon_config_validate_usage() {
+  printf "bamon config validate - Validate configuration file syntax and structure\n\n"
+
+  printf "%s\n" "Usage:"
+  printf "  bamon config validate [OPTIONS]\n"
+  printf "  bamon config validate --help | -h\n"
+  echo
+
+  # :command.long_usage
+  if [[ -n "$long_usage" ]]; then
+    printf "%s\n" "Options:"
+
+    # :command.usage_flags
+    # :flag.usage
+    printf "  %s\n" "--verbose, -v"
+    printf "    Show detailed validation information\n"
+    echo
+
+    # :command.usage_fixed_flags
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+    # :command.usage_examples
+    printf "%s\n" "Examples:"
+    printf "  bamon config validate\n"
+    printf "  bamon config validate --verbose\n"
+    echo
+
+  fi
+}
+
 # :command.normalize_input
 # :command.normalize_input_function
 normalize_input() {
@@ -520,6 +648,100 @@ inspect_args() {
 CONFIG_FILE="${BAMON_CONFIG_FILE:-${HOME}/.config/bamon/config.yaml}"
 LOG_DIR="${HOME}/.local/share/bamon/logs"
 PID_DIR="${HOME}/.local/share/bamon"
+
+# Get configuration file path
+function get_config_file() {
+  echo "${CONFIG_FILE}"
+}
+
+# Validate configuration file
+function validate_config_file() {
+  local config_file="$1"
+  local errors=0
+
+  # Check if file exists
+  if [[ ! -f "$config_file" ]]; then
+    echo "Error: Configuration file not found: $config_file"
+    return 1
+  fi
+
+  # Check if yq is available for validation
+  if ! command -v yq >/dev/null 2>&1; then
+    echo "Warning: yq not found, skipping YAML validation"
+    return 0
+  fi
+
+  # Validate YAML syntax
+  if ! yq eval '.' "$config_file" >/dev/null 2>&1; then
+    echo "Error: Invalid YAML syntax in configuration file"
+    return 1
+  fi
+
+  # Validate required sections
+  local required_sections=("daemon" "sandbox" "performance" "scripts")
+  for section in "${required_sections[@]}"; do
+    if ! yq eval "has(\"$section\")" "$config_file" | grep -q "true"; then
+      echo "Error: Missing required section: $section"
+      ((errors++))
+    fi
+  done
+
+  # Validate daemon section
+  local daemon_required=("default_interval" "log_file" "pid_file" "max_concurrent")
+  for field in "${daemon_required[@]}"; do
+    if ! yq eval ".daemon.$field" "$config_file" | grep -q -v "null"; then
+      echo "Error: Missing required daemon field: $field"
+      ((errors++))
+    fi
+  done
+
+  # Validate scripts section
+  local script_count
+  script_count=$(yq eval '.scripts | length' "$config_file" 2>/dev/null || echo "0")
+
+  if [[ "$script_count" -gt 0 ]]; then
+    # Validate each script
+    local i=0
+    while [[ $i -lt $script_count ]]; do
+      local script_name
+      local script_command
+      local script_interval
+      local script_enabled
+
+      script_name=$(yq eval ".scripts[$i].name" "$config_file" 2>/dev/null)
+      script_command=$(yq eval ".scripts[$i].command" "$config_file" 2>/dev/null)
+      script_interval=$(yq eval ".scripts[$i].interval" "$config_file" 2>/dev/null)
+      script_enabled=$(yq eval ".scripts[$i].enabled" "$config_file" 2>/dev/null)
+
+      if [[ "$script_name" == "null" || -z "$script_name" ]]; then
+        echo "Error: Script $i missing name"
+        ((errors++))
+      fi
+
+      if [[ "$script_command" == "null" || -z "$script_command" ]]; then
+        echo "Error: Script '$script_name' missing command"
+        ((errors++))
+      fi
+
+      if [[ "$script_interval" == "null" || -z "$script_interval" ]]; then
+        echo "Error: Script '$script_name' missing interval"
+        ((errors++))
+      elif ! [[ "$script_interval" =~ ^[0-9]+$ ]]; then
+        echo "Error: Script '$script_name' interval must be a number"
+        ((errors++))
+      fi
+
+      if [[ "$script_enabled" == "null" ]]; then
+        echo "Error: Script '$script_name' missing enabled status"
+        ((errors++))
+      fi
+
+      ((i++))
+    done
+  fi
+
+  return $errors
+}
 
 # Create default configuration
 function init_config() {
@@ -3064,6 +3286,148 @@ bamon_performance_command() {
 
 }
 
+# :command.function
+bamon_config_edit_command() {
+
+  # src/config_edit_command.sh
+  # Load required libraries
+  source "$(dirname "${BASH_SOURCE[0]}")/lib/config.sh"
+
+  # Config edit command implementation
+  local editor="${args[--editor]:-${EDITOR:-vi}}"
+  local config_file
+
+  # Get config file path
+  config_file=$(get_config_file)
+
+  if [[ ! -f "$config_file" ]]; then
+    echo "Error: Configuration file not found at $config_file"
+    echo "Run 'bamon config reset' to create a default configuration."
+    exit 1
+  fi
+
+  # Check if editor exists
+  if ! command -v "$editor" >/dev/null 2>&1; then
+    echo "Error: Editor '$editor' not found"
+    echo "Please install the editor or use --editor to specify a different one"
+    exit 1
+  fi
+
+  echo "Opening configuration file in $editor..."
+  echo "File: $config_file"
+
+  # Open editor
+  "$editor" "$config_file"
+
+  # Validate after editing
+  echo ""
+  echo "Validating configuration after edit..."
+  if validate_config_file "$config_file"; then
+    echo "✅ Configuration is valid"
+  else
+    echo "❌ Configuration has errors. Please fix them before using BAMON."
+    exit 1
+  fi
+
+}
+
+# :command.function
+bamon_config_show_command() {
+
+  # src/config_show_command.sh
+  # Load required libraries
+  source "$(dirname "${BASH_SOURCE[0]}")/lib/config.sh"
+
+  # Config show command implementation
+  local config_file
+  local pretty="${args[--pretty]:-0}"
+
+  # Get config file path
+  config_file=$(get_config_file)
+
+  if [[ ! -f "$config_file" ]]; then
+    echo "Error: Configuration file not found at $config_file"
+    echo "Run 'bamon config reset' to create a default configuration."
+    exit 1
+  fi
+
+  if [[ "$pretty" == "1" ]]; then
+    # Pretty print with yq
+    if command -v yq >/dev/null 2>&1; then
+      yq eval '.' "$config_file"
+    else
+      cat "$config_file"
+    fi
+  else
+    cat "$config_file"
+  fi
+
+}
+
+# :command.function
+bamon_config_validate_command() {
+
+  # src/config_validate_command.sh
+  # Load required libraries
+  source "$(dirname "${BASH_SOURCE[0]}")/lib/config.sh"
+
+  # Config validate command implementation
+  local config_file
+  local verbose="${args[--verbose]:-0}"
+
+  # Get config file path
+  config_file=$(get_config_file)
+
+  if [[ ! -f "$config_file" ]]; then
+    echo "❌ Configuration file not found at $config_file"
+    exit 1
+  fi
+
+  echo "Validating configuration file: $config_file"
+  echo ""
+
+  if validate_config_file "$config_file"; then
+    echo "✅ Configuration is valid"
+
+    if [[ "$verbose" == "1" ]]; then
+      echo ""
+      echo "Configuration details:"
+      echo "====================="
+
+      # Show basic config info
+      local default_interval
+      local log_file
+      local pid_file
+      local max_concurrent
+      local script_count
+
+      default_interval=$(get_config_value "daemon.default_interval" "$config_file")
+      log_file=$(get_config_value "daemon.log_file" "$config_file")
+      pid_file=$(get_config_value "daemon.pid_file" "$config_file")
+      max_concurrent=$(get_config_value "daemon.max_concurrent" "$config_file")
+      script_count=$(yq eval '.scripts | length' "$config_file" 2>/dev/null || echo "0")
+
+      echo "  Default interval: ${default_interval}s"
+      echo "  Log file: $log_file"
+      echo "  PID file: $pid_file"
+      echo "  Max concurrent: $max_concurrent"
+      echo "  Scripts configured: $script_count"
+
+      if [[ "$script_count" -gt 0 ]]; then
+        echo ""
+        echo "Configured scripts:"
+        yq eval '.scripts[] | "  - \(.name): \(.command)"' "$config_file" 2>/dev/null || true
+      fi
+    fi
+
+    exit 0
+  else
+    echo "❌ Configuration has errors"
+    exit 1
+  fi
+
+}
+
 # :command.parse_requirements
 parse_requirements() {
   # :command.fixed_flags_filter
@@ -3170,6 +3534,13 @@ parse_requirements() {
       action="performance"
       shift
       bamon_performance_parse_requirements "$@"
+      shift $#
+      ;;
+
+    config)
+      action="config"
+      shift
+      bamon_config_parse_requirements "$@"
       shift $#
       ;;
 
@@ -3861,6 +4232,250 @@ bamon_performance_parse_requirements() {
 
 }
 
+# :command.parse_requirements
+bamon_config_parse_requirements() {
+  # :command.fixed_flags_filter
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+      --help | -h)
+        long_usage=yes
+        bamon_config_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  # :command.command_filter
+  action=${1:-}
+
+  case $action in
+    -*) ;;
+
+    edit)
+      action="edit"
+      shift
+      bamon_config_edit_parse_requirements "$@"
+      shift $#
+      ;;
+
+    show)
+      action="show"
+      shift
+      bamon_config_show_parse_requirements "$@"
+      shift $#
+      ;;
+
+    validate)
+      action="validate"
+      shift
+      bamon_config_validate_parse_requirements "$@"
+      shift $#
+      ;;
+
+    # :command.command_fallback
+    "")
+      bamon_config_usage >&2
+      exit 1
+      ;;
+
+    *)
+      printf "invalid command: %s\n" "$action" >&2
+      exit 1
+      ;;
+
+  esac
+
+  # :command.parse_requirements_while
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+      -?*)
+        printf "invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+        # :command.parse_requirements_case
+        # :command.parse_requirements_case_simple
+        printf "invalid argument: %s\n" "$key" >&2
+        exit 1
+
+        ;;
+
+    esac
+  done
+
+}
+
+# :command.parse_requirements
+bamon_config_edit_parse_requirements() {
+  # :command.fixed_flags_filter
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+      --help | -h)
+        long_usage=yes
+        bamon_config_edit_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  # :command.command_filter
+  action="config edit"
+
+  # :command.parse_requirements_while
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+      # :flag.case
+      --editor | -e)
+
+        # :flag.case_arg
+        if [[ -n ${2+x} ]]; then
+          args['--editor']="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "--editor requires an argument: --editor, -e EDITOR" >&2
+          exit 1
+        fi
+        ;;
+
+      -?*)
+        printf "invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+        # :command.parse_requirements_case
+        # :command.parse_requirements_case_simple
+        printf "invalid argument: %s\n" "$key" >&2
+        exit 1
+
+        ;;
+
+    esac
+  done
+
+}
+
+# :command.parse_requirements
+bamon_config_show_parse_requirements() {
+  # :command.fixed_flags_filter
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+      --help | -h)
+        long_usage=yes
+        bamon_config_show_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  # :command.command_filter
+  action="config show"
+
+  # :command.parse_requirements_while
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+      # :flag.case
+      --pretty | -p)
+
+        # :flag.case_no_arg
+        args['--pretty']=1
+        shift
+        ;;
+
+      -?*)
+        printf "invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+        # :command.parse_requirements_case
+        # :command.parse_requirements_case_simple
+        printf "invalid argument: %s\n" "$key" >&2
+        exit 1
+
+        ;;
+
+    esac
+  done
+
+}
+
+# :command.parse_requirements
+bamon_config_validate_parse_requirements() {
+  # :command.fixed_flags_filter
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+      --help | -h)
+        long_usage=yes
+        bamon_config_validate_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  # :command.command_filter
+  action="config validate"
+
+  # :command.parse_requirements_while
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+      # :flag.case
+      --verbose | -v)
+
+        # :flag.case_no_arg
+        args['--verbose']=1
+        shift
+        ;;
+
+      -?*)
+        printf "invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+        # :command.parse_requirements_case
+        # :command.parse_requirements_case_simple
+        printf "invalid argument: %s\n" "$key" >&2
+        exit 1
+
+        ;;
+
+    esac
+  done
+
+}
+
 # :command.initialize
 initialize() {
   declare -g version="0.1.0"
@@ -3890,6 +4505,10 @@ run() {
     "restart") bamon_restart_command ;;
     "list") bamon_list_command ;;
     "performance") bamon_performance_command ;;
+    "config") bamon_config_command ;;
+    "config edit") bamon_config_edit_command ;;
+    "config show") bamon_config_show_command ;;
+    "config validate") bamon_config_validate_command ;;
   esac
 }
 

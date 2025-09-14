@@ -1,0 +1,10 @@
+services:
+  bamon-test:
+    build:
+      context: ../..
+      dockerfile: test/container/Dockerfile
+    volumes:
+      - ../..:/app
+    command: /app/test/container/run_tests.sh
+    environment:
+      - BAMON_TEST_MODE=true

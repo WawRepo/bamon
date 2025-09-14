@@ -1,0 +1,38 @@
+test_settings:
+  timeout: 60
+  retry_count: 3
+  verbose: true
+  
+test_cases:
+  - name: installation
+    description: "Test installation script functionality"
+    tests:
+      - "test_user_installation.bats"
+      - "test_system_installation.bats"
+      - "test_dependency_detection.bats"
+  
+  - name: commands
+    description: "Test all CLI commands"
+    tests:
+      - "test_status_command.bats"
+      - "test_add_command.bats"
+      - "test_remove_command.bats"
+      - "test_list_command.bats"
+      - "test_now_command.bats"
+      - "test_start_stop_restart_commands.bats"
+      - "test_performance_command.bats"
+  
+  - name: daemon
+    description: "Test daemon functionality"
+    tests:
+      - "test_daemon_execution.bats"
+      - "test_daemon_scheduling.bats"
+      - "test_daemon_logging.bats"
+      - "test_daemon_performance.bats"
+  
+  - name: performance
+    description: "Test performance monitoring"
+    tests:
+      - "test_performance_monitoring.bats"
+      - "test_json_output.bats"
+      - "test_error_handling.bats"

@@ -59,6 +59,11 @@ A configurable bash daemon that monitors and executes bash scripts/code snippets
 - **stop**: Stop the daemon process
 - **restart**: Restart the daemon process
 - **performance**: Show system performance metrics and optimization status
+- **config**: Configuration management commands
+  - **config edit**: Open configuration file in default editor for manual editing
+  - **config show**: Display current configuration in YAML format
+  - **config validate**: Validate configuration file syntax and structure
+  - **config reset**: Reset configuration to default values
 
 ### 4. Daemon Logging
 - **Background Mode**: When running `bamon start --daemon`, all output is redirected to a single log file

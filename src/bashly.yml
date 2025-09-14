@@ -153,6 +153,42 @@ commands:
       - "bamon performance --verbose"
       - "bamon performance --json"
 
+  - name: config
+    help: Configuration management commands
+    commands:
+      - name: edit
+        help: Open configuration file in default editor
+        flags:
+          - long: --editor
+            short: -e
+            arg: editor
+            help: "Specify editor to use (default: EDITOR env var or vi)"
+        examples:
+          - "bamon config edit"
+          - "bamon config edit --editor nano"
+          - "bamon config edit --editor code"
+
+      - name: show
+        help: Display current configuration in YAML format
+        flags:
+          - long: --pretty
+            short: -p
+            help: Pretty print the YAML output
+        examples:
+          - "bamon config show"
+          - "bamon config show --pretty"
+
+      - name: validate
+        help: Validate configuration file syntax and structure
+        flags:
+          - long: --verbose
+            short: -v
+            help: Show detailed validation information
+        examples:
+          - "bamon config validate"
+          - "bamon config validate --verbose"
+
+
 flags:
   - long: --version
     short: -V

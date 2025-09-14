@@ -6,6 +6,101 @@ CONFIG_FILE="${BAMON_CONFIG_FILE:-${HOME}/.config/bamon/config.yaml}"
 LOG_DIR="${HOME}/.local/share/bamon/logs"
 PID_DIR="${HOME}/.local/share/bamon"
 
+# Get configuration file path
+function get_config_file() {
+  echo "${CONFIG_FILE}"
+}
+
+# Validate configuration file
+function validate_config_file() {
+  local config_file="$1"
+  local errors=0
+  
+  # Check if file exists
+  if [[ ! -f "$config_file" ]]; then
+    echo "Error: Configuration file not found: $config_file"
+    return 1
+  fi
+  
+  # Check if yq is available for validation
+  if ! command -v yq >/dev/null 2>&1; then
+    echo "Warning: yq not found, skipping YAML validation"
+    return 0
+  fi
+  
+  # Validate YAML syntax
+  if ! yq eval '.' "$config_file" >/dev/null 2>&1; then
+    echo "Error: Invalid YAML syntax in configuration file"
+    return 1
+  fi
+  
+  # Validate required sections
+  local required_sections=("daemon" "sandbox" "performance" "scripts")
+  for section in "${required_sections[@]}"; do
+    if ! yq eval "has(\"$section\")" "$config_file" | grep -q "true"; then
+      echo "Error: Missing required section: $section"
+      ((errors++))
+    fi
+  done
+  
+  # Validate daemon section
+  local daemon_required=("default_interval" "log_file" "pid_file" "max_concurrent")
+  for field in "${daemon_required[@]}"; do
+    if ! yq eval ".daemon.$field" "$config_file" | grep -q -v "null"; then
+      echo "Error: Missing required daemon field: $field"
+      ((errors++))
+    fi
+  done
+  
+  # Validate scripts section
+  local script_count
+  script_count=$(yq eval '.scripts | length' "$config_file" 2>/dev/null || echo "0")
+  
+  if [[ "$script_count" -gt 0 ]]; then
+    # Validate each script
+    local i=0
+    while [[ $i -lt $script_count ]]; do
+      local script_name
+      local script_command
+      local script_interval
+      local script_enabled
+      
+      script_name=$(yq eval ".scripts[$i].name" "$config_file" 2>/dev/null)
+      script_command=$(yq eval ".scripts[$i].command" "$config_file" 2>/dev/null)
+      script_interval=$(yq eval ".scripts[$i].interval" "$config_file" 2>/dev/null)
+      script_enabled=$(yq eval ".scripts[$i].enabled" "$config_file" 2>/dev/null)
+      
+      if [[ "$script_name" == "null" || -z "$script_name" ]]; then
+        echo "Error: Script $i missing name"
+        ((errors++))
+      fi
+      
+      if [[ "$script_command" == "null" || -z "$script_command" ]]; then
+        echo "Error: Script '$script_name' missing command"
+        ((errors++))
+      fi
+      
+      if [[ "$script_interval" == "null" || -z "$script_interval" ]]; then
+        echo "Error: Script '$script_name' missing interval"
+        ((errors++))
+      elif ! [[ "$script_interval" =~ ^[0-9]+$ ]]; then
+        echo "Error: Script '$script_name' interval must be a number"
+        ((errors++))
+      fi
+      
+      if [[ "$script_enabled" == "null" ]]; then
+        echo "Error: Script '$script_name' missing enabled status"
+        ((errors++))
+      fi
+      
+      ((i++))
+    done
+  fi
+  
+  return $errors
+}
+
+
 # Create default configuration
 function init_config() {
   # Ensure CONFIG_FILE is set
