@@ -18,10 +18,12 @@ test/
 ├── README.md                           # This file
 ├── config.yaml                         # Test configuration
 ├── run_container_tests.sh              # Main test runner
+├── run_interactive_container.sh        # Interactive testing container
 ├── container/
 │   ├── Dockerfile                      # Ubuntu container definition
 │   ├── docker-compose.yml              # Docker Compose configuration
 │   ├── setup.sh                        # Container setup script
+│   ├── setup_interactive.sh            # Interactive container setup
 │   ├── run_tests.sh                    # Test execution script
 │   └── test_helpers.sh                 # Common test functions
 ├── installation/                       # Installation tests
@@ -96,6 +98,35 @@ test/
    ```bash
    /app/test/container/setup.sh
    ```
+
+### Interactive Testing for PRD Validation
+
+For interactive testing and PRD (Product Requirements Document) validation:
+
+1. **Start interactive BAMON container:**
+   ```bash
+   ./test/run_interactive_container.sh
+   ```
+
+2. **The container will automatically:**
+   - Run the setup script (`setup_interactive.sh`)
+   - Install BAMON with test configuration
+   - Create sample scripts for testing
+   - Set up a complete testing environment
+   - Provide helpful usage examples
+   - Start an interactive bash shell ready to use
+
+3. **Inside the container, you can:**
+   - Test BAMON commands interactively
+   - Add/modify scripts and configurations
+   - Validate PRD requirements manually
+   - Experiment with different scenarios
+   - Debug issues in a controlled environment
+
+4. **Available test scripts:**
+   - `~/test-scripts/simple_test.sh` - Basic test script
+   - `~/test-scripts/error_test.sh` - Script that fails (for error testing)
+   - `~/test-scripts/long_running.sh` - Long running script (for timeout testing)
 
 ## Test Categories
 
@@ -182,10 +213,11 @@ load "../container/test_helpers.sh"
 The Ubuntu container includes:
 - **Ubuntu Latest**: Fresh Ubuntu installation
 - **Minimal Dependencies**: Only required packages
-- **Test User**: Non-root user with sudo access
+- **Test User**: Non-root user (`testuser`) with sudo access
 - **BATS Framework**: Latest version with support libraries
 - **BAMON Dependencies**: curl, jq, yq, timeout, bash, bc, coreutils
 - **Pre-built BAMON**: Uses existing BAMON binary from host system
+- **User Security**: Runs as `testuser` instead of root for better security
 
 ## Troubleshooting
 

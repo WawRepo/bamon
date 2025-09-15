@@ -22,6 +22,7 @@ function status_command() {
     return 1
   fi
   
+  
   # Get all scripts or specific script
   local scripts=""
   if [[ -n "$name" ]]; then

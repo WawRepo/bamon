@@ -24,5 +24,8 @@ RUN /app/test/container/setup.sh
 # Copy source code (this layer will be invalidated more frequently)
 COPY . /app/
 
+# Switch to testuser
+USER testuser
+
 # Set default command
 CMD ["/bin/bash"]
