@@ -183,7 +183,7 @@ function execute_all_scripts() {
     
     # Extract script names from YAML
     while IFS= read -r line; do
-      if [[ "$line" =~ ^name:\ (.+)$ ]]; then
+      if [[ -n "$line" && "$line" =~ ^name:\ (.+)$ ]]; then
         script_names+=("${BASH_REMATCH[1]}")
       fi
     done <<< "$scripts_json"
@@ -194,7 +194,20 @@ function execute_all_scripts() {
     return 0
   fi
   
-  execute_scripts "${script_names[@]}"
+  # Filter out empty script names
+  local filtered_script_names=()
+  for script_name in "${script_names[@]}"; do
+    if [[ -n "$script_name" ]]; then
+      filtered_script_names+=("$script_name")
+    fi
+  done
+  
+  if [[ ${#filtered_script_names[@]} -eq 0 ]]; then
+    echo "No scripts configured"
+    return 0
+  fi
+  
+  execute_scripts "${filtered_script_names[@]}"
 }
 
 # Check if daemon is running
@@ -327,7 +340,7 @@ function execute_scheduled_scripts() {
   
   # Extract script names and intervals from YAML
   while IFS= read -r line; do
-    if [[ "$line" =~ ^name:\ (.+)$ ]]; then
+    if [[ -n "$line" && "$line" =~ ^name:\ (.+)$ ]]; then
       script_names+=("${BASH_REMATCH[1]}")
     fi
   done <<< "$scripts_json"

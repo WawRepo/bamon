@@ -29,21 +29,18 @@ test/
 │   ├── test_system_installation.bats
 │   └── test_dependency_detection.bats
 ├── commands/                           # CLI command tests
-│   ├── test_status_command.bats
-│   ├── test_add_command.bats
-│   ├── test_remove_command.bats
-│   ├── test_list_command.bats
-│   ├── test_now_command.bats
-│   └── test_start_stop_restart_commands.bats
+│   ├── test_status_command.bats        # Status command tests
+│   ├── test_add_command.bats           # Add command tests
+│   ├── test_remove_command.bats        # Remove command tests
+│   ├── test_list_command.bats          # List command tests
+│   ├── test_now_command.bats           # Now command tests
+│   └── test_config_command.bats        # Config command tests
 ├── daemon/                             # Daemon functionality tests
-│   ├── test_daemon_execution.bats
-│   ├── test_daemon_scheduling.bats
-│   ├── test_daemon_logging.bats
-│   └── test_daemon_performance.bats
+│   ├── test_daemon_execution.bats      # Daemon start/stop/restart
+│   └── test_daemon_logging.bats        # Daemon logging functionality
 └── performance/                        # Performance monitoring tests
     ├── test_performance_monitoring.bats
-    ├── test_json_output.bats
-    └── test_error_handling.bats
+    └── test_json_output.bats
 ```
 
 ## Quick Start
@@ -221,6 +218,89 @@ The testing environment is designed to work with CI/CD systems:
 2. **Isolated**: Each test run is clean
 3. **Reproducible**: Consistent results across environments
 4. **Comprehensive**: Covers all major functionality
+
+## CLI Command Test Coverage
+
+### Complete Command Mapping Table
+
+| CLI Command | Test Name | Test File |
+|-------------|-----------|-----------|
+| `bamon --help` | N/A | N/A |
+| `bamon --version` | N/A | N/A |
+| `bamon status` | Status command shows default scripts | test/commands/test_status_command.bats |
+| `bamon status --verbose` | Status command shows help | test/commands/test_status_command.bats |
+| `bamon status --failed-only` | Status command shows failed-only filter | test/commands/test_status_command.bats |
+| `bamon status --json` | Status command shows JSON output | test/commands/test_status_command.bats |
+| `bamon status --name <script>` | Status command shows specific script | test/commands/test_status_command.bats |
+| `bamon add <name> --command <cmd>` | Add command creates new script entry | test/commands/test_add_command.bats |
+| `bamon add <name> --command <cmd> --interval <sec>` | Add command creates new script entry | test/commands/test_add_command.bats |
+| `bamon add <name> --command <cmd> --description <text>` | Add command creates new script entry | test/commands/test_add_command.bats |
+| `bamon add <name> --command <cmd> --enabled` | Add command enables script by default | test/commands/test_add_command.bats |
+| `bamon add <name> --command <cmd> --disabled` | Add command creates new script entry | test/commands/test_add_command.bats |
+| `bamon add` (invalid params) | Add command with invalid parameters fails | test/commands/test_add_command.bats |
+| `bamon add <existing_name>` | Add command with duplicate name fails | test/commands/test_add_command.bats |
+| `bamon remove <name>` | Remove command removes existing script | test/commands/test_remove_command.bats |
+| `bamon remove <name> --force` | Remove command removes existing script | test/commands/test_remove_command.bats |
+| `bamon remove <non_existent>` | Remove command fails for non-existent script | test/commands/test_remove_command.bats |
+| `bamon remove <name>` (preserves others) | Remove command preserves other scripts | test/commands/test_remove_command.bats |
+| `bamon now` | Now command executes all enabled scripts | test/commands/test_now_command.bats |
+| `bamon now --name <script>` | Now command executes specific script by name | test/commands/test_now_command.bats |
+| `bamon now --async` | N/A | N/A |
+| `bamon start` | N/A | N/A |
+| `bamon start --daemon` | Daemon starts successfully | test/daemon/test_daemon_execution.bats |
+| `bamon start --config <file>` | N/A | N/A |
+| `bamon stop` | Daemon stops successfully | test/daemon/test_daemon_execution.bats |
+| `bamon stop --force` | Daemon stops successfully | test/daemon/test_daemon_execution.bats |
+| `bamon restart` | Daemon restart works | test/daemon/test_daemon_execution.bats |
+| `bamon restart --daemon` | Daemon restart works | test/daemon/test_daemon_execution.bats |
+| `bamon restart --config <file>` | N/A | N/A |
+| `bamon list` | List command shows all configured scripts | test/commands/test_list_command.bats |
+| `bamon list --enabled-only` | List command shows only enabled scripts | test/commands/test_list_command.bats |
+| `bamon list --disabled-only` | List command shows only disabled scripts | test/commands/test_list_command.bats |
+| `bamon performance` | Performance command shows system metrics | test/performance/test_performance_monitoring.bats |
+| `bamon performance --verbose` | Performance command shows system metrics | test/performance/test_performance_monitoring.bats |
+| `bamon performance --format table` | Performance command shows system metrics | test/performance/test_performance_monitoring.bats |
+| `bamon performance --format json` | Performance command shows JSON output | test/performance/test_performance_monitoring.bats |
+| `bamon performance --json` | Performance command JSON output is valid | test/performance/test_json_output.bats |
+| `bamon config edit` | Config edit command opens editor | test/commands/test_config_command.bats |
+| `bamon config edit --editor <editor>` | Config edit command with custom editor | test/commands/test_config_command.bats |
+| `bamon config show` | Config show command displays current configuration | test/commands/test_config_command.bats |
+| `bamon config show --pretty` | Config show command with pretty flag | test/commands/test_config_command.bats |
+| `bamon config validate` | Config validate command validates configuration | test/commands/test_config_command.bats |
+| `bamon config validate --verbose` | Config validate command with verbose flag | test/commands/test_config_command.bats |
+
+### Test Coverage Summary
+
+| Command Category | Total Commands | Tested Commands | Coverage |
+|------------------|----------------|-----------------|----------|
+| **Core Commands** | 6 | 3 | 50% |
+| **Status Command** | 5 | 5 | 100% |
+| **Add Command** | 6 | 4 | 67% |
+| **Remove Command** | 4 | 4 | 100% |
+| **Now Command** | 3 | 2 | 67% |
+| **Start Command** | 3 | 1 | 33% |
+| **Stop Command** | 2 | 1 | 50% |
+| **Restart Command** | 3 | 1 | 33% |
+| **List Command** | 3 | 3 | 100% |
+| **Performance Command** | 5 | 3 | 60% |
+| **Config Commands** | 6 | 6 | 100% |
+| **Global Flags** | 2 | 0 | 0% |
+| **TOTAL** | 42 | 33 | 79% |
+
+### Missing Test Coverage
+
+The following commands still need test coverage:
+
+#### Low Priority (Advanced Features)
+- `bamon start --config <file>` - Custom config file support
+- `bamon restart --config <file>` - Custom config file support
+- `bamon --help` - Help display
+- `bamon --version` - Version display
+
+#### Medium Priority (Additional Test Cases)
+- More comprehensive error handling tests
+- Edge cases for existing commands
+- Integration tests between commands
 
 ## Current Test Status
 

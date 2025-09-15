@@ -52,17 +52,21 @@ teardown() {
 install_bamon() {
   local mode=$1
   
-  # Copy BAMON binary to appropriate location
-  if [[ "$mode" == "user" ]]; then
-    mkdir -p "$HOME/.local/bin"
-    cp /app/bamon "$HOME/.local/bin/bamon"
-    chmod +x "$HOME/.local/bin/bamon"
-    # Create config directory
-    mkdir -p "$HOME/.config/bamon"
-    # Copy sample scripts
-    mkdir -p "$HOME/.config/bamon/samples"
-    cp /app/samples/*.sh "$HOME/.config/bamon/samples/"
-    chmod +x "$HOME/.config/bamon/samples/"*.sh
+    # Copy BAMON binary to appropriate location
+    if [[ "$mode" == "user" ]]; then
+      mkdir -p "$HOME/.local/bin"
+      cp /app/bamon "$HOME/.local/bin/bamon"
+      chmod +x "$HOME/.local/bin/bamon"
+      # Copy library files
+      mkdir -p "$HOME/.local/bin/lib"
+      cp /app/src/lib/*.sh "$HOME/.local/bin/lib/"
+      chmod +x "$HOME/.local/bin/lib/"*.sh
+      # Create config directory
+      mkdir -p "$HOME/.config/bamon"
+      # Copy sample scripts
+      mkdir -p "$HOME/.config/bamon/samples"
+      cp /app/samples/*.sh "$HOME/.config/bamon/samples/"
+      chmod +x "$HOME/.config/bamon/samples/"*.sh
     # Create default config (no need to copy install.sh)
     # Extract config from install script (simplified version)
     cat > "$HOME/.config/bamon/config.yaml" << 'EOF'
@@ -100,6 +104,10 @@ EOF
   elif [[ "$mode" == "system" ]]; then
     sudo cp /app/bamon /usr/local/bin/bamon
     sudo chmod +x /usr/local/bin/bamon
+    # Copy library files
+    sudo mkdir -p /usr/local/bin/lib
+    sudo cp /app/src/lib/*.sh /usr/local/bin/lib/
+    sudo chmod +x /usr/local/bin/lib/*.sh
     # Create config directory
     sudo mkdir -p /etc/bamon
     # Copy sample scripts
