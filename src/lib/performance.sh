@@ -26,17 +26,11 @@ function get_performance_config() {
 
 # Get enabled scripts function (needed for performance reporting)
 function get_enabled_scripts() {
-  local scripts_json=$(get_all_scripts)
-  local script_names=()
-  
-  # Extract script names from YAML
-  while IFS= read -r line; do
-    if [[ "$line" =~ ^name:\ (.+)$ ]]; then
-      script_names+=("${BASH_REMATCH[1]}")
-    fi
-  done <<< "$scripts_json"
-  
-  printf '%s\n' "${script_names[@]}"
+  if command -v yq >/dev/null 2>&1; then
+    yq eval '.scripts[] | select(.enabled == true) | .name' "${CONFIG_FILE}" 2>/dev/null
+  else
+    echo ""
+  fi
 }
 
 function is_performance_monitoring_enabled() {
@@ -55,21 +49,25 @@ function is_scheduling_optimized() {
 
 # System load monitoring
 function get_system_load() {
+  local load="0"
   if [[ "$OSTYPE" == "darwin"* ]]; then
     # macOS: use sysctl - extract first number from { 1.91 2.12 2.01 }
-    sysctl -n vm.loadavg | sed 's/{ //' | awk '{print $1}'
+    load=$(sysctl -n vm.loadavg 2>/dev/null | sed 's/{ //' | awk '{print $1}' | head -c 10)
   else
     # Linux: use /proc/loadavg
-    cat /proc/loadavg | cut -d' ' -f1
+    load=$(cat /proc/loadavg 2>/dev/null | cut -d' ' -f1 | head -c 10)
   fi
+  echo "${load:-0}"
 }
 
 function get_cpu_cores() {
+  local cores="1"
   if [[ "$OSTYPE" == "darwin"* ]]; then
-    sysctl -n hw.ncpu
+    cores=$(sysctl -n hw.ncpu 2>/dev/null | head -c 10)
   else
-    nproc
+    cores=$(nproc 2>/dev/null | head -c 10)
   fi
+  echo "${cores:-1}"
 }
 
 function is_system_overloaded() {
@@ -92,16 +90,19 @@ function is_system_overloaded() {
 # Resource monitoring
 function get_memory_usage() {
   if [[ "$OSTYPE" == "darwin"* ]]; then
-    # macOS: use vm_stat
-    vm_stat | grep "Pages free" | awk '{print $3}' | sed 's/\.//'
+    # macOS: use vm_stat - return percentage of used memory
+    local percentage=$(vm_stat | awk '/Pages active/ {active=$3} /Pages free/ {free=$3} END {if(active+free>0) print (active/(active+free))*100; else print 0}' | sed 's/\.//' | head -c 10)
+    echo "${percentage:-0}"
   else
     # Linux: use /proc/meminfo
-    free | grep Mem | awk '{print $3/$2 * 100.0}'
+    local percentage=$(free | grep Mem | awk '{print $3/$2 * 100.0}' | head -c 10)
+    echo "${percentage:-0}"
   fi
 }
 
 function get_disk_usage() {
-  df -h / | awk 'NR==2 {print $5}' | sed 's/%//'
+  local usage=$(df -h / | awk 'NR==2 {print $5}' | sed 's/%//' | head -c 10)
+  echo "${usage:-0}"
 }
 
 # Concurrent execution management
@@ -112,11 +113,11 @@ function count_running_scripts() {
   if [[ -f "$pid_file" ]]; then
     local daemon_pid=$(cat "$pid_file")
     if kill -0 "$daemon_pid" 2>/dev/null; then
-      count=$(pgrep -P "$daemon_pid" | wc -l)
+      count=$(pgrep -P "$daemon_pid" 2>/dev/null | wc -l)
     fi
   fi
   
-  echo "$count"
+  echo "${count:-0}"
 }
 
 function can_run_more_scripts() {

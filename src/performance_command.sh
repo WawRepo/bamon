@@ -79,12 +79,14 @@ if [[ "$FORMAT" == "json" ]]; then
   # System metrics
   local first=true
   while IFS=: read -r metric value; do
-    if [[ "$first" == "true" ]]; then
-      first=false
-    else
-      echo ","
+    if [[ -n "$metric" && -n "$value" ]]; then  # Skip empty lines
+      if [[ "$first" == "true" ]]; then
+        first=false
+      else
+        echo ","
+      fi
+      echo -n "    \"$metric\": $value"
     fi
-    echo -n "    \"$metric\": $value"
   done < <(collect_performance_metrics)
   echo ""
   
@@ -93,19 +95,23 @@ if [[ "$FORMAT" == "json" ]]; then
   
   # Script performance
   local first=true
+  local script_count=0
   for script_name in $(get_enabled_scripts); do
-    if [[ "$first" == "true" ]]; then
-      first=false
-    else
-      echo ","
+    if [[ -n "$script_name" ]]; then  # Skip empty lines
+      if [[ "$first" == "true" ]]; then
+        first=false
+      else
+        echo ","
+      fi
+      local avg_time=$(get_script_avg_execution_time "$script_name")
+      local failures=$(get_script_failure_count "$script_name")
+      echo -n "    \"$script_name\": {\"avg_time\": \"${avg_time}s\", \"failures\": $failures}"
+      script_count=$((script_count + 1))
     fi
-    local avg_time=$(get_script_avg_execution_time "$script_name")
-    local failures=$(get_script_failure_count "$script_name")
-    echo -n "    \"$script_name\": {\"avg_time\": \"${avg_time}s\", \"failures\": $failures}"
   done
   echo ""
   
-  echo "  },"
+  echo "  }"
   echo "}"
 else
   # Table format output (default)

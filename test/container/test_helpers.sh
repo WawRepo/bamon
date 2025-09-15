@@ -19,6 +19,10 @@ setup() {
   if ! command -v yq >/dev/null 2>&1; then
     export PATH="/usr/local/bin:$PATH"
   fi
+  
+  # Debug: Show environment variables
+  echo "DEBUG: BAMON_CONFIG_DIR=$BAMON_CONFIG_DIR"
+  echo "DEBUG: TEST_DIR=$TEST_DIR"
 }
 
 # Teardown function to run after each test

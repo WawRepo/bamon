@@ -201,44 +201,31 @@ function execute_all_scripts() {
 function is_daemon_running() {
   local pid_file=$(get_pid_file)
   
-  echo "DEBUG: is_daemon_running - PID file: $pid_file"
-  echo "DEBUG: is_daemon_running - PID file exists: $(test -f "$pid_file" && echo "yes" || echo "no")"
-  
   # First check PID file
   if [[ -f "$pid_file" ]]; then
     local pid=$(cat "$pid_file" 2>/dev/null)
-    echo "DEBUG: is_daemon_running - PID from file: $pid"
-    if [[ -n "$pid" ]] && kill -0 "$pid" 2>/dev/null; then
-      echo "DEBUG: is_daemon_running - PID $pid is running, returning true"
+    if [[ -n "$pid" ]] && ps -p "$pid" >/dev/null 2>&1; then
       return 0
     else
-      echo "DEBUG: is_daemon_running - PID $pid is not running, cleaning up stale PID file"
       # Clean up stale PID file
       rm -f "$pid_file"
     fi
   fi
 
-  # Fallback: check for running bamon daemon processes (exclude current process)
+  # Fallback: check for running bamon daemon processes (exclude current process and grep)
   local current_pid=$$
-  echo "DEBUG: is_daemon_running - Current PID: $current_pid"
-  local daemon_pids=$(ps aux | grep -E "bamon start --daemon|daemon_loop" | grep -v grep | awk -v current="$current_pid" '$2 != current {print $2}')
-  echo "DEBUG: is_daemon_running - Found daemon PIDs: $daemon_pids"
+  local daemon_pids=$(ps aux | grep -E "bamon start --daemon|daemon_loop" | grep -v grep | awk -v current="$current_pid" '$2 != current && $11 !~ /grep/ {print $2}')
   if [[ -n "$daemon_pids" ]]; then
     # Check if any of the found PIDs are actually running
     for pid in $daemon_pids; do
-      echo "DEBUG: is_daemon_running - Checking PID $pid"
-      if kill -0 "$pid" 2>/dev/null; then
-        echo "DEBUG: is_daemon_running - PID $pid is running, updating PID file and returning true"
+      if ps -p "$pid" >/dev/null 2>&1; then
         # Update PID file with the first running daemon PID
         echo "$pid" > "$pid_file"
         return 0
-      else
-        echo "DEBUG: is_daemon_running - PID $pid is not running"
       fi
     done
   fi
   
-  echo "DEBUG: is_daemon_running - No daemon running, returning false"
   return 1
 }
 
@@ -273,9 +260,9 @@ function start_daemon() {
 
     daemon_loop > "$log_file" 2>&1 &
     local daemon_pid=$!
+    echo "$daemon_pid" > "$(get_pid_file)"
     echo "Daemon started in background (PID: $daemon_pid)"
     echo "Logs: $log_file"
-    echo "Note: Actual daemon PID will be written to PID file by daemon process"
     
   else
     # Start in foreground
@@ -306,7 +293,7 @@ function stop_daemon() {
   local count=0
   while kill -0 "$pid" 2>/dev/null && [[ $count -lt 10 ]]; do
     sleep 1
-    ((count++))
+    count=$((count + 1))
   done
   
   if kill -0 "$pid" 2>/dev/null; then
@@ -314,17 +301,6 @@ function stop_daemon() {
     kill -9 "$pid" 2>/dev/null
   fi
   
-  # Debug: Check if PID file exists before removing
-  echo "DEBUG: PID file exists: $(test -f "$pid_file" && echo "yes" || echo "no")"
-  echo "DEBUG: PID file path: $pid_file"
-  echo "DEBUG: PID file contents: $(cat "$pid_file" 2>/dev/null || echo "cannot read")"
-  
-  # Debug: Check rm command result
-  if rm -f "$pid_file"; then
-    echo "DEBUG: PID file removed successfully"
-  else
-    echo "DEBUG: Failed to remove PID file (exit code: $?)"
-  fi
   
   echo "Daemon stopped"
   return 0
@@ -439,15 +415,13 @@ function daemon_loop() {
   # Set daemon mode for logging
   export BAMON_DAEMON_MODE=true
   
-  
   # Initialize performance monitoring
   init_performance_monitoring
   
   # Initialize script execution tracking
   init_script_execution_tracking
   
-  # Write our own PID to the PID file
-  echo "$$" > "$(get_pid_file)"
+  # PID is written by start_daemon function
   
   log_info "Daemon loop started (PID: $$)"
   
