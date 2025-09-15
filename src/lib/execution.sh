@@ -51,8 +51,8 @@ function generate_error_message() {
     return
   fi
   
-  # For custom failing scripts, show the actual output
-  if [[ "$script_name" == "failing_test" ]]; then
+  # For all scripts, show the actual output if available and meaningful
+  if [[ -n "$output" && "$output" != "null" && "$output" != "" ]]; then
     echo "$output"
     return
   fi

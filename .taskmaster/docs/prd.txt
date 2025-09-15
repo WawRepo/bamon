@@ -63,7 +63,6 @@ A configurable bash daemon that monitors and executes bash scripts/code snippets
   - **config edit**: Open configuration file in default editor for manual editing
   - **config show**: Display current configuration in YAML format
   - **config validate**: Validate configuration file syntax and structure
-  - **config reset**: Reset configuration to default values
 
 ### 4. Daemon Logging
 - **Background Mode**: When running `bamon start --daemon`, all output is redirected to a single log file
@@ -195,13 +194,14 @@ bamon/
 ## Installation and Distribution
 
 ### 1. Installation Script (`install.sh`)
-- **Automated Setup**: Single script installation for both user and system-wide
-- **Dependency Check**: Validates and installs required dependencies
-- **Binary Generation**: Uses bashly to generate optimized binary
+- **Simplified Installation**: Direct installation without build dependencies
+- **Dependency Check**: Validates and installs required runtime dependencies
+- **Binary Installation**: Copies pre-built binary from repository
 - **Configuration Setup**: Creates default configuration and directories
-- **Service Integration**: Optional systemd service file creation
+- **Sample Scripts**: Installs sample monitoring scripts
+- **PATH Setup**: Automatically adds installation directory to user's PATH
 
-### 2. User Installation (Runtime)
+### 2. User Installation (Runtime) - Recommended
 **Requirements:**
 - bash 4.0+ (system default or Homebrew)
 - curl (for HTTP health checks)
@@ -210,13 +210,19 @@ bamon/
 - Standard Unix tools (awk, sed, grep, etc.)
 
 **Process:**
-1. Download `install.sh`
+1. Clone repository: `git clone <repo-url>`
 2. Run: `chmod +x install.sh && ./install.sh`
 3. Binary installed to `/usr/local/bin/bamon` (system) or `~/.local/bin/bamon` (user)
 4. Configuration created at `~/.config/bamon/config.yaml`
-5. Ready to use with `bamon start`
+5. Sample scripts installed to `~/.config/bamon/samples/`
+6. Ready to use with `bamon start`
 
-### 3. Developer Installation (Development)
+**Installation Modes:**
+- **User Installation** (default): `./install.sh` - Installs to `~/.local/bin/`
+- **System Installation**: `sudo ./install.sh --system` - Installs to `/usr/local/bin/`
+- **Custom Installation**: `./install.sh --prefix=/custom/path` - Custom installation directory
+
+### 3. Developer Installation (Full Development Setup)
 **Requirements:**
 - Ruby 2.7+ (for bashly)
 - bashly gem (`gem install bashly`)
@@ -225,9 +231,52 @@ bamon/
 
 **Process:**
 1. Clone repository: `git clone <repo-url>`
-2. Install bashly: `gem install bashly`
+2. Install Ruby and bashly:
+   ```bash
+   # macOS with Homebrew
+   brew install ruby
+   export PATH="/opt/homebrew/opt/ruby/bin:$PATH"
+   export PATH="$(ruby -r rubygems -e "puts Gem.bindir"):$PATH"
+   gem install bashly
+   
+   # Ubuntu/Debian
+   sudo apt install ruby ruby-dev
+   gem install bashly
+   ```
 3. Generate binary: `bashly generate`
 4. Test: `./bamon --help`
+5. For development: `./install.sh --dev` (if available)
+
+### 4. Documentation Requirements
+**Comprehensive Documentation** must include:
+
+#### 4.1 Installation Documentation
+- **Quick Start Guide**: Simple installation using `install.sh` script
+- **Full Development Setup**: Complete development environment with Ruby and Bashly
+- **Platform-Specific Instructions**: macOS, Linux, and WSL2 installation steps
+- **Dependency Installation**: Step-by-step dependency installation for each platform
+- **Troubleshooting**: Common installation issues and solutions
+
+#### 4.2 Usage Documentation
+- **README.md**: Comprehensive project overview with installation and usage
+- **Command Reference**: Complete CLI command documentation with examples
+- **Configuration Guide**: YAML configuration file documentation with examples
+- **Sample Scripts**: Documentation for included sample monitoring scripts
+- **Best Practices**: Recommended usage patterns and configuration examples
+
+#### 4.3 Developer Documentation
+- **Development Setup**: Complete development environment setup instructions
+- **Build Process**: How to build and regenerate the binary with Bashly
+- **Code Structure**: Overview of source code organization and architecture
+- **Contributing Guide**: How to contribute to the project
+- **Testing**: How to run tests and validate changes
+
+#### 4.4 Advanced Documentation
+- **Man Pages**: Unix manual pages for all commands (`bamon.1`, `bamon-status.1`, etc.)
+- **API Documentation**: JSON output format and programmatic usage
+- **Integration Examples**: CI/CD, monitoring, and cloud integration examples
+- **Performance Tuning**: Configuration optimization and performance guidelines
+- **Security Guide**: Security considerations and best practices
 
 ### 4. Cross-Platform Support
 - **macOS**: Full support with Homebrew dependencies

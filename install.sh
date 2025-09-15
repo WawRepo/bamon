@@ -21,10 +21,6 @@ while [[ $# -gt 0 ]]; do
       MODE="system"
       shift
       ;;
-    --dev)
-      MODE="dev"
-      shift
-      ;;
     --prefix=*)
       INSTALL_DIR="${1#*=}"
       shift
@@ -34,12 +30,11 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --help)
-      echo "Usage: $0 [--user|--system|--dev] [options]"
+      echo "Usage: $0 [--user|--system] [options]"
       echo ""
       echo "Modes:"
       echo "  --user     User installation (default)"
       echo "  --system   System-wide installation (requires root)"
-      echo "  --dev      Developer installation"
       echo ""
       echo "Options:"
       echo "  --prefix=DIR       Install binary to DIR"
@@ -49,7 +44,6 @@ while [[ $# -gt 0 ]]; do
       echo "Examples:"
       echo "  $0                    # User installation"
       echo "  $0 --system           # System installation (requires sudo)"
-      echo "  $0 --dev              # Developer setup"
       echo "  $0 --prefix=/opt/bin  # Custom installation directory"
       exit 0
       ;;
@@ -75,33 +69,7 @@ echo "Install directory: $INSTALL_DIR"
 echo "Config directory: $CONFIG_DIR"
 echo ""
 
-# Check requirements based on mode
-if [[ "$MODE" == "dev" ]]; then
-  # Developer requirements
-  echo "Checking developer requirements..."
-  
-  if ! command -v ruby &>/dev/null; then
-    echo "Error: Ruby is required for development"
-    echo "Install with: brew install ruby (macOS) or apt install ruby (Linux)"
-    exit 1
-  fi
-  
-  if ! command -v bashly &>/dev/null; then
-    echo "Installing bashly..."
-    gem install bashly
-  fi
-  
-  if ! command -v git &>/dev/null; then
-    echo "Error: Git is required for development"
-    exit 1
-  fi
-  
-  echo "Developer setup complete!"
-  echo "Run 'bashly generate' to create the binary"
-  exit 0
-fi
-
-# User/System installation requirements
+# Check system requirements
 if [[ "$MODE" == "system" && "$(id -u)" -ne 0 ]]; then
   echo "Error: System installation requires root privileges"
   echo "Run with sudo or use --user for user installation"
@@ -151,27 +119,21 @@ if [[ ${#MISSING_DEPS[@]} -gt 0 ]]; then
   exit 1
 fi
 
-# Generate binary if not exists
-if [[ ! -f "./bamon" ]]; then
-  if command -v bashly &>/dev/null; then
-    echo "Generating binary..."
-    bashly generate
-  else
-    echo "Error: Binary not found and bashly not available"
-    echo "Run with --dev mode first to set up development environment"
-    exit 1
-  fi
-fi
-
 # Create installation directories
 echo "Creating directories..."
 mkdir -p "$INSTALL_DIR"
 mkdir -p "$CONFIG_DIR"
 
-# Install binary
+# Install binary (copy from current directory)
 echo "Installing binary to $INSTALL_DIR/bamon..."
-cp "./bamon" "$INSTALL_DIR/"
-chmod +x "$INSTALL_DIR/bamon"
+if [[ -f "./bamon" ]]; then
+  cp "./bamon" "$INSTALL_DIR/"
+  chmod +x "$INSTALL_DIR/bamon"
+else
+  echo "Error: BAMON binary not found in current directory"
+  echo "Make sure you're running this script from the BAMON repository root"
+  exit 1
+fi
 
 # Install sample scripts
 echo "Installing sample scripts..."
@@ -192,7 +154,7 @@ fi
 # Install default config with sample scripts
 if [[ ! -f "$CONFIG_DIR/config.yaml" ]]; then
   echo "Installing default config to $CONFIG_DIR/config.yaml..."
-  cat > "$CONFIG_DIR/config.yaml" << EOF
+  cat > "$CONFIG_DIR/config.yaml" << 'CONFIG_EOF'
 daemon:
   default_interval: 60
   log_file: "$CONFIG_DIR/bamon.log"
@@ -235,7 +197,7 @@ scripts:
     command: "$CONFIG_DIR/samples/github_status.sh"
     interval: 30
     enabled: false
-EOF
+CONFIG_EOF
 fi
 
 # Add to PATH if user installation

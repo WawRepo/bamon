@@ -10,7 +10,7 @@ config_file=$(get_config_file)
 
 if [[ ! -f "$config_file" ]]; then
   echo "Error: Configuration file not found at $config_file"
-  echo "Run 'bamon config reset' to create a default configuration."
+  echo "Please create a configuration file or run 'bamon start' to initialize one."
   exit 1
 fi
 

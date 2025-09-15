@@ -14,7 +14,7 @@ config_edit() {
   
   if [[ ! -f "$config_file" ]]; then
     echo "Error: Configuration file not found at $config_file"
-    echo "Run 'bamon config reset' to create a default configuration."
+    echo "Please create a configuration file or run 'bamon start' to initialize one."
     exit 1
   fi
   
@@ -52,7 +52,7 @@ config_show() {
   
   if [[ ! -f "$config_file" ]]; then
     echo "Error: Configuration file not found at $config_file"
-    echo "Run 'bamon config reset' to create a default configuration."
+    echo "Please create a configuration file or run 'bamon start' to initialize one."
     exit 1
   fi
   
@@ -125,115 +125,6 @@ config_validate() {
   fi
 }
 
-# Config reset command
-config_reset() {
-  local force="${args[--force]:-0}"
-  local backup="${args[--backup]:-0}"
-  local config_file
-  local config_dir
-  local backup_file
-  
-  # Get config file path
-  config_file=$(get_config_file)
-  config_dir=$(dirname "$config_file")
-  
-  # Create backup if requested
-  if [[ "$backup" == "1" && -f "$config_file" ]]; then
-    backup_file="${config_file}.backup.$(date +%Y%m%d_%H%M%S)"
-    echo "Creating backup: $backup_file"
-    cp "$config_file" "$backup_file"
-    echo "✅ Backup created: $backup_file"
-  fi
-  
-  # Confirm reset unless forced
-  if [[ "$force" != "1" ]]; then
-    echo "This will reset your configuration to default values."
-    echo "Current config file: $config_file"
-    
-    if [[ -f "$config_file" ]]; then
-      echo ""
-      echo "Current configuration will be lost!"
-      if [[ "$backup" == "1" ]]; then
-        echo "A backup will be created before reset."
-      fi
-    fi
-    
-    echo ""
-    read -p "Are you sure you want to continue? (y/N): " -r
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-      echo "Reset cancelled."
-      exit 0
-    fi
-  fi
-  
-  # Create config directory if it doesn't exist
-  mkdir -p "$config_dir"
-  
-  # Generate default configuration
-  echo "Generating default configuration..."
-  generate_default_config "$config_file"
-  
-  if [[ -f "$config_file" ]]; then
-    echo "✅ Configuration reset successfully"
-    echo "File: $config_file"
-    
-    if [[ "$backup" == "1" && -n "$backup_file" ]]; then
-      echo "Backup: $backup_file"
-    fi
-    
-    echo ""
-    echo "You can now:"
-    echo "  - Edit the config: bamon config edit"
-    echo "  - View the config: bamon config show"
-    echo "  - Validate the config: bamon config validate"
-  else
-    echo "❌ Failed to create configuration file"
-    exit 1
-  fi
-}
-
-# Generate default configuration
-generate_default_config() {
-  local config_file="$1"
-  
-  cat > "$config_file" << 'EOF'
-daemon:
-  default_interval: 300
-  log_file: "~/.config/bamon/daemon.log"
-  pid_file: "~/.config/bamon/bamon.pid"
-  max_concurrent: 3
-
-sandbox:
-  timeout: 30
-  max_cpu_time: 60
-  max_file_size: 10240
-  max_virtual_memory: 102400
-
-performance:
-  enable_monitoring: true
-  load_threshold: 0.8
-  optimize_scheduling: true
-
-scripts:
-  - name: "health_check"
-    command: "curl -s -o /dev/null -w \"%{http_code}\" https://httpbin.org/status/200"
-    interval: 300
-    enabled: true
-    description: "Check if HTTP service is responding"
-  
-  - name: "disk_usage"
-    command: "df -h / | awk 'NR==2 {print $5}' | sed 's/%//' | awk '{if($1>80) exit 1; else exit 0}'"
-    interval: 300
-    enabled: true
-    description: "Check if disk usage is under 80%"
-  
-  - name: "github_status"
-    command: "curl -s https://www.githubstatus.com/api/v2/status.json | jq -r '.status.indicator' | grep -q 'operational' || exit 1"
-    interval: 300
-    enabled: true
-    description: "Check GitHub service status"
-EOF
-}
 
 # Validate configuration file
 validate_config_file() {

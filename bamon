@@ -1079,8 +1079,8 @@ function generate_error_message() {
     return
   fi
 
-  # For custom failing scripts, show the actual output
-  if [[ "$script_name" == "failing_test" ]]; then
+  # For all scripts, show the actual output if available and meaningful
+  if [[ -n "$output" && "$output" != "null" && "$output" != "" ]]; then
     echo "$output"
     return
   fi
@@ -3330,7 +3330,7 @@ bamon_config_edit_command() {
 
   if [[ ! -f "$config_file" ]]; then
     echo "Error: Configuration file not found at $config_file"
-    echo "Run 'bamon config reset' to create a default configuration."
+    echo "Please create a configuration file or run 'bamon start' to initialize one."
     exit 1
   fi
 
@@ -3375,7 +3375,7 @@ bamon_config_show_command() {
 
   if [[ ! -f "$config_file" ]]; then
     echo "Error: Configuration file not found at $config_file"
-    echo "Run 'bamon config reset' to create a default configuration."
+    echo "Please create a configuration file or run 'bamon start' to initialize one."
     exit 1
   fi
 
