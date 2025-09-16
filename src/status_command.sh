@@ -22,6 +22,9 @@ function status_command() {
     return 1
   fi
   
+  # Load performance data
+  load_performance_data
+  
   
   # Get all scripts or specific script
   local scripts=""
@@ -41,7 +44,7 @@ function status_command() {
   
   # Print header if not JSON output
   if [[ "$json_output" != "1" ]]; then
-    printf "%-20s %-10s %-10s %-25s %-8s %-15s %-20s\n" \
+    printf "%-20s %-10s %-10s %-30s %-8s %-15s %-20s\n" \
       "NAME" "STATUS" "EXIT CODE" "OUTPUT" "DURATION" "TIME SINCE" "NEXT EXECUTION"
     printf "%s\n" "$(printf '=%.0s' {1..125})"
   else
@@ -104,27 +107,11 @@ function status_command() {
     # Determine output to show based on status
     local output_msg=""
     if [[ "$last_status" == "SUCCESS" ]]; then
-      # For successful executions, show stdout
-      if [[ -n "$last_output" && "$last_output" != "null" ]]; then
-        if [[ ${#last_output} -gt 25 ]]; then
-          output_msg="truncated (use --json)"
-        else
-          output_msg="$last_output"
-        fi
-      else
-        output_msg="(no output)"
-      fi
+      # For successful executions, show stdout with multiline handling
+      output_msg=$(format_output_for_table "$last_output" 25)
     else
-      # For failed executions, show error message
-      if [[ -n "$last_error" && "$last_error" != "null" ]]; then
-        if [[ ${#last_error} -gt 25 ]]; then
-          output_msg="truncated (use --json)"
-        else
-          output_msg="$last_error"
-        fi
-      else
-        output_msg="(no error info)"
-      fi
+      # For failed executions, show error message with multiline handling
+      output_msg=$(format_output_for_table "$last_error" 25)
     fi
     
     # Format last execution time
@@ -149,11 +136,11 @@ function status_command() {
       echo "      \"duration\": \"$duration\","
       echo "      \"timeSince\": \"$time_since\","
       echo "      \"nextExecution\": \"$next_execution\","
-      echo "      \"output\": \"${last_output:-null}\","
-      echo "      \"error\": \"${last_error:-null}\""
+      echo "      \"output\": $(format_output_for_json "${last_output:-null}"),"
+      echo "      \"error\": $(format_output_for_json "${last_error:-null}")"
       echo -n "    }"
     else
-      printf "%-20s %-10s %-10s %-25s %-8s %-15s %-20s\n" \
+      printf "%-20s %-10s %-10s %-30s %-8s %-15s %-20s\n" \
         "$script" \
         "$result" \
         "$exit_code" \
@@ -238,28 +225,16 @@ function get_script_last_duration() {
   fi
 }
 
-# Get script last error (placeholder - would need to be implemented)
+# Get script last error
 function get_script_last_error() {
   local script_name="$1"
-  local data_file="$HOME/.config/bamon/performance_data.json"
-  
-  if [[ -f "$data_file" ]]; then
-    jq -r ".last_errors.\"$script_name\" // \"\"" "$data_file" 2>/dev/null || echo ""
-  else
-    echo ""
-  fi
+  echo "${SCRIPT_LAST_ERROR[$script_name]:-}"
 }
 
 # Get script stdout output
 function get_script_last_output() {
   local script_name="$1"
-  local data_file="$HOME/.config/bamon/performance_data.json"
-  
-  if [[ -f "$data_file" ]]; then
-    jq -r ".last_outputs.\"$script_name\" // \"\"" "$data_file" 2>/dev/null || echo ""
-  else
-    echo ""
-  fi
+  echo "${SCRIPT_LAST_OUTPUT[$script_name]:-}"
 }
 
 # Get script exit code

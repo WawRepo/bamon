@@ -170,6 +170,17 @@ bamon status --failed-only
 bamon status --json
 ```
 
+#### Output Display
+
+BAMON intelligently handles different types of script output:
+
+- **Short Output**: Shows complete output in table view
+- **Long Output**: Shows `(truncated - use --json)` in table view
+- **Multiline Output**: Shows `(truncated - use --json)` in table view
+- **JSON View**: Always shows complete output with proper formatting
+  - Multiline output displayed as JSON arrays: `["line1", "line2", "line3"]`
+  - Single-line output displayed as strings: `"output"`
+
 ### 3. Add Monitoring Scripts
 
 ```bash
@@ -358,6 +369,30 @@ bamon add "db_check" \
   --interval 120 \
   --description "Check MySQL database connection"
 ```
+
+### Multiline Output Examples
+
+BAMON handles scripts that produce multiple lines of output:
+
+```bash
+# Add a script that outputs multiple lines
+bamon add "system_info" \
+  --command "echo 'System Information'; echo '=================='; hostname; date; uptime" \
+  --interval 300 \
+  --description "Display system information"
+
+# Table view shows: (truncated - use --json)
+bamon status
+
+# JSON view shows complete multiline output as array
+bamon status --json
+# Output: ["System Information", "==================", "hostname", "date", "uptime"]
+```
+
+**Output Handling:**
+- **Table View**: Clean display with truncation hints for long/multiline content
+- **JSON View**: Complete output preserved with proper formatting
+- **Data Storage**: Uses JSON escaping (no base64 encoding) for cleaner data
 
 ## 🔧 Troubleshooting
 

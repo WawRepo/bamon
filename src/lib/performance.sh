@@ -236,8 +236,13 @@ function save_performance_data() {
     else
       json_data+=","
     fi
-    # Escape quotes in output
-    local escaped_output="${SCRIPT_LAST_OUTPUT[$key]//\"/\\\"}"
+    # Use base64 encoding to preserve multiline output
+    # Escape JSON special characters
+    local escaped_output="${SCRIPT_LAST_OUTPUT[$key]//\\/\\\\}"
+    escaped_output="${escaped_output//\"/\\\"}"
+    escaped_output="${escaped_output//$'\n'/\\n}"
+    escaped_output="${escaped_output//$'\r'/\\r}"
+    escaped_output="${escaped_output//$'\t'/\\t}"
     json_data+="\"$key\":\"$escaped_output\""
   done
   json_data+="},"
@@ -250,8 +255,12 @@ function save_performance_data() {
     else
       json_data+=","
     fi
-    # Escape quotes in error message
-    local escaped_error="${SCRIPT_LAST_ERROR[$key]//\"/\\\"}"
+    # Escape JSON special characters
+    local escaped_error="${SCRIPT_LAST_ERROR[$key]//\\/\\\\}"
+    escaped_error="${escaped_error//\"/\\\"}"
+    escaped_error="${escaped_error//$'\n'/\\n}"
+    escaped_error="${escaped_error//$'\r'/\\r}"
+    escaped_error="${escaped_error//$'\t'/\\t}"
     json_data+="\"$key\":\"$escaped_error\""
   done
   json_data+="}"
@@ -266,6 +275,11 @@ function load_performance_data() {
   local data_file="$PERFORMANCE_DATA_FILE"
   
   if [[ -f "$data_file" ]]; then
+    # Check if JSON is valid before loading
+    if ! cat "$data_file" | jq . >/dev/null 2>&1; then
+      log_warn "Performance data file is corrupted, skipping load"
+      return
+    fi
     # Load execution times
     local execution_times=$(cat "$data_file" | jq -r '.execution_times | to_entries[] | "\(.key)=\(.value)"' 2>/dev/null)
     if [[ -n "$execution_times" ]]; then
@@ -299,19 +313,31 @@ function load_performance_data() {
     fi
     
     # Load last outputs
-    local last_outputs=$(cat "$data_file" | jq -r '.last_outputs | to_entries[] | "\(.key)=\(.value)"' 2>/dev/null)
-    if [[ -n "$last_outputs" ]]; then
-      while IFS='=' read -r key value; do
+    local output_keys=$(cat "$data_file" | jq -r '.last_outputs | keys[]' 2>/dev/null)
+    if [[ -n "$output_keys" ]]; then
+      while IFS= read -r key; do
+        local value=$(cat "$data_file" | jq -r ".last_outputs[\"$key\"]" 2>/dev/null)
+        # Convert escaped newlines back to actual newlines
+        value="${value//\\n/$'\n'}"
+        value="${value//\\r/$'\r'}"
+        value="${value//\\t/$'\t'}"
+        value="${value//\\\\/\\}"
         SCRIPT_LAST_OUTPUT["$key"]="$value"
-      done <<< "$last_outputs"
+      done <<< "$output_keys"
     fi
     
     # Load last errors
-    local last_errors=$(cat "$data_file" | jq -r '.last_errors | to_entries[] | "\(.key)=\(.value)"' 2>/dev/null)
-    if [[ -n "$last_errors" ]]; then
-      while IFS='=' read -r key value; do
+    local error_keys=$(cat "$data_file" | jq -r '.last_errors | keys[]' 2>/dev/null)
+    if [[ -n "$error_keys" ]]; then
+      while IFS= read -r key; do
+        local value=$(cat "$data_file" | jq -r ".last_errors[\"$key\"]" 2>/dev/null)
+        # Convert escaped newlines back to actual newlines
+        value="${value//\\n/$'\n'}"
+        value="${value//\\r/$'\r'}"
+        value="${value//\\t/$'\t'}"
+        value="${value//\\\\/\\}"
         SCRIPT_LAST_ERROR["$key"]="$value"
-      done <<< "$last_errors"
+      done <<< "$error_keys"
     fi
   fi
 }

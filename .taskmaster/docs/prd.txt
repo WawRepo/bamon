@@ -40,17 +40,34 @@ A configurable bash daemon that monitors and executes bash scripts/code snippets
       - **Network Issues**: "Network error" for connection problems
       - **Custom Scripts**: Show actual output for custom failing scripts
       - **Generic Failures**: "Failed (exit code: X)" for other errors
-    - **Table View**: Output truncated to 25 characters with "truncated (use --json)" hint for full details
+    - **Multiline Output Handling**: Proper handling of scripts that produce multiple lines of output
+      - **Table View**: Show "(truncated - use --json)" for all multiline content to maintain clean display
+      - **JSON View**: Complete multiline output preserved as proper JSON array format
+      - **Line Preservation**: Maintain original line breaks and formatting in JSON output
+      - **Consistent Truncation**: Same truncation message for both multiline and long single-line output
+    - **Combined Output Capture**: Capture both stdout and stderr from script execution
+      - **Output Merging**: Combine stdout and stderr into single output field for display
+      - **Error Distinction**: Preserve stderr content for error analysis while showing in unified output
+      - **Stream Identification**: In JSON output, optionally separate stdout and stderr streams
+    - **Table View**: Output truncated with consistent messaging for full details
+      - **Short Output**: Show complete output for content under 30 characters
+      - **Long Output**: Show "(truncated - use --json)" for both long single-line and multiline content
+      - **Column Alignment**: 30-character OUTPUT column for proper table alignment
     - **JSON View**: Complete output available without truncation
+      - **Proper JSON Format**: Multiline output as JSON array, single-line as string
+      - **No Base64 Encoding**: Use proper JSON escaping instead of base64 encoding
+      - **Stream Separation**: Optional separate fields for stdout and stderr in JSON
   - **JSON Support**: Optional JSON output format for programmatic access
   - **Real-time Data**: Show current status without triggering new executions
 
 ### 3. CLI Interface (Bashly-based)
 - **status**: Show current status of all monitored scripts with detailed execution results
   - Display success/failure status for each script
-  - Show output from last execution (stdout for success, error details for failure)
+  - Show output from last execution (combined stdout and stderr for all scripts)
   - Include execution time and timestamp
   - Support JSON output format with `--json` flag for complete output details
+  - Handle multiline output with clean truncation messages
+  - Preserve original formatting in JSON output with proper array formatting
 - **add**: Add new script to monitoring with interval configuration
 - **remove**: Remove script from monitoring
 - **list**: List all configured scripts with details
@@ -144,17 +161,18 @@ bamon/
 - **Status Display Format**:
   - **Human-readable**: Tabular format with clear status indicators
     - **Column Layout**: NAME | STATUS | EXIT CODE | OUTPUT | DURATION | TIME SINCE | NEXT EXECUTION
-    - **Column Widths**: Optimized widths based on data patterns (OUTPUT: 25 chars, DURATION: 8 chars)
+    - **Column Widths**: Optimized widths based on data patterns (OUTPUT: 30 chars, DURATION: 8 chars)
     - **Table View**: Removed LAST EXECUTION column for cleaner layout (available in JSON)
+    - **Proper Alignment**: Fixed column alignment with consistent truncation messaging
   - **JSON format**: Structured data with `--json` flag for API integration
     - **Complete Data**: Includes all execution details including last execution timestamp
   - **Filtering**: Show only failed scripts with `--failed-only` flag
   - **Sorting**: Sort by status, execution time, or script name
   - **Output Column**: Context-aware output display for all scripts
-    - **Success**: Shows stdout output (truncated to 25 chars in table view)
-    - **Failure**: Shows error messages (truncated to 25 chars in table view)
+    - **Success**: Shows stdout output (complete if under 30 chars, truncated message if longer)
+    - **Failure**: Shows error messages (complete if under 30 chars, truncated message if longer)
     - **Empty Output**: Shows "(no output)" placeholder for scripts with no output
-    - **Truncation Hint**: "truncated (use --json)" for table view
+    - **Truncation Hint**: "(truncated - use --json)" for both long single-line and multiline content
 - **Output Intelligence**:
   - **Success Output**: Captures and displays stdout from successful script execution
   - **Failure Analysis**: Analyzes exit codes and output patterns for intelligent error reporting
@@ -164,6 +182,7 @@ bamon/
     - **Custom Script Support**: Preserves original output for custom failing scripts
     - **Configuration Integration**: Uses sandbox.timeout for accurate timeout reporting
   - **Display Optimization**: Smart truncation for table view with full details in JSON
+  - **Data Storage**: Proper JSON escaping without base64 encoding for cleaner data storage
 - **Data Persistence**: Store execution history in configurable location
   - Default: `~/.config/bamon/execution_history.json`
   - Configurable via `daemon.history_file` setting

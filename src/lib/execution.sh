@@ -6,6 +6,70 @@
 # Default timeout for script execution (seconds)
 DEFAULT_TIMEOUT=30
 
+# Check if output contains multiple lines
+function is_multiline_output() {
+  local output="$1"
+  [[ "$output" == *$'\n'* ]]
+}
+
+# Format output for table display
+function format_output_for_table() {
+  local output="$1"
+  local max_length="${2:-25}"
+  
+  if [[ -z "$output" || "$output" == "null" ]]; then
+    echo "(no output)"
+    return
+  fi
+  
+  # Check if output is multiline
+  if is_multiline_output "$output"; then
+    # For multiline output, just show truncation message
+    echo "(truncated - use --json)"
+  else
+    # Single line output
+    if [[ ${#output} -gt $max_length ]]; then
+      echo "(truncated - use --json)"
+    else
+      echo "$output"
+    fi
+  fi
+}
+
+# Format output for JSON display
+function format_output_for_json() {
+  local output="$1"
+  
+  if [[ -z "$output" || "$output" == "null" ]]; then
+    echo "null"
+    return
+  fi
+  
+  # Check if output is multiline
+  if is_multiline_output "$output"; then
+    # Convert multiline output to JSON array
+    echo -n "["
+    local first=true
+    while IFS= read -r line; do
+      if [[ "$first" == "true" ]]; then
+        first=false
+      else
+        echo -n ","
+      fi
+      # Escape quotes and backslashes for JSON
+      local escaped_line="${line//\\/\\\\}"
+      escaped_line="${escaped_line//\"/\\\"}"
+      echo -n "\"$escaped_line\""
+    done <<< "$output"
+    echo "]"
+  else
+    # Single line output - escape for JSON
+    local escaped_output="${output//\\/\\\\}"
+    escaped_output="${escaped_output//\"/\\\"}"
+    echo "\"$escaped_output\""
+  fi
+}
+
 # Generate specific error messages based on exit code and content
 function generate_error_message() {
   local script_name="$1"

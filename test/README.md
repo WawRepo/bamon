@@ -36,7 +36,8 @@ test/
 │   ├── test_remove_command.bats        # Remove command tests
 │   ├── test_list_command.bats          # List command tests
 │   ├── test_now_command.bats           # Now command tests
-│   └── test_config_command.bats        # Config command tests
+│   ├── test_config_command.bats        # Config command tests
+│   └── test_multiline_output.bats      # Multiline output handling tests
 ├── daemon/                             # Daemon functionality tests
 │   ├── test_daemon_execution.bats      # Daemon start/stop/restart
 │   └── test_daemon_logging.bats        # Daemon logging functionality
@@ -143,6 +144,7 @@ For interactive testing and PRD (Product Requirements Document) validation:
 - **Remove Command**: Tests script removal functionality
 - **List Command**: Tests script listing
 - **Now Command**: Tests manual script execution
+- **Multiline Output**: Tests multiline output handling in table and JSON views
 - **Start/Stop/Restart**: Tests daemon management
 
 ### Daemon Tests

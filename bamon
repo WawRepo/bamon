@@ -1034,6 +1034,70 @@ function is_performance_scheduling_optimized() {
 # Default timeout for script execution (seconds)
 DEFAULT_TIMEOUT=30
 
+# Check if output contains multiple lines
+function is_multiline_output() {
+  local output="$1"
+  [[ "$output" == *$'\n'* ]]
+}
+
+# Format output for table display
+function format_output_for_table() {
+  local output="$1"
+  local max_length="${2:-25}"
+
+  if [[ -z "$output" || "$output" == "null" ]]; then
+    echo "(no output)"
+    return
+  fi
+
+  # Check if output is multiline
+  if is_multiline_output "$output"; then
+    # For multiline output, just show truncation message
+    echo "(truncated - use --json)"
+  else
+    # Single line output
+    if [[ ${#output} -gt $max_length ]]; then
+      echo "(truncated - use --json)"
+    else
+      echo "$output"
+    fi
+  fi
+}
+
+# Format output for JSON display
+function format_output_for_json() {
+  local output="$1"
+
+  if [[ -z "$output" || "$output" == "null" ]]; then
+    echo "null"
+    return
+  fi
+
+  # Check if output is multiline
+  if is_multiline_output "$output"; then
+    # Convert multiline output to JSON array
+    echo -n "["
+    local first=true
+    while IFS= read -r line; do
+      if [[ "$first" == "true" ]]; then
+        first=false
+      else
+        echo -n ","
+      fi
+      # Escape quotes and backslashes for JSON
+      local escaped_line="${line//\\/\\\\}"
+      escaped_line="${escaped_line//\"/\\\"}"
+      echo -n "\"$escaped_line\""
+    done <<< "$output"
+    echo "]"
+  else
+    # Single line output - escape for JSON
+    local escaped_output="${output//\\/\\\\}"
+    escaped_output="${escaped_output//\"/\\\"}"
+    echo "\"$escaped_output\""
+  fi
+}
+
 # Generate specific error messages based on exit code and content
 function generate_error_message() {
   local script_name="$1"
@@ -1882,8 +1946,13 @@ function save_performance_data() {
     else
       json_data+=","
     fi
-    # Escape quotes in output
-    local escaped_output="${SCRIPT_LAST_OUTPUT[$key]//\"/\\\"}"
+    # Use base64 encoding to preserve multiline output
+    # Escape JSON special characters
+    local escaped_output="${SCRIPT_LAST_OUTPUT[$key]//\\/\\\\}"
+    escaped_output="${escaped_output//\"/\\\"}"
+    escaped_output="${escaped_output//$'\n'/\\n}"
+    escaped_output="${escaped_output//$'\r'/\\r}"
+    escaped_output="${escaped_output//$'\t'/\\t}"
     json_data+="\"$key\":\"$escaped_output\""
   done
   json_data+="},"
@@ -1896,8 +1965,12 @@ function save_performance_data() {
     else
       json_data+=","
     fi
-    # Escape quotes in error message
-    local escaped_error="${SCRIPT_LAST_ERROR[$key]//\"/\\\"}"
+    # Escape JSON special characters
+    local escaped_error="${SCRIPT_LAST_ERROR[$key]//\\/\\\\}"
+    escaped_error="${escaped_error//\"/\\\"}"
+    escaped_error="${escaped_error//$'\n'/\\n}"
+    escaped_error="${escaped_error//$'\r'/\\r}"
+    escaped_error="${escaped_error//$'\t'/\\t}"
     json_data+="\"$key\":\"$escaped_error\""
   done
   json_data+="}"
@@ -1912,6 +1985,11 @@ function load_performance_data() {
   local data_file="$PERFORMANCE_DATA_FILE"
 
   if [[ -f "$data_file" ]]; then
+    # Check if JSON is valid before loading
+    if ! cat "$data_file" | jq . >/dev/null 2>&1; then
+      log_warn "Performance data file is corrupted, skipping load"
+      return
+    fi
     # Load execution times
     local execution_times=$(cat "$data_file" | jq -r '.execution_times | to_entries[] | "\(.key)=\(.value)"' 2>/dev/null)
     if [[ -n "$execution_times" ]]; then
@@ -1945,19 +2023,31 @@ function load_performance_data() {
     fi
 
     # Load last outputs
-    local last_outputs=$(cat "$data_file" | jq -r '.last_outputs | to_entries[] | "\(.key)=\(.value)"' 2>/dev/null)
-    if [[ -n "$last_outputs" ]]; then
-      while IFS='=' read -r key value; do
+    local output_keys=$(cat "$data_file" | jq -r '.last_outputs | keys[]' 2>/dev/null)
+    if [[ -n "$output_keys" ]]; then
+      while IFS= read -r key; do
+        local value=$(cat "$data_file" | jq -r ".last_outputs[\"$key\"]" 2>/dev/null)
+        # Convert escaped newlines back to actual newlines
+        value="${value//\\n/$'\n'}"
+        value="${value//\\r/$'\r'}"
+        value="${value//\\t/$'\t'}"
+        value="${value//\\\\/\\}"
         SCRIPT_LAST_OUTPUT["$key"]="$value"
-      done <<< "$last_outputs"
+      done <<< "$output_keys"
     fi
 
     # Load last errors
-    local last_errors=$(cat "$data_file" | jq -r '.last_errors | to_entries[] | "\(.key)=\(.value)"' 2>/dev/null)
-    if [[ -n "$last_errors" ]]; then
-      while IFS='=' read -r key value; do
+    local error_keys=$(cat "$data_file" | jq -r '.last_errors | keys[]' 2>/dev/null)
+    if [[ -n "$error_keys" ]]; then
+      while IFS= read -r key; do
+        local value=$(cat "$data_file" | jq -r ".last_errors[\"$key\"]" 2>/dev/null)
+        # Convert escaped newlines back to actual newlines
+        value="${value//\\n/$'\n'}"
+        value="${value//\\r/$'\r'}"
+        value="${value//\\t/$'\t'}"
+        value="${value//\\\\/\\}"
         SCRIPT_LAST_ERROR["$key"]="$value"
-      done <<< "$last_errors"
+      done <<< "$error_keys"
     fi
   fi
 }
@@ -2368,6 +2458,9 @@ bamon_status_command() {
       return 1
     fi
 
+    # Load performance data
+    load_performance_data
+
     # Get all scripts or specific script
     local scripts=""
     if [[ -n "$name" ]]; then
@@ -2386,7 +2479,7 @@ bamon_status_command() {
 
     # Print header if not JSON output
     if [[ "$json_output" != "1" ]]; then
-      printf "%-20s %-10s %-10s %-25s %-8s %-15s %-20s\n" \
+      printf "%-20s %-10s %-10s %-30s %-8s %-15s %-20s\n" \
         "NAME" "STATUS" "EXIT CODE" "OUTPUT" "DURATION" "TIME SINCE" "NEXT EXECUTION"
       printf "%s\n" "$(printf '=%.0s' {1..125})"
     else
@@ -2449,27 +2542,11 @@ bamon_status_command() {
       # Determine output to show based on status
       local output_msg=""
       if [[ "$last_status" == "SUCCESS" ]]; then
-        # For successful executions, show stdout
-        if [[ -n "$last_output" && "$last_output" != "null" ]]; then
-          if [[ ${#last_output} -gt 25 ]]; then
-            output_msg="truncated (use --json)"
-          else
-            output_msg="$last_output"
-          fi
-        else
-          output_msg="(no output)"
-        fi
+        # For successful executions, show stdout with multiline handling
+        output_msg=$(format_output_for_table "$last_output" 25)
       else
-        # For failed executions, show error message
-        if [[ -n "$last_error" && "$last_error" != "null" ]]; then
-          if [[ ${#last_error} -gt 25 ]]; then
-            output_msg="truncated (use --json)"
-          else
-            output_msg="$last_error"
-          fi
-        else
-          output_msg="(no error info)"
-        fi
+        # For failed executions, show error message with multiline handling
+        output_msg=$(format_output_for_table "$last_error" 25)
       fi
 
       # Format last execution time
@@ -2494,11 +2571,11 @@ bamon_status_command() {
         echo "      \"duration\": \"$duration\","
         echo "      \"timeSince\": \"$time_since\","
         echo "      \"nextExecution\": \"$next_execution\","
-        echo "      \"output\": \"${last_output:-null}\","
-        echo "      \"error\": \"${last_error:-null}\""
+        echo "      \"output\": $(format_output_for_json "${last_output:-null}"),"
+        echo "      \"error\": $(format_output_for_json "${last_error:-null}")"
         echo -n "    }"
       else
-        printf "%-20s %-10s %-10s %-25s %-8s %-15s %-20s\n" \
+        printf "%-20s %-10s %-10s %-30s %-8s %-15s %-20s\n" \
           "$script" \
           "$result" \
           "$exit_code" \
@@ -2583,28 +2660,16 @@ bamon_status_command() {
     fi
   }
 
-  # Get script last error (placeholder - would need to be implemented)
+  # Get script last error
   function get_script_last_error() {
     local script_name="$1"
-    local data_file="$HOME/.config/bamon/performance_data.json"
-
-    if [[ -f "$data_file" ]]; then
-      jq -r ".last_errors.\"$script_name\" // \"\"" "$data_file" 2>/dev/null || echo ""
-    else
-      echo ""
-    fi
+    echo "${SCRIPT_LAST_ERROR[$script_name]:-}"
   }
 
   # Get script stdout output
   function get_script_last_output() {
     local script_name="$1"
-    local data_file="$HOME/.config/bamon/performance_data.json"
-
-    if [[ -f "$data_file" ]]; then
-      jq -r ".last_outputs.\"$script_name\" // \"\"" "$data_file" 2>/dev/null || echo ""
-    else
-      echo ""
-    fi
+    echo "${SCRIPT_LAST_OUTPUT[$script_name]:-}"
   }
 
   # Get script exit code
