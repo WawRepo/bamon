@@ -323,6 +323,16 @@ function start_daemon() {
     return 0
   fi
   
+  # Add atomic lock file mechanism to prevent race conditions
+  local lock_file="$HOME/.config/bamon/daemon.lock"
+  if ! (set -C; echo $$ > "$lock_file") 2>/dev/null; then
+    echo "Another daemon startup is in progress. Please wait and try again."
+    return 1
+  fi
+  
+  # Clean up lock file on exit
+  trap 'rm -f "$lock_file"' EXIT
+  
   log_info "Starting bamon daemon"
   
   if [[ "$daemon_mode" == "true" ]]; then
@@ -341,9 +351,15 @@ function start_daemon() {
     echo "Daemon started in background (PID: $daemon_pid)"
     echo "Logs: $log_file"
     
+    # Clean up lock file after successful daemon start
+    rm -f "$lock_file"
+    
   else
     # Start in foreground
     daemon_loop
+    
+    # Clean up lock file after daemon exits
+    rm -f "$lock_file"
   fi
 }
 
