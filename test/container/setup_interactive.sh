@@ -73,34 +73,7 @@ scripts:
     description: "Check GitHub status"
 EOF
 
-# Create some test scripts
-echo -e "${YELLOW}📝 Creating test scripts...${NC}"
-mkdir -p "/home/testuser/test-scripts"
 
-cat > "/home/testuser/test-scripts/simple_test.sh" << 'EOF'
-#!/bin/bash
-echo "Simple test script executed at $(date)"
-echo "Current user: $(whoami)"
-echo "Current directory: $(pwd)"
-EOF
-
-cat > "/home/testuser/test-scripts/error_test.sh" << 'EOF'
-#!/bin/bash
-echo "This script will fail"
-exit 1
-EOF
-
-cat > "/home/testuser/test-scripts/long_running.sh" << 'EOF'
-#!/bin/bash
-echo "Starting long running script..."
-for i in {1..5}; do
-    echo "Step $i/5"
-    sleep 2
-done
-echo "Long running script completed"
-EOF
-
-chmod +x "/home/testuser/test-scripts/"*.sh
 
 # Verify installation
 echo -e "${GREEN}✅ Verifying BAMON installation...${NC}"
@@ -130,13 +103,8 @@ echo "  bamon start --daemon            # Start daemon"
 echo "  bamon stop                      # Stop daemon"
 echo "  bamon performance               # Show performance metrics"
 echo ""
-echo -e "${YELLOW}Test scripts available in ~/test-scripts/:${NC}"
-echo "  ~/test-scripts/simple_test.sh   # Simple test script"
-echo "  ~/test-scripts/error_test.sh    # Script that fails"
-echo "  ~/test-scripts/long_running.sh  # Long running script"
-echo ""
 echo -e "${YELLOW}Example usage:${NC}"
-echo "  bamon add test_script --command '~/test-scripts/simple_test.sh'"
+echo "  bamon add test_script --command 'echo \"Hello World\"'"
 echo "  bamon now --name test_script"
 echo "  bamon start --daemon"
 echo "  bamon status --json"

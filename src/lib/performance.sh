@@ -7,12 +7,16 @@
 
 # Performance monitoring variables using associative arrays (Bash 4.0+ feature)
 declare -A SCRIPT_EXECUTION_TIMES
+declare -A SCRIPT_EXECUTION_TIMESTAMPS
 declare -A SCRIPT_FAILURE_COUNTS
 declare -A SCRIPT_LAST_STATUS
 declare -A SCRIPT_LAST_ERROR
 declare -A SCRIPT_LAST_OUTPUT
 declare -A SCRIPT_LAST_EXIT_CODE
 declare -A SYSTEM_LOAD_VALUES
+
+# Debug counter
+SAVE_CALL_COUNT=0
 
 # Persistent storage file for execution data
 PERFORMANCE_DATA_FILE="$HOME/.config/bamon/performance_data.json"
@@ -150,8 +154,9 @@ function track_script_execution() {
   # Load existing performance data first
   load_performance_data
   
-  # Update execution time
+  # Update execution time and timestamp
   SCRIPT_EXECUTION_TIMES[$script_name]="$execution_time"
+  SCRIPT_EXECUTION_TIMESTAMPS[$script_name]=$(date +%s)
   
   # Update last execution status
   SCRIPT_LAST_STATUS[$script_name]="$success"
@@ -175,11 +180,15 @@ function track_script_execution() {
 function save_performance_data() {
   local data_file="$PERFORMANCE_DATA_FILE"
   
+  # Save performance data to persistent storage
+  
   # Create directory if it doesn't exist
   mkdir -p "$(dirname "$data_file")"
   
   # Create JSON data
   local json_data="{"
+  
+  # Add execution times
   json_data+="\"execution_times\":{"
   local first=true
   for key in "${!SCRIPT_EXECUTION_TIMES[@]}"; do
@@ -192,6 +201,7 @@ function save_performance_data() {
   done
   json_data+="},"
   
+  # Add failure counts
   json_data+="\"failure_counts\":{"
   first=true
   for key in "${!SCRIPT_FAILURE_COUNTS[@]}"; do
@@ -204,6 +214,7 @@ function save_performance_data() {
   done
   json_data+="},"
   
+  # Add last status
   json_data+="\"last_status\":{"
   first=true
   for key in "${!SCRIPT_LAST_STATUS[@]}"; do
@@ -216,6 +227,7 @@ function save_performance_data() {
   done
   json_data+="},"
   
+  # Add last exit codes
   json_data+="\"last_exit_codes\":{"
   first=true
   for key in "${!SCRIPT_LAST_EXIT_CODE[@]}"; do
@@ -228,6 +240,7 @@ function save_performance_data() {
   done
   json_data+="},"
   
+  # Add last outputs
   json_data+="\"last_outputs\":{"
   first=true
   for key in "${!SCRIPT_LAST_OUTPUT[@]}"; do
@@ -236,9 +249,9 @@ function save_performance_data() {
     else
       json_data+=","
     fi
-    # Use base64 encoding to preserve multiline output
     # Escape JSON special characters
-    local escaped_output="${SCRIPT_LAST_OUTPUT[$key]//\\/\\\\}"
+    local escaped_output="${SCRIPT_LAST_OUTPUT[$key]}"
+    escaped_output="${escaped_output//\\/\\\\}"
     escaped_output="${escaped_output//\"/\\\"}"
     escaped_output="${escaped_output//$'\n'/\\n}"
     escaped_output="${escaped_output//$'\r'/\\r}"
@@ -247,6 +260,7 @@ function save_performance_data() {
   done
   json_data+="},"
   
+  # Add last errors
   json_data+="\"last_errors\":{"
   first=true
   for key in "${!SCRIPT_LAST_ERROR[@]}"; do
@@ -256,12 +270,26 @@ function save_performance_data() {
       json_data+=","
     fi
     # Escape JSON special characters
-    local escaped_error="${SCRIPT_LAST_ERROR[$key]//\\/\\\\}"
+    local escaped_error="${SCRIPT_LAST_ERROR[$key]}"
+    escaped_error="${escaped_error//\\/\\\\}"
     escaped_error="${escaped_error//\"/\\\"}"
     escaped_error="${escaped_error//$'\n'/\\n}"
     escaped_error="${escaped_error//$'\r'/\\r}"
     escaped_error="${escaped_error//$'\t'/\\t}"
     json_data+="\"$key\":\"$escaped_error\""
+  done
+  json_data+="},"
+  
+  # Add execution timestamps
+  json_data+="\"execution_timestamps\":{"
+  first=true
+  for key in "${!SCRIPT_EXECUTION_TIMESTAMPS[@]}"; do
+    if [[ "$first" == "true" ]]; then
+      first=false
+    else
+      json_data+=","
+    fi
+    json_data+="\"$key\":${SCRIPT_EXECUTION_TIMESTAMPS[$key]}"
   done
   json_data+="}"
   json_data+="}"
@@ -286,6 +314,14 @@ function load_performance_data() {
       while IFS='=' read -r key value; do
         SCRIPT_EXECUTION_TIMES["$key"]="$value"
       done <<< "$execution_times"
+    fi
+    
+    # Load execution timestamps
+    local execution_timestamps=$(cat "$data_file" | jq -r '.execution_timestamps // {} | to_entries[] | "\(.key)=\(.value)"' 2>/dev/null)
+    if [[ -n "$execution_timestamps" ]]; then
+      while IFS='=' read -r key value; do
+        SCRIPT_EXECUTION_TIMESTAMPS["$key"]="$value"
+      done <<< "$execution_timestamps"
     fi
     
     # Load failure counts

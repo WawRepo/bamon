@@ -32,8 +32,9 @@ chmod +x install.sh
 This will:
 - Install BAMON to `~/.local/bin/bamon` (user installation)
 - Set up default configuration in `~/.config/bamon/`
-- Install sample monitoring scripts
+- Install sample monitoring scripts to `~/.config/bamon/samples/`
 - Add BAMON to your PATH
+- Create execution history file for performance tracking
 
 ### Installation Options
 
@@ -251,9 +252,11 @@ bamon config validate
 ```yaml
 daemon:
   default_interval: 60
-  log_file: "~/.config/bamon/bamon.log"
+  log_file: "~/.config/bamon/daemon.log"
   pid_file: "~/.config/bamon/bamon.pid"
   max_concurrent: 10
+  history_file: "~/.config/bamon/execution_history.json"
+  history_retention_days: 30
 
 sandbox:
   timeout: 30
@@ -313,6 +316,8 @@ scripts:
 | Command | Description | Example |
 |---------|-------------|---------|
 | `performance` | Show performance metrics | `bamon performance` |
+| `performance --json` | Show performance metrics in JSON format | `bamon performance --json` |
+| `performance --verbose` | Show detailed performance information | `bamon performance --verbose` |
 
 ## 📊 Examples
 
@@ -394,6 +399,73 @@ bamon status --json
 - **JSON View**: Complete output preserved with proper formatting
 - **Data Storage**: Uses JSON escaping (no base64 encoding) for cleaner data
 
+## ⚡ Performance Monitoring
+
+BAMON includes comprehensive performance monitoring and optimization features:
+
+### System Load Monitoring
+
+BAMON automatically monitors system performance and adapts execution accordingly:
+
+```bash
+# View current performance metrics
+bamon performance
+
+# Get detailed performance information
+bamon performance --verbose
+
+# Export performance data as JSON
+bamon performance --json
+```
+
+**Performance Features:**
+- **Load Detection**: Monitors system load average and prevents execution during high load
+- **Resource Awareness**: Tracks CPU, memory, and disk usage
+- **Adaptive Scheduling**: Adjusts execution intervals based on system performance
+- **Concurrent Execution Management**: Limits simultaneous script execution to prevent system overload
+
+### Performance Metrics
+
+BAMON tracks comprehensive performance data:
+
+- **Execution Times**: Track and optimize script execution duration
+- **Success Rates**: Monitor and report script success/failure rates
+- **Resource Usage**: Track CPU, memory, and disk usage per script
+- **System Health**: Overall system performance indicators
+- **Queue Management**: Queue scripts when system is at capacity
+- **Priority Scheduling**: Execute high-priority scripts first
+
+### Performance Configuration
+
+Configure performance monitoring in your `config.yaml`:
+
+```yaml
+performance:
+  enable_monitoring: true
+  load_threshold: 0.8          # System load threshold for adaptive scheduling
+  optimize_scheduling: true    # Enable intelligent scheduling optimization
+
+daemon:
+  max_concurrent: 10           # Maximum simultaneous script executions
+```
+
+### Execution History
+
+BAMON maintains detailed execution history for performance analysis:
+
+- **Execution Results**: Success/failure status and exit codes
+- **Output Capture**: Complete stdout and stderr from each execution
+- **Timestamps**: Precise execution timing and duration
+- **Resource Metrics**: CPU, memory, and disk usage per execution
+- **Retention Policy**: Configurable history retention (default: 30 days)
+
+**History Configuration:**
+```yaml
+daemon:
+  history_file: "~/.config/bamon/execution_history.json"
+  history_retention_days: 30
+```
+
 ## 🔧 Troubleshooting
 
 ### Common Issues
@@ -446,11 +518,44 @@ bamon config validate --verbose
 
 ## 🔒 Security Considerations
 
-- **Sandboxing**: All scripts run in a sandboxed environment with resource limits
-- **Permissions**: Scripts run with the permissions of the user who started the daemon
+BAMON implements comprehensive security features to ensure safe script execution:
+
+### Sandboxing and Resource Limits
+
+- **Isolated Environment**: All scripts run in a sandboxed environment with strict resource limits
+- **Path Isolation**: Scripts run in temporary directories with limited access to system files
+- **Resource Limits**: Configurable limits prevent runaway scripts from consuming system resources
+  - **CPU Time**: Maximum CPU time per script execution
+  - **Memory**: Maximum virtual memory usage per script
+  - **File Size**: Maximum file size for script output
+  - **Timeout**: Maximum execution time before forced termination
+
+### Input Validation and Security
+
+- **Input Validation**: All inputs are validated before processing and execution
+- **Command Sanitization**: Script commands are sanitized to prevent injection attacks
+- **Permission Model**: Scripts run with the permissions of the user who started the daemon
+- **Error Handling**: Graceful handling of script failures prevents system compromise
+
+### Best Practices
+
 - **Sensitive Data**: Avoid including sensitive information directly in script commands
 - **Credential Storage**: Use environment variables or secure credential storage for sensitive data
 - **User Isolation**: Consider running BAMON with a dedicated user with minimal permissions
+- **Network Security**: Be cautious with network-based health checks and API calls
+- **File Permissions**: Ensure configuration files have appropriate permissions (600 or 644)
+
+### Security Configuration
+
+Configure security settings in your `config.yaml`:
+
+```yaml
+sandbox:
+  timeout: 30                    # Maximum execution time (seconds)
+  max_cpu_time: 60              # Maximum CPU time (seconds)
+  max_file_size: 10240          # Maximum output file size (bytes)
+  max_virtual_memory: 102400    # Maximum virtual memory (KB)
+```
 
 ## 🤝 Contributing
 

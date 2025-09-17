@@ -185,10 +185,10 @@ function is_script_enabled() {
 # Get script last execution time (timestamp)
 function get_script_last_execution_time() {
   local script_name="$1"
-  local tracking_file="$HOME/.config/bamon/script_execution_times.json"
+  local data_file="$HOME/.config/bamon/performance_data.json"
   
-  if [[ -f "$tracking_file" ]]; then
-    jq -r ".\"$script_name\" // 0" "$tracking_file" 2>/dev/null || echo "0"
+  if [[ -f "$data_file" ]]; then
+    jq -r ".execution_timestamps.\"$script_name\" // 0" "$data_file" 2>/dev/null || echo "0"
   else
     echo "0"
   fi
