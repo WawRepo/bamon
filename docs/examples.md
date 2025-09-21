@@ -10,6 +10,7 @@ This document provides comprehensive examples of how to use BAMON for various mo
 - [Database Monitoring](#database-monitoring)
 - [File System Monitoring](#file-system-monitoring)
 - [Network Monitoring](#network-monitoring)
+- [Remote Monitoring via SSH](#remote-monitoring-via-ssh)
 - [Custom Scripts](#custom-scripts)
 - [Advanced Configuration](#advanced-configuration)
 
@@ -276,6 +277,255 @@ bamon add "dns_check" \
   --command "nslookup google.com > /dev/null 2>&1 || exit 1" \
   --interval 60 \
   --description "Check DNS resolution"
+```
+
+## Remote Monitoring via SSH
+
+BAMON can monitor remote systems by executing commands via SSH. This is useful for monitoring multiple servers from a central location.
+
+### Basic SSH Monitoring
+
+```bash
+# Monitor disk usage on remote server
+bamon add "remote_disk_check" \
+  --command "ssh user@remote-server 'df -h / | awk \"NR==2 {print \\$5}\" | sed \"s/%//\" | awk \"{if(\\$1>80) exit 1; else exit 0}\"'" \
+  --interval 300 \
+  --description "Monitor disk usage on remote server"
+
+# Check if service is running on remote server
+bamon add "remote_nginx_check" \
+  --command "ssh user@remote-server 'pgrep nginx > /dev/null || exit 1'" \
+  --interval 60 \
+  --description "Check if Nginx is running on remote server"
+
+# Monitor memory usage on remote server
+bamon add "remote_memory_check" \
+  --command "ssh user@remote-server 'free -m | awk \"/^Mem:/ {print \\$3/\\$2 * 100.0}\" | awk \"{if(\\$1>85) exit 1; else exit 0}\"'" \
+  --interval 300 \
+  --description "Monitor memory usage on remote server"
+```
+
+### SSH with Key Authentication
+
+For better security and automation, use SSH key authentication:
+
+```bash
+# Set up SSH key (run once)
+ssh-keygen -t rsa -b 4096 -f ~/.ssh/bamon_monitoring
+ssh-copy-id -i ~/.ssh/bamon_monitoring.pub user@remote-server
+
+# Monitor with key authentication
+bamon add "remote_cpu_check" \
+  --command "ssh -i ~/.ssh/bamon_monitoring user@remote-server 'uptime | awk \"{print \\$10}\" | sed \"s/,//\" | awk \"{if(\\$1>2.0) exit 1; else exit 0}\"'" \
+  --interval 60 \
+  --description "Monitor CPU load on remote server"
+```
+
+### Multiple Remote Servers
+
+Monitor multiple servers with similar checks:
+
+```bash
+# Server list
+SERVERS=("web1.example.com" "web2.example.com" "db.example.com")
+
+# Add monitoring for each server
+for server in "${SERVERS[@]}"; do
+  bamon add "remote_disk_${server//\./_}" \
+    --command "ssh user@${server} 'df -h / | awk \"NR==2 {print \\$5}\" | sed \"s/%//\" | awk \"{if(\\$1>80) exit 1; else exit 0}\"'" \
+    --interval 300 \
+    --description "Monitor disk usage on ${server}"
+done
+```
+
+### SSH with Custom Port and Options
+
+```bash
+# SSH with custom port and connection options
+bamon add "remote_service_check" \
+  --command "ssh -p 2222 -o ConnectTimeout=10 -o StrictHostKeyChecking=no user@remote-server 'systemctl is-active nginx'" \
+  --interval 60 \
+  --description "Check Nginx service status on remote server (port 2222)"
+
+# SSH with compression and keep-alive
+bamon add "remote_log_check" \
+  --command "ssh -C -o ServerAliveInterval=60 user@remote-server 'tail -n 100 /var/log/nginx/error.log | grep -c ERROR'" \
+  --interval 300 \
+  --description "Check for errors in remote Nginx logs"
+```
+
+### Remote Database Monitoring
+
+```bash
+# Monitor MySQL on remote server
+bamon add "remote_mysql_check" \
+  --command "ssh user@db-server 'mysql -u root -e \"SELECT 1\" > /dev/null 2>&1 || exit 1'" \
+  --interval 120 \
+  --description "Check MySQL connection on remote database server"
+
+# Monitor PostgreSQL on remote server
+bamon add "remote_postgres_check" \
+  --command "ssh user@db-server 'psql -U postgres -c \"SELECT 1\" > /dev/null 2>&1 || exit 1'" \
+  --interval 120 \
+  --description "Check PostgreSQL connection on remote database server"
+```
+
+### Remote File and Directory Monitoring
+
+```bash
+# Check if critical files exist on remote server
+bamon add "remote_critical_files" \
+  --command "ssh user@remote-server 'test -f /etc/passwd && test -f /etc/shadow && test -f /etc/group || exit 1'" \
+  --interval 300 \
+  --description "Check critical system files on remote server"
+
+# Monitor log file sizes on remote server
+bamon add "remote_log_size" \
+  --command "ssh user@remote-server 'find /var/log -name \"*.log\" -size +100M | wc -l | awk \"{if(\\$1>0) exit 1; else exit 0}\"'" \
+  --interval 300 \
+  --description "Check for oversized log files on remote server"
+```
+
+### Remote Process and Service Monitoring
+
+```bash
+# Check specific processes on remote server
+bamon add "remote_apache_check" \
+  --command "ssh user@web-server 'pgrep -c apache2 | awk \"{if(\\$1<2) exit 1; else exit 0}\"'" \
+  --interval 60 \
+  --description "Ensure Apache processes are running on remote web server"
+
+# Check systemd service status on remote server
+bamon add "remote_docker_service" \
+  --command "ssh user@remote-server 'systemctl is-active docker | grep -q active || exit 1'" \
+  --interval 60 \
+  --description "Check Docker service status on remote server"
+```
+
+### SSH Connection Health Monitoring
+
+```bash
+# Monitor SSH connectivity itself
+bamon add "ssh_connectivity" \
+  --command "ssh -o ConnectTimeout=5 -o BatchMode=yes user@remote-server 'echo \"SSH connection successful\"' || exit 1" \
+  --interval 60 \
+  --description "Monitor SSH connectivity to remote server"
+
+# Check SSH service on remote server
+bamon add "remote_ssh_service" \
+  --command "ssh user@remote-server 'systemctl is-active ssh | grep -q active || exit 1'" \
+  --interval 120 \
+  --description "Check SSH service status on remote server"
+```
+
+### Advanced Remote Monitoring Script
+
+Create a comprehensive remote monitoring script:
+
+```bash
+# Create advanced remote monitoring script
+cat > ~/.config/bamon/samples/remote_health_check.sh << 'SCRIPT_EOF'
+#!/bin/bash
+
+# Advanced remote health check script
+REMOTE_SERVER="$1"
+SSH_USER="$2"
+SSH_KEY="$3"
+
+if [ -z "$REMOTE_SERVER" ] || [ -z "$SSH_USER" ]; then
+    echo "Usage: $0 <server> <user> [ssh_key]"
+    exit 1
+fi
+
+SSH_CMD="ssh"
+if [ -n "$SSH_KEY" ]; then
+    SSH_CMD="ssh -i $SSH_KEY"
+fi
+
+# Function to execute remote command
+remote_exec() {
+    $SSH_CMD -o ConnectTimeout=10 -o BatchMode=yes "$SSH_USER@$REMOTE_SERVER" "$1"
+}
+
+# Check 1: System uptime
+UPTIME=$(remote_exec "uptime | awk '{print \$3}' | sed 's/,//'")
+if [ -z "$UPTIME" ]; then
+    echo "ERROR: Cannot connect to $REMOTE_SERVER"
+    exit 1
+fi
+
+# Check 2: Disk usage
+DISK_USAGE=$(remote_exec "df -h / | awk 'NR==2 {print \$5}' | sed 's/%//'")
+if [ "$DISK_USAGE" -gt 80 ]; then
+    echo "ERROR: Disk usage is ${DISK_USAGE}% on $REMOTE_SERVER"
+    exit 1
+fi
+
+# Check 3: Memory usage
+MEMORY_USAGE=$(remote_exec "free | awk '/^Mem:/ {printf \"%.0f\", \$3/\$2 * 100}'")
+if [ "$MEMORY_USAGE" -gt 85 ]; then
+    echo "ERROR: Memory usage is ${MEMORY_USAGE}% on $REMOTE_SERVER"
+    exit 1
+fi
+
+# Check 4: Load average
+LOAD_AVG=$(remote_exec "uptime | awk '{print \$10}' | sed 's/,//'")
+if (( $(echo "$LOAD_AVG > 2.0" | bc -l) )); then
+    echo "ERROR: Load average is $LOAD_AVG on $REMOTE_SERVER"
+    exit 1
+fi
+
+# Check 5: Critical services
+SERVICES=("nginx" "mysql" "docker")
+for service in "${SERVICES[@]}"; do
+    if ! remote_exec "systemctl is-active $service | grep -q active"; then
+        echo "ERROR: Service $service is not active on $REMOTE_SERVER"
+        exit 1
+    fi
+done
+
+echo "OK: All checks passed on $REMOTE_SERVER (Uptime: ${UPTIME}d, Disk: ${DISK_USAGE}%, Memory: ${MEMORY_USAGE}%, Load: $LOAD_AVG)"
+exit 0
+SCRIPT_EOF
+
+chmod +x ~/.config/bamon/samples/remote_health_check.sh
+
+# Add remote monitoring for multiple servers
+bamon add "remote_web1_health" \
+  --command "~/.config/bamon/samples/remote_health_check.sh web1.example.com user ~/.ssh/bamon_monitoring" \
+  --interval 300 \
+  --description "Comprehensive health check for web1.example.com"
+
+bamon add "remote_web2_health" \
+  --command "~/.config/bamon/samples/remote_health_check.sh web2.example.com user ~/.ssh/bamon_monitoring" \
+  --interval 300 \
+  --description "Comprehensive health check for web2.example.com"
+```
+
+### SSH Monitoring Best Practices
+
+1. **Use SSH Keys**: Set up SSH key authentication for passwordless access
+2. **Connection Timeouts**: Always use `ConnectTimeout` to avoid hanging connections
+3. **Batch Mode**: Use `BatchMode=yes` to prevent interactive prompts
+4. **Error Handling**: Always check if SSH commands succeed before processing output
+5. **Resource Limits**: Consider the impact of multiple SSH connections on network and system resources
+6. **Security**: Use dedicated monitoring users with limited privileges
+7. **Logging**: Monitor SSH connection logs for security and troubleshooting
+
+### Troubleshooting SSH Monitoring
+
+```bash
+# Test SSH connection manually
+ssh -v user@remote-server 'echo "Connection test successful"'
+
+# Check SSH key authentication
+ssh -i ~/.ssh/bamon_monitoring user@remote-server 'echo "Key authentication successful"'
+
+# Test specific command
+ssh user@remote-server 'df -h / | awk "NR==2 {print \$5}"'
+
+# Debug SSH connection issues
+ssh -vvv user@remote-server 'echo "Debug connection"'
 ```
 
 ## Custom Scripts

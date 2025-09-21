@@ -375,6 +375,39 @@ bamon add "db_check" \
   --description "Check MySQL database connection"
 ```
 
+### Remote Monitoring via SSH
+
+Monitor remote servers from a central location:
+
+```bash
+# Monitor disk usage on remote server
+bamon add "remote_disk" \
+  --command "ssh user@remote-server 'df -h / | awk \"NR==2 {print \\$5}\" | sed \"s/%//\" | awk \"{if(\\$1>80) exit 1; else exit 0}\"'" \
+  --interval 300 \
+  --description "Monitor disk usage on remote server"
+
+# Check service status on remote server
+bamon add "remote_nginx" \
+  --command "ssh user@remote-server 'systemctl is-active nginx | grep -q active || exit 1'" \
+  --interval 60 \
+  --description "Check Nginx service on remote server"
+
+# Monitor multiple servers
+SERVERS=("web1.example.com" "web2.example.com" "db.example.com")
+for server in "${SERVERS[@]}"; do
+  bamon add "remote_${server//\./_}_health" \
+    --command "ssh user@${server} 'uptime | awk \"{print \\$10}\" | sed \"s/,//\" | awk \"{if(\\$1>2.0) exit 1; else exit 0}\"'" \
+    --interval 60 \
+    --description "Monitor CPU load on ${server}"
+done
+```
+
+**SSH Best Practices:**
+- Use SSH key authentication for passwordless access
+- Set connection timeouts to avoid hanging connections
+- Use dedicated monitoring users with limited privileges
+- See [docs/examples.md](docs/examples.md) for comprehensive SSH monitoring examples
+
 ### Multiline Output Examples
 
 BAMON handles scripts that produce multiple lines of output:
@@ -451,7 +484,9 @@ daemon:
 
 ### Execution History
 
-BAMON maintains detailed execution history for performance analysis:
+> **⚠️ Note**: Execution history feature is **not yet implemented**. This is a planned feature for future releases.
+
+BAMON will maintain detailed execution history for performance analysis:
 
 - **Execution Results**: Success/failure status and exit codes
 - **Output Capture**: Complete stdout and stderr from each execution
@@ -459,12 +494,14 @@ BAMON maintains detailed execution history for performance analysis:
 - **Resource Metrics**: CPU, memory, and disk usage per execution
 - **Retention Policy**: Configurable history retention (default: 30 days)
 
-**History Configuration:**
+**Planned History Configuration:**
 ```yaml
 daemon:
   history_file: "~/.config/bamon/execution_history.json"
   history_retention_days: 30
 ```
+
+**Current Status**: Basic performance data is stored in `~/.config/bamon/performance_data.json`, but detailed execution history is not yet available. See [FUTURE.md](FUTURE.md) for planned features.
 
 ## 🔧 Troubleshooting
 
@@ -532,10 +569,32 @@ BAMON implements comprehensive security features to ensure safe script execution
 
 ### Input Validation and Security
 
-- **Input Validation**: All inputs are validated before processing and execution
-- **Command Sanitization**: Script commands are sanitized to prevent injection attacks
+- **Input Validation**: Script names and intervals are validated; command content is not validated
+- **Command Execution**: Script commands are executed directly without sanitization
 - **Permission Model**: Scripts run with the permissions of the user who started the daemon
 - **Error Handling**: Graceful handling of script failures prevents system compromise
+
+**⚠️ Security Note**: BAMON executes commands directly without sanitization. Only run trusted scripts and use appropriate user permissions. See [Security Features](#security-features) for planned improvements.
+
+### Security Features
+
+> **📋 Planned Security Enhancements**: Advanced security features are planned for future releases. See [FUTURE.md](FUTURE.md) for detailed security roadmap.
+
+**Current Security Status**:
+- ✅ **Basic Input Validation**: Script names and intervals are validated
+- ✅ **User Permission Model**: Scripts run with user permissions (no privilege escalation)
+- ✅ **Error Handling**: Graceful failure handling prevents system crashes
+- ❌ **Command Sanitization**: Not implemented - commands execute directly
+- ❌ **Command Whitelisting**: Not implemented - any command can be executed
+- ❌ **Path Validation**: Not implemented - any accessible path can be used
+
+**Planned Security Features**:
+- **Command Sanitization**: Prevent injection attacks through input validation
+- **Command Whitelisting**: Restrict which commands can be executed
+- **Path Validation**: Validate and restrict file system access
+- **Audit Logging**: Complete audit trail of all security-relevant actions
+- **Role-based Access Control**: Different permissions for different users
+- **Encrypted Configuration**: Secure storage of sensitive configuration data
 
 ### Best Practices
 
