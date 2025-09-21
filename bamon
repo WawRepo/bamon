@@ -462,6 +462,7 @@ bamon_config_usage() {
   printf "  %s   Open configuration file in default editor\n" "edit    "
   printf "  %s   Display current configuration in YAML format\n" "show    "
   printf "  %s   Validate configuration file syntax and structure\n" "validate"
+  printf "  %s   Reset configuration to default values (creates backup automatically)\n" "reset   "
   echo
 
   # :command.long_usage
@@ -571,6 +572,39 @@ bamon_config_validate_usage() {
     printf "%s\n" "Examples:"
     printf "  bamon config validate\n"
     printf "  bamon config validate --verbose\n"
+    echo
+
+  fi
+}
+
+# :command.usage
+bamon_config_reset_usage() {
+  printf "bamon config reset - Reset configuration to default values (creates backup automatically)\n\n"
+
+  printf "%s\n" "Usage:"
+  printf "  bamon config reset [OPTIONS]\n"
+  printf "  bamon config reset --help | -h\n"
+  echo
+
+  # :command.long_usage
+  if [[ -n "$long_usage" ]]; then
+    printf "%s\n" "Options:"
+
+    # :command.usage_flags
+    # :flag.usage
+    printf "  %s\n" "--force, -f"
+    printf "    Reset without confirmation prompt\n"
+    echo
+
+    # :command.usage_fixed_flags
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+    # :command.usage_examples
+    printf "%s\n" "Examples:"
+    printf "  bamon config reset\n"
+    printf "  bamon config reset --force\n"
     echo
 
   fi
@@ -1023,6 +1057,63 @@ function get_performance_cache_ttl() {
 
 function is_performance_scheduling_optimized() {
   get_performance_config "optimize_scheduling" "true"
+}
+
+# Create default configuration file
+function create_default_config() {
+  local config_file="$1"
+  local config_dir
+  local log_dir
+  local pid_dir
+
+  # Get directories
+  config_dir=$(dirname "$config_file")
+  log_dir="${HOME}/.local/share/bamon/logs"
+  pid_dir="${HOME}/.local/share/bamon"
+
+  # Create directories if they don't exist
+  mkdir -p "$config_dir"
+  mkdir -p "$log_dir"
+  mkdir -p "$pid_dir"
+
+  # Create default configuration
+  cat > "$config_file" << EOF
+daemon:
+  default_interval: 60
+  log_file: "${log_dir}/bamon.log"
+  pid_file: "${pid_dir}/bamon.pid"
+  max_concurrent: 10
+  max_log_size: 10485760
+
+sandbox:
+  timeout: 30
+  max_cpu_time: 60
+  max_file_size: 10240
+  max_virtual_memory: 102400
+
+performance:
+  enable_monitoring: true
+  load_threshold: 0.8
+  cache_ttl: 30
+  optimize_scheduling: true
+
+scripts:
+  - name: "health_check"
+    command: "curl -s -o /dev/null -w '%{http_code}' https://google.com"
+    interval: 30
+    description: "Check Google availability"
+    enabled: true
+  - name: "disk_check"
+    command: "df -h / | awk 'NR==2 {print \$5}' | sed 's/%//'"
+    interval: 300
+    description: "Check disk usage percentage"
+    enabled: true
+EOF
+
+  # Set proper permissions
+  chmod 644 "$config_file"
+
+  return 0
 }
 
 # src/lib/execution.sh
@@ -3577,6 +3668,69 @@ bamon_config_validate_command() {
 
 }
 
+# :command.function
+bamon_config_reset_command() {
+
+  # src/config_reset_command.sh
+  # Load required libraries
+  source "$(dirname "${BASH_SOURCE[0]}")/lib/config.sh"
+
+  # Config reset command
+  config_reset() {
+    local config_file
+    local force="${args[--force]:-0}"
+
+    # Get config file path
+    config_file=$(get_config_file)
+
+    # Check if config file exists
+    if [[ ! -f "$config_file" ]]; then
+      echo "No configuration file found at: $config_file"
+      echo "Creating new default configuration..."
+    else
+      # Always create backup if config file exists
+      local backup_file="${config_file}.backup.$(date +%Y%m%d_%H%M%S)"
+      if cp "$config_file" "$backup_file"; then
+        echo "Configuration backed up to: $backup_file"
+      else
+        echo "Warning: Failed to create backup file"
+      fi
+    fi
+
+    # Confirm reset unless force flag is used
+    if [[ "$force" != "1" ]]; then
+      echo "This will reset your configuration to default values."
+      echo "Current config file: $config_file"
+      echo ""
+      read -p "Are you sure you want to continue? (y/N): " -r
+      if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo "Reset cancelled."
+        return 0
+      fi
+    fi
+
+    # Create default configuration
+    create_default_config "$config_file"
+
+    if [[ $? -eq 0 ]]; then
+      echo "Configuration reset to default values."
+      echo "New config file: $config_file"
+      echo ""
+      echo "You can now:"
+      echo "  - Edit the configuration: bamon config edit"
+      echo "  - View the configuration: bamon config show"
+      echo "  - Add scripts: bamon add <name> --command '<command>' --interval <seconds>"
+    else
+      echo "Error: Failed to reset configuration."
+      return 1
+    fi
+  }
+
+  # Execute the function
+  config_reset
+
+}
+
 # :command.parse_requirements
 parse_requirements() {
   # :command.fixed_flags_filter
@@ -4427,6 +4581,13 @@ bamon_config_parse_requirements() {
       shift $#
       ;;
 
+    reset)
+      action="reset"
+      shift
+      bamon_config_reset_parse_requirements "$@"
+      shift $#
+      ;;
+
     # :command.command_fallback
     "")
       bamon_config_usage >&2
@@ -4625,6 +4786,58 @@ bamon_config_validate_parse_requirements() {
 
 }
 
+# :command.parse_requirements
+bamon_config_reset_parse_requirements() {
+  # :command.fixed_flags_filter
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+      --help | -h)
+        long_usage=yes
+        bamon_config_reset_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  # :command.command_filter
+  action="config reset"
+
+  # :command.parse_requirements_while
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+      # :flag.case
+      --force | -f)
+
+        # :flag.case_no_arg
+        args['--force']=1
+        shift
+        ;;
+
+      -?*)
+        printf "invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+        # :command.parse_requirements_case
+        # :command.parse_requirements_case_simple
+        printf "invalid argument: %s\n" "$key" >&2
+        exit 1
+
+        ;;
+
+    esac
+  done
+
+}
+
 # :command.initialize
 initialize() {
   declare -g version="0.1.0"
@@ -4658,6 +4871,7 @@ run() {
     "config edit") bamon_config_edit_command ;;
     "config show") bamon_config_show_command ;;
     "config validate") bamon_config_validate_command ;;
+    "config reset") bamon_config_reset_command ;;
   esac
 }
 

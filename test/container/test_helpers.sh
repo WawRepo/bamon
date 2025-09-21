@@ -13,7 +13,7 @@ setup() {
   mkdir -p "$BAMON_CONFIG_DIR"
   
   # Set up PATH for test user
-  export PATH="/usr/local/bin:$PATH"
+  export PATH="/home/testuser/.local/bin:/usr/local/bin:$PATH"
   
   # Ensure yq is in PATH
   if ! command -v yq >/dev/null 2>&1; then

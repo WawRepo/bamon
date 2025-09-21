@@ -187,6 +187,16 @@ commands:
         examples:
           - "bamon config validate"
           - "bamon config validate --verbose"
+      - name: reset
+        help: Reset configuration to default values (creates backup automatically)
+        flags:
+          - long: --force
+            short: -f
+            help: Reset without confirmation prompt
+        examples:
+          - "bamon config reset"
+          - "bamon config reset --force"
+
 
 
 flags:

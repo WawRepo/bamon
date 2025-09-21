@@ -382,3 +382,61 @@ function get_performance_cache_ttl() {
 function is_performance_scheduling_optimized() {
   get_performance_config "optimize_scheduling" "true"
 }
+
+# Create default configuration file
+function create_default_config() {
+  local config_file="$1"
+  local config_dir
+  local log_dir
+  local pid_dir
+
+  # Get directories
+  config_dir=$(dirname "$config_file")
+  log_dir="${HOME}/.local/share/bamon/logs"
+  pid_dir="${HOME}/.local/share/bamon"
+
+  # Create directories if they don't exist
+  mkdir -p "$config_dir"
+  mkdir -p "$log_dir"
+  mkdir -p "$pid_dir"
+
+  # Create default configuration
+  cat > "$config_file" << EOF
+daemon:
+  default_interval: 60
+  log_file: "${log_dir}/bamon.log"
+  pid_file: "${pid_dir}/bamon.pid"
+  max_concurrent: 10
+  max_log_size: 10485760
+
+sandbox:
+  timeout: 30
+  max_cpu_time: 60
+  max_file_size: 10240
+  max_virtual_memory: 102400
+
+performance:
+  enable_monitoring: true
+  load_threshold: 0.8
+  cache_ttl: 30
+  optimize_scheduling: true
+
+scripts:
+  - name: "health_check"
+    command: "curl -s -o /dev/null -w '%{http_code}' https://google.com"
+    interval: 30
+    description: "Check Google availability"
+    enabled: true
+  - name: "disk_check"
+    command: "df -h / | awk 'NR==2 {print \$5}' | sed 's/%//'"
+    interval: 300
+    description: "Check disk usage percentage"
+    enabled: true
+EOF
+
+  # Set proper permissions
+  chmod 644 "$config_file"
+
+  return 0
+}
+

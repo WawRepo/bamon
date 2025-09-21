@@ -125,6 +125,118 @@ config_validate() {
   fi
 }
 
+# Config reset command
+config_reset() {
+  local config_file
+  local force="${args[--force]:-0}"
+  local backup="${args[--backup]:-0}"
+  
+  # Get config file path
+  config_file=$(get_config_file)
+  
+  # Check if config file exists
+  if [[ ! -f "$config_file" ]]; then
+    echo "No configuration file found at: $config_file"
+    echo "Nothing to reset."
+    return 0
+  fi
+  
+  # Create backup if requested
+  if [[ "$backup" == "1" ]]; then
+    local backup_file="${config_file}.backup.$(date +%Y%m%d_%H%M%S)"
+    if cp "$config_file" "$backup_file"; then
+      echo "Configuration backed up to: $backup_file"
+    else
+      echo "Warning: Failed to create backup file"
+    fi
+  fi
+  
+  # Confirm reset unless force flag is used
+  if [[ "$force" != "1" ]]; then
+    echo "This will reset your configuration to default values."
+    echo "Current config file: $config_file"
+    echo ""
+    read -p "Are you sure you want to continue? (y/N): " -r
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+      echo "Reset cancelled."
+      return 0
+    fi
+  fi
+  
+  # Create default configuration
+  create_default_config "$config_file"
+  
+  if [[ $? -eq 0 ]]; then
+    echo "Configuration reset to default values."
+    echo "New config file: $config_file"
+    echo ""
+    echo "You can now:"
+    echo "  - Edit the configuration: bamon config edit"
+    echo "  - View the configuration: bamon config show"
+    echo "  - Add scripts: bamon add <name> --command '<command>' --interval <seconds>"
+  else
+    echo "Error: Failed to reset configuration."
+    return 1
+  fi
+}
+
+# Create default configuration file
+create_default_config() {
+  local config_file="$1"
+  local config_dir
+  local log_dir
+  local pid_dir
+  
+  # Get directories
+  config_dir=$(dirname "$config_file")
+  log_dir="${HOME}/.local/share/bamon/logs"
+  pid_dir="${HOME}/.local/share/bamon"
+  
+  # Create directories if they don't exist
+  mkdir -p "$config_dir"
+  mkdir -p "$log_dir"
+  mkdir -p "$pid_dir"
+  
+  # Create default configuration
+  cat > "$config_file" << EOF
+daemon:
+  default_interval: 60
+  log_file: "${log_dir}/bamon.log"
+  pid_file: "${pid_dir}/bamon.pid"
+  max_concurrent: 10
+  max_log_size: 10485760
+
+sandbox:
+  timeout: 30
+  max_cpu_time: 60
+  max_file_size: 10240
+  max_virtual_memory: 102400
+
+performance:
+  enable_monitoring: true
+  load_threshold: 0.8
+  cache_ttl: 30
+  optimize_scheduling: true
+
+scripts:
+  - name: "health_check"
+    command: "curl -s -o /dev/null -w '%{http_code}' https://google.com"
+    interval: 30
+    description: "Check Google availability"
+    enabled: true
+  - name: "disk_check"
+    command: "df -h / | awk 'NR==2 {print \$5}' | sed 's/%//'"
+    interval: 300
+    description: "Check disk usage percentage"
+    enabled: true
+EOF
+  
+  # Set proper permissions
+  chmod 644 "$config_file"
+  
+  return 0
+}
+
 
 # Validate configuration file
 validate_config_file() {

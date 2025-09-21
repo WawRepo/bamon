@@ -37,6 +37,7 @@ test/
 │   ├── test_list_command.bats          # List command tests
 │   ├── test_now_command.bats           # Now command tests
 │   ├── test_config_command.bats        # Config command tests
+│   ├── test_config_reset_command.bats  # Config reset command tests
 │   └── test_multiline_output.bats      # Multiline output handling tests
 ├── daemon/                             # Daemon functionality tests
 │   ├── test_daemon_execution.bats      # Daemon start/stop/restart
@@ -332,6 +333,8 @@ The testing environment is designed to work with CI/CD systems:
 | `bamon config show --pretty` | Config show command with pretty flag | test/commands/test_config_command.bats |
 | `bamon config validate` | Config validate command validates configuration | test/commands/test_config_command.bats |
 | `bamon config validate --verbose` | Config validate command with verbose flag | test/commands/test_config_command.bats |
+| `bamon config reset` | Config reset command resets to default values (auto-backup) | test/commands/test_config_reset_command.bats |
+| `bamon config reset --force` | Config reset command with force flag | test/commands/test_config_reset_command.bats |
 
 ### Test Coverage Summary
 
@@ -373,10 +376,10 @@ The following commands still need test coverage:
 
 ### Test Results (as of latest run):
 - **Installation Tests**: 16/16 PASSING ✅ (100% success rate)
-- **Command Tests**: 34/34 PASSING ✅ (100% success rate)
+- **Command Tests**: 40/40 PASSING ✅ (100% success rate)
 - **Daemon Tests**: 7/7 PASSING ✅ (100% success rate)
 - **Performance Tests**: 10/10 PASSING ✅ (100% success rate)
-- **Overall**: 67/67 tests passing (100% success rate)
+- **Overall**: 73/73 tests passing (100% success rate)
 
 ### Test Coverage:
 - ✅ **Installation**: User/system installation, dependency detection, binary placement
