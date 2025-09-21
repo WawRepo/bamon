@@ -31,6 +31,15 @@ echo -e "${YELLOW}🛤️  Adding BAMON to PATH...${NC}"
 export PATH="/home/testuser/.local/bin:$PATH"
 echo 'export PATH="/home/testuser/.local/bin:$PATH"' >> "/home/testuser/.bashrc"
 
+# Copy test files for manual testing
+echo -e "${YELLOW}🧪 Copying test files for manual testing...${NC}"
+mkdir -p "/home/testuser/tests"
+cp -r /app/test/commands/*.bats "/home/testuser/tests/"
+# Create container directory structure to match BATS test expectations
+mkdir -p "/home/testuser/container"
+cp -r /app/test/container/test_helpers.sh "/home/testuser/container/"
+chmod +x "/home/testuser/tests/"*.bats
+
 # Create test configuration
 echo -e "${YELLOW}⚙️  Creating test configuration...${NC}"
 mkdir -p "/home/testuser/.config/bamon"
@@ -102,6 +111,12 @@ echo "  bamon now                       # Execute all scripts"
 echo "  bamon start --daemon            # Start daemon"
 echo "  bamon stop                      # Stop daemon"
 echo "  bamon performance               # Show performance metrics"
+echo ""
+echo -e "${YELLOW}Test commands:${NC}"
+echo "  cd ~/tests && bats test_daemon_script_execution.bats  # Test daemon script execution"
+echo "  cd ~/tests && bats test_multiline_output.bats        # Test multiline output handling"
+echo "  cd ~/tests && bats test_status_command.bats          # Test status command"
+echo "  cd ~/tests && bats .                                 # Run all tests"
 echo ""
 echo -e "${YELLOW}Example usage:${NC}"
 echo "  bamon add test_script --command 'echo \"Hello World\"'"

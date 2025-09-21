@@ -420,7 +420,11 @@ function execute_scheduled_scripts() {
   
   # Extract script names and intervals from YAML
   while IFS= read -r line; do
-    if [[ -n "$line" && "$line" =~ ^name:\ (.+)$ ]]; then
+    if [[ -n "$line" && "$line" =~ ^name:\ \"(.+)\"$ ]]; then
+      # Handle quoted names: name: "script_name"
+      script_names+=("${BASH_REMATCH[1]}")
+    elif [[ -n "$line" && "$line" =~ ^name:\ (.+)$ ]]; then
+      # Handle unquoted names: name: script_name
       script_names+=("${BASH_REMATCH[1]}")
     fi
   done <<< "$scripts_json"

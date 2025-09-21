@@ -39,7 +39,8 @@ fi
 # Build the container if it doesn't exist
 echo -e "${YELLOW}📦 Building BAMON test container...${NC}"
 cd "$TEST_DIR/container"
-docker-compose build --no-cache
+# docker-compose build --no-cache
+docker-compose build 
 
 # Stop and remove existing container if it exists
 echo -e "${YELLOW}🧹 Cleaning up existing container...${NC}"

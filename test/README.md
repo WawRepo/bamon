@@ -112,6 +112,52 @@ For interactive testing and PRD (Product Requirements Document) validation:
    - `~/test-scripts/error_test.sh` - Script that fails (for error testing)
    - `~/test-scripts/long_running.sh` - Long running script (for timeout testing)
 
+### Running BATS Tests from Interactive Container
+
+The interactive container also includes the complete BATS test suite for manual testing:
+
+1. **Navigate to tests directory:**
+   ```bash
+   cd ~/tests
+   ```
+
+2. **Run individual test files:**
+   ```bash
+   # Test daemon script execution
+   bats test_daemon_script_execution.bats
+   
+   # Test multiline output handling
+   bats test_multiline_output.bats
+   
+   # Test status command
+   bats test_status_command.bats
+   
+   # Test add/remove commands
+   bats test_add_command.bats
+   bats test_remove_command.bats
+   ```
+
+3. **Run all tests:**
+   ```bash
+   bats .
+   ```
+
+4. **Run specific test categories:**
+   ```bash
+   # Test all command-related functionality
+   bats test_*_command.bats
+   
+   # Test multiline output specifically
+   bats test_multiline_output.bats
+   ```
+
+5. **Test with verbose output:**
+   ```bash
+   bats --verbose test_status_command.bats
+   ```
+
+**Note:** The interactive container sets up the correct directory structure (`~/tests/` and `~/container/`) to match the BATS test expectations, so all relative paths in the test files work correctly.
+
 ## Test Categories
 
 ### Installation Tests
@@ -140,6 +186,7 @@ For interactive testing and PRD (Product Requirements Document) validation:
 - **Monitoring**: Tests performance metrics collection
 - **JSON Output**: Tests JSON formatting and validity
 - **Error Handling**: Tests error detection and reporting
+- **Daemon Script Execution**: Tests daemon's ability to execute scripts with quoted/unquoted names
 
 ## Test Configuration
 
@@ -328,8 +375,8 @@ The following commands still need test coverage:
 - **Installation Tests**: 16/16 PASSING ✅ (100% success rate)
 - **Command Tests**: 34/34 PASSING ✅ (100% success rate)
 - **Daemon Tests**: 7/7 PASSING ✅ (100% success rate)
-- **Performance Tests**: 6/6 PASSING ✅ (100% success rate)
-- **Overall**: 63/63 tests passing (100% success rate)
+- **Performance Tests**: 10/10 PASSING ✅ (100% success rate)
+- **Overall**: 67/67 tests passing (100% success rate)
 
 ### Test Coverage:
 - ✅ **Installation**: User/system installation, dependency detection, binary placement
