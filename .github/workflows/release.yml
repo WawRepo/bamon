@@ -175,28 +175,28 @@ jobs:
         
         # Create a simple config template
         cat > release_assets/config.yaml << 'EOF'
-daemon:
-  default_interval: 60
-  log_file: "~/.config/bamon/daemon.log"
-  pid_file: "~/.config/bamon/bamon.pid"
-  max_concurrent: 10
-  history_file: "~/.config/bamon/execution_history.json"
-  history_retention_days: 30
+        daemon:
+          default_interval: 60
+          log_file: "~/.config/bamon/daemon.log"
+          pid_file: "~/.config/bamon/bamon.pid"
+          max_concurrent: 10
+          history_file: "~/.config/bamon/execution_history.json"
+          history_retention_days: 30
 
-sandbox:
-  timeout: 30
-  max_cpu_time: 60
-  max_file_size: 10240
-  max_virtual_memory: 102400
+        sandbox:
+          timeout: 30
+          max_cpu_time: 60
+          max_file_size: 10240
+          max_virtual_memory: 102400
 
-performance:
-  enable_monitoring: true
-  load_threshold: 0.8
-  optimize_scheduling: true
+        performance:
+          enable_monitoring: true
+          load_threshold: 0.8
+          optimize_scheduling: true
 
-scripts: []
-EOF
-        
+        scripts: []
+        EOF
+                
         # List all assets
         echo "Release assets prepared:"
         find release_assets -type f | sort
