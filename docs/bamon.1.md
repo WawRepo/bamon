@@ -357,7 +357,7 @@ https://github.com/DannyBen/bashly
 
 # BUGS
 
-Report bugs at https://github.com/yourusername/bamon/issues
+Report bugs at https://github.com/WawRepo/bamon/issues
 
 # AUTHOR
 

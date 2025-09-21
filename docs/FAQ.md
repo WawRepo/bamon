@@ -33,7 +33,7 @@ Yes, BAMON is designed for production use with features like:
 The easiest way is using the installation script:
 
 ```bash
-git clone https://github.com/yourusername/bamon.git
+git clone https://github.com/WawRepo/bamon.git
 cd bamon
 chmod +x install.sh
 ./install.sh
@@ -469,4 +469,4 @@ See the [Contributing Guide](CONTRIBUTING.md) for detailed instructions.
 
 ---
 
-**Still have questions?** Open an [issue](https://github.com/yourusername/bamon/issues) or check the [examples](examples.md) for more detailed usage scenarios.
+**Still have questions?** Open an [issue](https://github.com/WawRepo/bamon/issues) or check the [examples](examples.md) for more detailed usage scenarios.

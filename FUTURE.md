@@ -369,7 +369,7 @@ bamon template create --from-template http-check --url https://api.example.com
 brew install bamon
 
 # Or with custom tap
-brew tap yourusername/bamon
+brew tap WawRepo/bamon
 brew install bamon
 ```
 
@@ -442,8 +442,8 @@ choco install bamon --version 1.0.0
    ```ruby
    class Bamon < Formula
      desc "Bash Daemon Monitor - configurable bash script monitoring"
-     homepage "https://github.com/yourusername/bamon"
-     url "https://github.com/yourusername/bamon/archive/v1.0.0.tar.gz"
+    homepage "https://github.com/WawRepo/bamon"
+    url "https://github.com/WawRepo/bamon/archive/v1.0.0.tar.gz"
      sha256 "abc123..."
      
      depends_on "bash" => :build

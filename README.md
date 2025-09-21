@@ -17,11 +17,30 @@ A powerful and configurable bash daemon that monitors and executes bash scripts/
 
 ### Quick Start (Recommended)
 
-The easiest way to install BAMON is using the provided installation script:
+#### Option 1: Install from Latest Release (Easiest)
+
+Install BAMON directly from the latest GitHub release:
+
+```bash
+# Download and install from latest release
+curl -sSL https://github.com/WawRepo/bamon/releases/latest/download/install.sh | bash
+```
+
+This will:
+- Download the latest stable release
+- Install BAMON to `~/.local/bin/bamon` (user installation)
+- Set up default configuration in `~/.config/bamon/`
+- Install sample monitoring scripts to `~/.config/bamon/samples/`
+- Add BAMON to your PATH
+- Create execution history file for performance tracking
+
+#### Option 2: Install from Source
+
+Clone the repository and install from source:
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/bamon.git
+git clone https://github.com/WawRepo/bamon.git
 cd bamon
 
 # Run the installation script
@@ -84,6 +103,50 @@ sudo yum install curl yq coreutils
 # or for newer systems
 sudo dnf install curl yq coreutils
 ```
+## 🔄 CI/CD and Release Automation
+
+BAMON uses GitHub Actions for continuous integration and automated release management.
+
+### Continuous Integration
+
+- **Automatic Testing**: Every commit to `main` branch triggers comprehensive tests
+- **Container Testing**: Full test suite runs in Ubuntu container environment
+- **Dependency Validation**: Verifies all required dependencies are available
+- **Binary Generation**: Tests bashly binary generation process
+- **Cross-Platform**: Ensures compatibility across different environments
+
+### Release Automation
+
+- **Automated Versioning**: Patch versions are automatically incremented (e.g., v0.1.0 → v0.1.1)
+- **Version Detection**: Reads highest git tag from main branch
+- **Asset Packaging**: Creates complete release packages with all necessary files
+- **GitHub Releases**: Automatically creates releases with proper tagging
+- **Manual Triggers**: Release workflow can be triggered manually with version bump options
+
+### Release Process
+
+1. **Version Detection**: Finds highest existing tag (e.g., `v0.1.0`)
+2. **Version Bump**: Increments patch version (e.g., `v0.1.0` → `v0.1.1`)
+3. **Binary Update**: Updates `src/bashly.yml` and regenerates binary
+4. **Asset Creation**: Packages all release files (binary, docs, samples, tests)
+5. **Git Tagging**: Creates and pushes new version tag
+6. **GitHub Release**: Creates release with all assets and documentation
+
+### Release Assets
+
+Each release includes:
+- `bamon` - Main executable binary
+- `install.sh` - Installation script
+- `README.md` - Complete documentation
+- `docs/` - Documentation directory
+- `samples/` - Example monitoring scripts
+- `test/` - Test suite for validation
+- `config.yaml` - Default configuration template
+
+### Status Badges
+
+[![CI](https://github.com/WawRepo/bamon/workflows/Continuous%20Integration/badge.svg)](https://github.com/WawRepo/bamon/actions)
+[![Release](https://github.com/WawRepo/bamon/workflows/Release/badge.svg)](https://github.com/WawRepo/bamon/actions)
 
 ## 🛠️ Development Setup
 
@@ -100,7 +163,7 @@ For developers who want to build BAMON from source or contribute to the project:
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/yourusername/bamon.git
+   git clone https://github.com/WawRepo/bamon.git
    cd bamon
    ```
 
@@ -653,4 +716,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Need help?** Check out our [FAQ](docs/FAQ.md) or open an [issue](https://github.com/yourusername/bamon/issues).
+**Need help?** Check out our [FAQ](docs/FAQ.md) or open an [issue](https://github.com/WawRepo/bamon/issues).

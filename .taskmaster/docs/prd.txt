@@ -323,6 +323,116 @@ bamon/
   5. Validate all functionality works correctly
 - **Success Criteria**: All tests pass in clean Ubuntu environment
 
+## CI/CD and Release Automation
+
+### 1. GitHub Workflows
+
+#### 1.1 Continuous Integration (CI) Workflow
+- **Trigger**: Automatic on every commit to `main` branch
+- **Purpose**: Run comprehensive tests in containerized environment
+- **Container Testing**: Execute full test suite in Ubuntu container environment
+- **Test Coverage**: All existing test suites including:
+  - Command functionality tests
+  - Daemon execution tests
+  - Configuration management tests
+  - Performance monitoring tests
+  - Installation tests
+- **Dependencies**: Install all required dependencies (bash, curl, yq, coreutils)
+- **Test Execution**: Run `bats test/*.bats` and container-specific tests
+- **Status Reporting**: Pass/fail status reported to GitHub PR/commit
+
+#### 1.2 Release Workflow
+- **Trigger**: Manual trigger only (workflow_dispatch)
+- **Purpose**: Create new releases with automated version bumping
+- **Version Management**: 
+  - **Version Detection**: Read highest tag from main branch (e.g., `v0.1.0`)
+  - **Version Bumping**: Automatically increment patch version (e.g., `v0.1.0` → `v0.1.1`)
+  - **Version Update**: Update version in `src/bashly.yml` with new version
+  - **Binary Regeneration**: Run `bashly generate` with updated version
+  - **Tag Creation**: Create new git tag with incremented version
+- **Release Assets**: Package and attach all required installation files:
+  - `bamon` binary (generated with bashly)
+  - `install.sh` installation script
+  - `README.md` with updated installation instructions
+  - `docs/` directory with all documentation
+  - `samples/` directory with example scripts
+  - `test/` directory for testing
+- **GitHub Release**: Create GitHub release with:
+  - Release notes based on commit messages since last release
+  - All installation assets attached
+  - Tagged with new version number
+- **Installation Instructions**: Update README.md with latest release installation step
+
+#### 1.3 Workflow Files Structure
+```
+.github/
+└── workflows/
+    ├── ci.yml          # Continuous Integration
+    └── release.yml     # Release Automation
+```
+
+### 2. Release Process
+
+#### 2.1 Automated Release Steps
+1. **Version Detection**: Query main branch for highest existing tag (e.g., `v0.1.0`)
+2. **Version Bump**: Automatically increment patch version (e.g., `v0.1.0` → `v0.1.1`)
+3. **Version Update**: Update `src/bashly.yml` with new version number
+4. **Binary Regeneration**: Run `bashly generate` with updated version
+5. **Asset Packaging**: Collect all necessary files for distribution
+6. **Git Tag Creation**: Create new git tag with incremented version
+7. **GitHub Release**: Create release with all assets and new tag
+8. **Documentation Update**: Update installation instructions with latest version
+
+#### 2.2 Release Assets Package
+- **Core Binary**: `bamon` (bashly-generated)
+- **Installation Script**: `install.sh`
+- **Documentation**: Complete `docs/` directory
+- **Examples**: `samples/` directory with monitoring scripts
+- **Tests**: `test/` directory for validation
+- **Configuration**: Default `config.yaml` template
+
+#### 2.3 Installation Instructions Update
+- **README.md**: Add installation step using latest GitHub release
+- **Version-Specific**: Instructions reference latest release version
+- **One-Command Install**: Simple curl/wget command for easy installation
+- **Dependency Management**: Clear dependency requirements and installation
+
+### 3. Version Management
+
+#### 3.1 Semantic Versioning
+- **Format**: `MAJOR.MINOR.PATCH` (e.g., 0.1.0)
+- **Patch Bumps**: Automated for each release based on highest existing tag
+- **Minor/Major**: Manual updates for significant changes
+- **Version Source**: Single source of truth in `src/bashly.yml`
+- **Tag Format**: Git tags use `v` prefix (e.g., `v0.1.0`, `v0.1.1`)
+
+#### 3.2 Version Detection Logic
+- **Tag Query**: `git describe --tags --abbrev=0` to get highest tag from main branch
+- **Version Parsing**: Extract version number from tag (remove `v` prefix)
+- **Increment Logic**: Parse `X.Y.Z` format and increment Z component
+- **Fallback**: If no tags exist, start with `v0.1.0`
+- **Validation**: Ensure new version is higher than existing tags
+
+#### 3.3 Release Tagging
+- **Git Tags**: Automatic tagging with version number
+- **GitHub Releases**: Linked to git tags
+- **Changelog**: Auto-generated from commit messages
+- **Asset Management**: All release files properly versioned
+
+### 4. Quality Assurance
+
+#### 4.1 Pre-Release Testing
+- **Container Testing**: Full test suite in clean Ubuntu environment
+- **Cross-Platform**: Verify compatibility with different bash versions
+- **Installation Testing**: Validate installation script functionality
+- **Binary Testing**: Ensure generated binary works correctly
+
+#### 4.2 Release Validation
+- **Asset Verification**: All required files included in release
+- **Installation Test**: Verify installation from release assets
+- **Documentation Check**: Ensure installation instructions are current
+- **Version Consistency**: Verify version numbers match across all files
+
 ## Success Criteria
 
 ### 1. Functional Requirements

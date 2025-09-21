@@ -1,7 +1,6 @@
 name: bamon
 help: Bash Daemon Monitor - A tool for monitoring and executing bash scripts
 version: 0.1.0
-
 commands:
   - name: status
     help: Display current status of all configured scripts
@@ -25,7 +24,6 @@ commands:
       - "bamon status --failed-only"
       - "bamon status --json"
       - "bamon status --name health_check"
-
   - name: add
     help: Add a new script to monitor
     args:
@@ -53,7 +51,6 @@ commands:
     examples:
       - "bamon add health_check --command 'curl -s -o /dev/null -w %{http_code} https://google.com' --interval 30"
       - "bamon add disk_check --command 'df -h / | awk NR==2' --description 'Check disk usage'"
-
   - name: remove
     help: Remove a script from monitoring
     args:
@@ -67,7 +64,6 @@ commands:
     examples:
       - "bamon remove health_check"
       - "bamon remove old_script --force"
-
   - name: now
     help: Execute all enabled scripts immediately
     flags:
@@ -82,7 +78,6 @@ commands:
       - "bamon now"
       - "bamon now --name health_check"
       - "bamon now --async"
-
   - name: start
     help: Start the daemon process
     flags:
@@ -97,7 +92,6 @@ commands:
       - "bamon start"
       - "bamon start --daemon"
       - "bamon start --config /etc/bamon/config.yml"
-
   - name: stop
     help: Stop the daemon process
     flags:
@@ -107,7 +101,6 @@ commands:
     examples:
       - "bamon stop"
       - "bamon stop --force"
-
   - name: restart
     help: Restart the daemon process
     flags:
@@ -121,7 +114,6 @@ commands:
     examples:
       - "bamon restart"
       - "bamon restart --daemon"
-
   - name: list
     help: List all configured scripts
     flags:
@@ -135,7 +127,6 @@ commands:
       - "bamon list"
       - "bamon list --enabled-only"
       - "bamon list --disabled-only"
-
   - name: performance
     help: Show system performance metrics and optimization status
     flags:
@@ -152,7 +143,6 @@ commands:
       - "bamon performance"
       - "bamon performance --verbose"
       - "bamon performance --json"
-
   - name: config
     help: Configuration management commands
     commands:
@@ -167,7 +157,6 @@ commands:
           - "bamon config edit"
           - "bamon config edit --editor nano"
           - "bamon config edit --editor code"
-
       - name: show
         help: Display current configuration in YAML format
         flags:
@@ -177,7 +166,6 @@ commands:
         examples:
           - "bamon config show"
           - "bamon config show --pretty"
-
       - name: validate
         help: Validate configuration file syntax and structure
         flags:
@@ -196,9 +184,6 @@ commands:
         examples:
           - "bamon config reset"
           - "bamon config reset --force"
-
-
-
 flags:
   - long: --version
     short: -V
