@@ -141,7 +141,7 @@ jobs:
         echo "Binary verification completed"
     
     - name: Create git tag
-      if: ${{ !github.event.inputs.dry_run }}
+      if: ${{ github.event.inputs.dry_run != 'true' }}
       run: |
         NEW_TAG="${{ steps.new_version.outputs.new_tag }}"
         echo "Creating git tag: $NEW_TAG"
@@ -197,7 +197,7 @@ jobs:
         find release_assets -type f | sort
     
     - name: Create GitHub Release
-      if: ${{ !github.event.inputs.dry_run }}
+      if: ${{ github.event.inputs.dry_run != 'true' }}
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -243,7 +243,7 @@ jobs:
         prerelease: false
     
     - name: Upload Release Assets
-      if: ${{ !github.event.inputs.dry_run }}
+      if: ${{ github.event.inputs.dry_run != 'true' }}
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -254,7 +254,7 @@ jobs:
         asset_content_type: application/gzip
     
     - name: Create asset archive
-      if: ${{ !github.event.inputs.dry_run }}
+      if: ${{ github.event.inputs.dry_run != 'true' }}
       run: |
         echo "Creating asset archive..."
         cd release_assets
@@ -265,7 +265,7 @@ jobs:
         ls -la bamon-${{ steps.new_version.outputs.new_tag }}-assets.tar.gz
     
     - name: Upload individual assets
-      if: ${{ !github.event.inputs.dry_run }}
+      if: ${{ github.event.inputs.dry_run != 'true' }}
       run: |
         echo "Uploading individual assets to release..."
         # This would be done by the GitHub API, but for now we'll just list what would be uploaded
@@ -275,7 +275,7 @@ jobs:
         done
     
     - name: Update README with latest version
-      if: ${{ !github.event.inputs.dry_run }}
+      if: ${{ github.event.inputs.dry_run != 'true' }}
       run: |
         NEW_TAG="${{ steps.new_version.outputs.new_tag }}"
         echo "Updating README with latest version $NEW_TAG"
@@ -285,7 +285,7 @@ jobs:
         echo "README would be updated with version $NEW_TAG"
     
     - name: Dry run summary
-      if: ${{ github.event.inputs.dry_run }}
+      if: ${{ github.event.inputs.dry_run == 'true' }}
       run: |
         echo "=== DRY RUN SUMMARY ==="
         echo "Current version: ${{ steps.current_version.outputs.current_version }}"
