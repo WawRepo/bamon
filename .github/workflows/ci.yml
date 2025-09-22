@@ -82,16 +82,60 @@ jobs:
           
           # Run tests with descriptive names and fail on any test failure
           echo "Running command tests..."
-          find test/commands -name "*.bats" -exec bats {} \; || { echo "Command tests failed!"; exit 1; }
+          test_failed=false
+          for test_file in $(find test/commands -name "*.bats"); do
+            echo "Running $test_file..."
+            if ! bats "$test_file"; then
+              echo "Command tests failed in $test_file!"
+              test_failed=true
+            fi
+          done
+          if [ "$test_failed" = true ]; then
+            echo "Command tests failed!"
+            exit 1
+          fi
           
           echo "Running daemon tests..."
-          find test/daemon -name "*.bats" -exec bats {} \; || { echo "Daemon tests failed!"; exit 1; }
+          test_failed=false
+          for test_file in $(find test/daemon -name "*.bats"); do
+            echo "Running $test_file..."
+            if ! bats "$test_file"; then
+              echo "Daemon tests failed in $test_file!"
+              test_failed=true
+            fi
+          done
+          if [ "$test_failed" = true ]; then
+            echo "Daemon tests failed!"
+            exit 1
+          fi
           
           echo "Running installation tests..."
-          find test/installation -name "*.bats" -exec bats {} \; || { echo "Installation tests failed!"; exit 1; }
+          test_failed=false
+          for test_file in $(find test/installation -name "*.bats"); do
+            echo "Running $test_file..."
+            if ! bats "$test_file"; then
+              echo "Installation tests failed in $test_file!"
+              test_failed=true
+            fi
+          done
+          if [ "$test_failed" = true ]; then
+            echo "Installation tests failed!"
+            exit 1
+          fi
           
           echo "Running performance tests..."
-          find test/performance -name "*.bats" -exec bats {} \; || { echo "Performance tests failed!"; exit 1; }
+          test_failed=false
+          for test_file in $(find test/performance -name "*.bats"); do
+            echo "Running $test_file..."
+            if ! bats "$test_file"; then
+              echo "Performance tests failed in $test_file!"
+              test_failed=true
+            fi
+          done
+          if [ "$test_failed" = true ]; then
+            echo "Performance tests failed!"
+            exit 1
+          fi
           
           echo "BATS test execution completed"
         else
