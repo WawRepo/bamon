@@ -79,23 +79,25 @@ jobs:
         if [ -d "test" ] && [ "$(find test -name "*.bats" | wc -l)" -gt 0 ]; then
           echo "Found $(find test -name "*.bats" | wc -l) BATS test files"
           echo "Running tests from all subdirectories..."
-          find test -name "*.bats" -exec bats {} \; || echo "Some tests failed, but continuing..."
+          
+          # Run tests with descriptive names
+          echo "Running command tests..."
+          find test/commands -name "*.bats" -exec bats {} \;
+          
+          echo "Running daemon tests..."
+          find test/daemon -name "*.bats" -exec bats {} \;
+          
+          echo "Running installation tests..."
+          find test/installation -name "*.bats" -exec bats {} \;
+          
+          echo "Running performance tests..."
+          find test/performance -name "*.bats" -exec bats {} \;
+          
+          echo "BATS test execution completed"
         else
           echo "No BATS test files found in test/ directory"
           echo "Available test files:"
           find test -name "*.bats" 2>/dev/null || echo "No .bats files found"
-        fi
-    
-    - name: Run container tests
-      run: |
-        # Run container-based tests (we're already in a container environment)
-        echo "Running container tests..."
-        if [ -f "test/run_container_tests.sh" ]; then
-          chmod +x test/run_container_tests.sh
-          # Skip Docker-specific parts since we're already in a container
-          echo "Skipping Docker container tests as we're already in a container environment"
-        else
-          echo "Container test script not found, skipping..."
         fi
     
     - name: Test installation script
