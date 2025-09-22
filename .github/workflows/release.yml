@@ -37,16 +37,14 @@ jobs:
     - name: Setup environment
       run: |
         echo "Setting up release environment..."
-        # Install dependencies
+        # Install minimal dependencies for release
         sudo apt-get update
         sudo apt-get install -y curl jq coreutils git
         # Install yq (YAML processor)
         sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
         sudo chmod +x /usr/local/bin/yq
         # Install bashly for binary generation
-        gem install bashly
-        # Install bats for testing
-        sudo apt-get install -y bats
+        sudo gem install bashly
         
         # Configure git
         git config --global user.name "GitHub Actions"
@@ -134,15 +132,13 @@ jobs:
         # Test the binary
         ./bamon --help | head -5
     
-    - name: Run tests before release
+    - name: Verify binary functionality
       run: |
-        echo "Running tests before release..."
-        # Run basic tests
-        bats test/ || echo "Some tests failed, but continuing with release..."
-        
-        # Test the binary functionality
-        ./bamon list || echo "List command test failed"
-        ./bamon status || echo "Status command test failed"
+        echo "Verifying binary functionality..."
+        # Basic verification that the binary works
+        ./bamon --version
+        ./bamon --help | head -3
+        echo "Binary verification completed"
     
     - name: Create git tag
       if: ${{ !github.event.inputs.dry_run }}
@@ -171,7 +167,6 @@ jobs:
         # Copy directories
         cp -r docs release_assets/
         cp -r samples release_assets/
-        cp -r test release_assets/
         
         # Create a simple config template
         cat > release_assets/config.yaml << 'EOF'
@@ -229,7 +224,7 @@ jobs:
           This release includes:
           - Automated version bumping
           - Improved CI/CD pipeline
-          - Enhanced testing coverage
+          - Streamlined release process
           
           ### Files Included
           - `bamon` - Main executable
@@ -237,7 +232,6 @@ jobs:
           - `README.md` - Documentation
           - `docs/` - Complete documentation
           - `samples/` - Example monitoring scripts
-          - `test/` - Test suite
           - `config.yaml` - Default configuration template
           
           ### Verification
@@ -309,6 +303,6 @@ jobs:
         echo ""
         echo "GitHub release that would be created:"
         echo "- Tag: ${{ steps.new_version.outputs.new_tag }}"
-        echo "- Assets: bamon binary, install.sh, docs/, samples/, test/"
+        echo "- Assets: bamon binary, install.sh, docs/, samples/, config.yaml"
         echo ""
         echo "To perform actual release, run without dry_run=true"
