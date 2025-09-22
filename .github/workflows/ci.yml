@@ -43,7 +43,7 @@ jobs:
     - name: Generate BAMON binary
       run: |
         # Install bashly for binary generation
-        gem install bashly
+        sudo gem install bashly
         bashly generate
         chmod +x bamon
         echo "Generated binary:"
