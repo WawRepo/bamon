@@ -48,6 +48,23 @@ jobs:
         chmod +x bamon
         echo "Generated binary:"
         ls -la bamon
+        
+        # Create /app directory and copy binary for tests
+        sudo mkdir -p /app
+        sudo cp bamon /app/bamon
+        sudo chmod +x /app/bamon
+        
+        # Copy source files for tests
+        sudo mkdir -p /app/src
+        sudo cp -r src/* /app/src/
+        sudo chmod +x /app/src/lib/*.sh
+        
+        # Copy samples for tests
+        sudo mkdir -p /app/samples
+        sudo cp -r samples/* /app/samples/
+        sudo chmod +x /app/samples/*.sh
+        
+        echo "Binary and source files copied to /app/ for tests"
     
     - name: Test binary generation
       run: |
