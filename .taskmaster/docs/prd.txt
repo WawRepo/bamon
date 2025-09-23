@@ -219,6 +219,12 @@ bamon/
 - **Configuration Setup**: Creates default configuration and directories
 - **Sample Scripts**: Installs sample monitoring scripts
 - **PATH Setup**: Automatically adds installation directory to user's PATH
+- **Existing Configuration Check**: 
+  - **Detection**: Check if `~/.config/bamon/config.yaml` already exists
+  - **Preservation**: If configuration exists, do not override it
+  - **Notification**: Inform user that BAMON configuration already exists
+  - **Skip Setup**: Skip configuration creation and sample script installation
+  - **Binary Update**: Still update/install the binary if needed
 
 ### 2. User Installation (Runtime) - Recommended
 **Requirements:**

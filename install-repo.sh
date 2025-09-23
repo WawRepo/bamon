@@ -2,11 +2,14 @@
 
 set -e
 
-# Installation modes
+# Default values
+REPO="WawRepo/bamon"
+VERSION="latest"
 MODE=""
 INSTALL_DIR="/usr/local/bin"
 CONFIG_DIR="/etc/bamon"
 USER_CONFIG_DIR="$HOME/.config/bamon"
+TEMP_DIR=""
 
 # Parse command line arguments
 FORCE_OVERRIDE=false
@@ -31,6 +34,10 @@ while [[ $# -gt 0 ]]; do
       CONFIG_DIR="${1#*=}"
       shift
       ;;
+    --version=*)
+      VERSION="${1#*=}"
+      shift
+      ;;
     --force)
       FORCE_OVERRIDE=true
       shift
@@ -45,17 +52,17 @@ while [[ $# -gt 0 ]]; do
       echo "Options:"
       echo "  --prefix=DIR       Install binary to DIR"
       echo "  --config-dir=DIR   Install config to DIR"
+      echo "  --version=VERSION  Install specific version (default: latest)"
       echo "  --force            Override existing configuration (use with caution)"
       echo "  --help             Show this help message"
       echo ""
       echo "Examples:"
-      echo "  $0                    # User installation"
-      echo "  $0 --system           # System installation (requires sudo)"
-      echo "  $0 --prefix=/opt/bin  # Custom installation directory"
-      echo "  $0 --force            # Override existing configuration"
+      echo "  $0                                    # User installation (latest)"
+      echo "  $0 --system                           # System installation (latest)"
+      echo "  $0 --version=v0.1.0                  # Install specific version"
+      echo "  $0 --prefix=/opt/bin --force         # Custom location with force override"
       echo ""
-      echo "Note: This script assumes BAMON files are in the current directory."
-      echo "For installation from GitHub releases, use install-repo.sh instead."
+      echo "This script downloads BAMON from GitHub releases and installs it."
       exit 0
       ;;
     *)
@@ -73,6 +80,19 @@ if [[ -z "$MODE" ]]; then
   CONFIG_DIR="$USER_CONFIG_DIR"
 fi
 
+# Create temporary directory
+TEMP_DIR=$(mktemp -d)
+echo "📁 Using temporary directory: $TEMP_DIR"
+
+# Cleanup function
+cleanup() {
+  if [[ -n "$TEMP_DIR" && -d "$TEMP_DIR" ]]; then
+    echo "🧹 Cleaning up temporary directory..."
+    rm -rf "$TEMP_DIR"
+  fi
+}
+trap cleanup EXIT
+
 # Check for existing configuration
 PRESERVE_CONFIG=false
 if [[ -f "$CONFIG_DIR/config.yaml" ]]; then
@@ -88,8 +108,10 @@ else
   PRESERVE_CONFIG=false
 fi
 
-echo "BAMON Installation Script"
-echo "========================="
+echo "BAMON Installation Script (GitHub Release)"
+echo "=========================================="
+echo "Repository: $REPO"
+echo "Version: $VERSION"
 echo "Mode: $MODE"
 echo "Install directory: $INSTALL_DIR"
 echo "Config directory: $CONFIG_DIR"
@@ -150,39 +172,69 @@ if [[ ${#MISSING_DEPS[@]} -gt 0 ]]; then
   exit 1
 fi
 
+# Download release assets
+echo "📥 Downloading BAMON release from GitHub..."
+
+# Get the latest release info
+if [[ "$VERSION" == "latest" ]]; then
+  RELEASE_URL="https://api.github.com/repos/$REPO/releases/latest"
+else
+  RELEASE_URL="https://api.github.com/repos/$REPO/releases/tags/$VERSION"
+fi
+
+echo "🔍 Fetching release information..."
+RELEASE_INFO=$(curl -s "$RELEASE_URL")
+
+# Check if release exists
+if echo "$RELEASE_INFO" | grep -q '"message": "Not Found"'; then
+  echo "❌ Error: Release '$VERSION' not found"
+  echo "Available releases: https://github.com/$REPO/releases"
+  exit 1
+fi
+
+# Extract download URLs
+BINARY_URL=$(echo "$RELEASE_INFO" | grep '"browser_download_url".*bamon"' | head -1 | sed 's/.*"browser_download_url": "\([^"]*\)".*/\1/')
+SAMPLES_URL=$(echo "$RELEASE_INFO" | grep '"browser_download_url".*samples.tar.gz"' | head -1 | sed 's/.*"browser_download_url": "\([^"]*\)".*/\1/')
+DOCS_URL=$(echo "$RELEASE_INFO" | grep '"browser_download_url".*docs.tar.gz"' | head -1 | sed 's/.*"browser_download_url": "\([^"]*\)".*/\1/')
+
+if [[ -z "$BINARY_URL" ]]; then
+  echo "❌ Error: Could not find BAMON binary in release"
+  exit 1
+fi
+
+# Download binary
+echo "📦 Downloading BAMON binary..."
+curl -L -o "$TEMP_DIR/bamon" "$BINARY_URL"
+chmod +x "$TEMP_DIR/bamon"
+
+# Download samples if available
+if [[ -n "$SAMPLES_URL" ]]; then
+  echo "📝 Downloading sample scripts..."
+  curl -L -o "$TEMP_DIR/samples.tar.gz" "$SAMPLES_URL"
+  cd "$TEMP_DIR"
+  tar -xzf samples.tar.gz
+  cd - > /dev/null
+fi
+
 # Create installation directories
-echo "Creating directories..."
+echo "📁 Creating directories..."
 mkdir -p "$INSTALL_DIR"
 if [[ "$PRESERVE_CONFIG" == "false" ]]; then
   mkdir -p "$CONFIG_DIR"
 fi
 
-# Install binary (copy from current directory) - ALWAYS update binary
+# Install binary
 echo "📦 Installing BAMON binary to $INSTALL_DIR/bamon..."
-if [[ -f "./bamon" ]]; then
-  cp "./bamon" "$INSTALL_DIR/"
-  chmod +x "$INSTALL_DIR/bamon"
-else
-  echo "❌ Error: BAMON binary not found in current directory"
-  echo "Make sure you're running this script from the BAMON repository root"
-  exit 1
-fi
+cp "$TEMP_DIR/bamon" "$INSTALL_DIR/"
+chmod +x "$INSTALL_DIR/bamon"
 
 # Install sample scripts and configuration (only if not preserving)
 if [[ "$PRESERVE_CONFIG" == "false" ]]; then
-  echo "📝 Installing sample scripts..."
-  mkdir -p "$CONFIG_DIR/samples"
-  if [[ -f "samples/health_check.sh" ]]; then
-    cp "samples/health_check.sh" "$CONFIG_DIR/samples/"
-    chmod +x "$CONFIG_DIR/samples/health_check.sh"
-  fi
-  if [[ -f "samples/disk_usage.sh" ]]; then
-    cp "samples/disk_usage.sh" "$CONFIG_DIR/samples/"
-    chmod +x "$CONFIG_DIR/samples/disk_usage.sh"
-  fi
-  if [[ -f "samples/github_status.sh" ]]; then
-    cp "samples/github_status.sh" "$CONFIG_DIR/samples/"
-    chmod +x "$CONFIG_DIR/samples/github_status.sh"
+  if [[ -d "$TEMP_DIR/samples" ]]; then
+    echo "📝 Installing sample scripts..."
+    mkdir -p "$CONFIG_DIR/samples"
+    cp -r "$TEMP_DIR/samples"/* "$CONFIG_DIR/samples/"
+    chmod +x "$CONFIG_DIR/samples"/*.sh
   fi
 
   echo "🔧 Installing default config to $CONFIG_DIR/config.yaml..."

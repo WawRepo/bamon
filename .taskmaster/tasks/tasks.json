@@ -199,11 +199,83 @@
             "testStrategy": ""
           }
         ]
+      },
+      {
+        "id": 34,
+        "title": "Implement Install Script Configuration Preservation",
+        "description": "Enhance the install.sh script to detect and preserve existing BAMON configurations, preventing accidental overrides while still updating the binary.",
+        "details": "1. Modify the install.sh script to include configuration preservation logic:\n   - Add a check for the existence of ~/.config/bamon/config.yaml before attempting to create or modify configuration\n   - Implement conditional logic to skip configuration setup when an existing config is detected\n   - Add code to skip sample script installation when preserving existing configuration\n   - Ensure the binary is still updated regardless of configuration status\n   - Display clear, user-friendly messages about configuration preservation\n\n2. Implementation approach:\n```bash\n# Check for existing configuration\nif [ -f \"${CONFIG_DIR}/config.yaml\" ]; then\n    echo \"ℹ️ Existing BAMON configuration detected at ${CONFIG_DIR}/config.yaml\"\n    echo \"ℹ️ Preserving your current configuration and scripts\"\n    PRESERVE_CONFIG=true\nelse\n    PRESERVE_CONFIG=false\nfi\n\n# Update binary regardless of configuration status\necho \"📦 Installing BAMON binary to ${INSTALL_PATH}...\"\ncp ./bamon \"${INSTALL_PATH}/bamon\"\nchmod +x \"${INSTALL_PATH}/bamon\"\n\n# Only setup configuration if not preserving\nif [ \"$PRESERVE_CONFIG\" = false ]; then\n    echo \"🔧 Setting up configuration directory at ${CONFIG_DIR}...\"\n    mkdir -p \"${CONFIG_DIR}\"\n    # Configuration setup code here...\n    \n    echo \"📝 Installing sample scripts...\"\n    # Sample script installation code here...\nelse\n    echo \"🔒 Skipping configuration setup to preserve existing settings\"\n    echo \"✅ BAMON binary has been updated successfully\"\nfi\n```\n\n3. Ensure proper error handling:\n   - Add appropriate error messages if binary update fails\n   - Implement verbose logging with the --verbose flag to help troubleshoot installation issues\n   - Add a --force flag option to override existing configuration if explicitly requested\n\n4. Update help text and usage information to reflect the new behavior:\n```bash\necho \"Usage: ./install.sh [OPTIONS]\"\necho \"Options:\"\necho \"  --prefix PATH    Install to custom location (default: ~/.local/bin)\"\necho \"  --system         Install system-wide (requires sudo)\"\necho \"  --force          Override existing configuration (use with caution)\"\necho \"  --verbose        Show detailed installation information\"\necho \"  --help           Show this help message\"\n```",
+        "testStrategy": "1. Test installation with no existing configuration:\n   - Remove any existing ~/.config/bamon directory\n   - Run the install script\n   - Verify that both the binary and configuration are installed correctly\n   - Check that sample scripts are installed\n\n2. Test installation with existing configuration:\n   - Create a test configuration at ~/.config/bamon/config.yaml with known content\n   - Run the install script\n   - Verify that the binary is updated\n   - Confirm the existing configuration file is unchanged\n   - Verify that no sample scripts were added or modified\n   - Check that appropriate messages about configuration preservation are displayed\n\n3. Test with --force flag:\n   - Create a test configuration\n   - Run install script with --force flag\n   - Verify that both binary and configuration are updated, overriding existing files\n   - Confirm sample scripts are installed\n\n4. Test in different environments:\n   - Test on Ubuntu, Debian, and other major Linux distributions\n   - Test on macOS\n   - Test on Windows Subsystem for Linux (WSL)\n\n5. Test with different installation paths:\n   - Test with default user installation\n   - Test with --system flag for system-wide installation\n   - Test with --prefix flag for custom installation location\n\n6. Verify error handling:\n   - Test with read-only configuration directory\n   - Test with insufficient permissions\n   - Verify appropriate error messages are displayed",
+        "status": "done",
+        "dependencies": [
+          31
+        ],
+        "priority": "medium",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Configuration Detection Logic",
+            "description": "Add logic to detect existing configuration files and set appropriate flags for preservation",
+            "dependencies": [],
+            "details": "Create the initial detection mechanism that checks for ~/.config/bamon/config.yaml existence. Implement the PRESERVE_CONFIG flag that will control the installation flow. Add clear user messages that inform about configuration detection and preservation intent.",
+            "status": "done",
+            "testStrategy": "Test with both existing and non-existing configuration files. Verify the PRESERVE_CONFIG flag is set correctly in both scenarios. Ensure appropriate messages are displayed to the user."
+          },
+          {
+            "id": 2,
+            "title": "Implement Binary Update Mechanism",
+            "description": "Ensure the BAMON binary is updated regardless of configuration preservation status",
+            "dependencies": [
+              "34.1"
+            ],
+            "details": "Modify the install script to always copy and set permissions for the BAMON binary, regardless of whether configuration is being preserved. Add appropriate error handling for binary installation failures. Implement verbose logging for the binary update process when --verbose flag is used.",
+            "status": "done",
+            "testStrategy": "Test binary installation with both new and existing configurations. Verify binary is properly updated in both scenarios. Test error handling by simulating permission issues or missing files."
+          },
+          {
+            "id": 3,
+            "title": "Implement Conditional Configuration Setup",
+            "description": "Add conditional logic to skip configuration setup when preserving existing configuration",
+            "dependencies": [
+              "34.1",
+              "34.2"
+            ],
+            "details": "Modify the configuration setup section to only execute when PRESERVE_CONFIG is false. This includes directory creation, config file copying, and sample script installation. Ensure all configuration-related operations are properly wrapped in the conditional block.",
+            "status": "done",
+            "testStrategy": "Test installation with and without existing configuration. Verify that configuration files remain untouched when PRESERVE_CONFIG is true. Confirm that new configuration is properly set up when PRESERVE_CONFIG is false."
+          },
+          {
+            "id": 4,
+            "title": "Implement Force Override Option",
+            "description": "Add a --force flag to allow users to explicitly override existing configuration",
+            "dependencies": [
+              "34.1",
+              "34.3"
+            ],
+            "details": "Add command-line argument parsing for the --force flag. Modify the configuration detection logic to respect the force flag, overriding the PRESERVE_CONFIG value when --force is specified. Add appropriate warning messages when force override is used.",
+            "status": "done",
+            "testStrategy": "Test installation with --force flag and existing configuration. Verify that configuration is overwritten despite existing files. Test without --force and confirm preservation behavior is maintained."
+          },
+          {
+            "id": 5,
+            "title": "Update Help Text and Documentation",
+            "description": "Update the script's help text and usage information to reflect the new behavior",
+            "dependencies": [
+              "34.1",
+              "34.2",
+              "34.3",
+              "34.4"
+            ],
+            "details": "Update the help text to include information about configuration preservation behavior. Add documentation for the new --force flag. Ensure all usage examples and option descriptions are accurate. Add a section explaining the configuration preservation feature in the main documentation.",
+            "status": "done",
+            "testStrategy": "Verify help text is displayed correctly with the --help flag. Ensure all new options are documented. Check that the explanation of configuration preservation is clear and accurate."
+          }
+        ]
       }
     ],
     "metadata": {
       "created": "2025-09-12T23:10:00.761Z",
-      "updated": "2025-09-21T20:08:31.140Z",
+      "updated": "2025-09-23T15:51:56.685Z",
       "description": "Tasks for master context"
     }
   }
