@@ -198,26 +198,25 @@ jobs:
     
     - name: Create GitHub Release
       if: ${{ github.event.inputs.dry_run != 'true' }}
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ steps.new_version.outputs.new_tag }}
-        release_name: Release ${{ steps.new_version.outputs.new_tag }}
-        body: |
-          ## BAMON ${{ steps.new_version.outputs.new_tag }}
+      run: |
+        echo "Creating GitHub release ${{ steps.new_version.outputs.new_tag }}..."
+        
+        # Create release using GitHub CLI
+        gh release create ${{ steps.new_version.outputs.new_tag }} \
+          --title "Release ${{ steps.new_version.outputs.new_tag }}" \
+          --notes "## BAMON ${{ steps.new_version.outputs.new_tag }}
           
           ### Installation
           
           **Quick Install:**
-          ```bash
+          \`\`\`bash
           curl -sSL https://github.com/${{ github.repository }}/releases/download/${{ steps.new_version.outputs.new_tag }}/install.sh | bash
-          ```
+          \`\`\`
           
           **Manual Install:**
-          1. Download the `bamon` binary
-          2. Download the `install.sh` script
-          3. Run: `chmod +x install.sh && ./install.sh`
+          1. Download the \`bamon\` binary
+          2. Download the \`install.sh\` script
+          3. Run: \`chmod +x install.sh && ./install.sh\`
           
           ### What's New
           
@@ -227,52 +226,47 @@ jobs:
           - Streamlined release process
           
           ### Files Included
-          - `bamon` - Main executable
-          - `install.sh` - Installation script
-          - `README.md` - Documentation
-          - `docs/` - Complete documentation
-          - `samples/` - Example monitoring scripts
-          - `config.yaml` - Default configuration template
+          - \`bamon\` - Main executable
+          - \`install.sh\` - Installation script
+          - \`README.md\` - Documentation
+          - \`docs/\` - Complete documentation
+          - \`samples/\` - Example monitoring scripts
+          - \`config.yaml\` - Default configuration template
           
           ### Verification
-          ```bash
+          \`\`\`bash
           ./bamon --version
           ./bamon --help
-          ```
-        draft: false
-        prerelease: false
+          \`\`\`" \
+          --draft=false \
+          --prerelease=false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     
     - name: Upload Release Assets
       if: ${{ github.event.inputs.dry_run != 'true' }}
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./release_assets/
-        asset_name: bamon-${{ steps.new_version.outputs.new_tag }}-assets.tar.gz
-        asset_content_type: application/gzip
-    
-    - name: Create asset archive
-      if: ${{ github.event.inputs.dry_run != 'true' }}
       run: |
-        echo "Creating asset archive..."
+        echo "Uploading release assets..."
+        
+        # Upload individual files to the release
+        gh release upload ${{ steps.new_version.outputs.new_tag }} release_assets/bamon
+        gh release upload ${{ steps.new_version.outputs.new_tag }} release_assets/install.sh
+        gh release upload ${{ steps.new_version.outputs.new_tag }} release_assets/README.md
+        gh release upload ${{ steps.new_version.outputs.new_tag }} release_assets/config.yaml
+        
+        # Upload directories as archives
         cd release_assets
-        tar -czf ../bamon-${{ steps.new_version.outputs.new_tag }}-assets.tar.gz *
+        tar -czf docs.tar.gz docs/
+        tar -czf samples.tar.gz samples/
         cd ..
         
-        echo "Asset archive created:"
-        ls -la bamon-${{ steps.new_version.outputs.new_tag }}-assets.tar.gz
+        gh release upload ${{ steps.new_version.outputs.new_tag }} release_assets/docs.tar.gz
+        gh release upload ${{ steps.new_version.outputs.new_tag }} release_assets/samples.tar.gz
+        
+        echo "All assets uploaded successfully!"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     
-    - name: Upload individual assets
-      if: ${{ github.event.inputs.dry_run != 'true' }}
-      run: |
-        echo "Uploading individual assets to release..."
-        # This would be done by the GitHub API, but for now we'll just list what would be uploaded
-        echo "Assets to upload:"
-        find release_assets -type f | while read file; do
-          echo "  - $file"
-        done
     
     - name: Update README with latest version
       if: ${{ github.event.inputs.dry_run != 'true' }}
