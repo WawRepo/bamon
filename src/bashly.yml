@@ -2,6 +2,10 @@ name: bamon
 help: Bash Daemon Monitor - A tool for monitoring and executing bash scripts
 version: 0.1.0
 commands:
+  - name: completions
+    help: |-
+      Generate bash completions
+      Usage: eval "\$(cli completions)"
   - name: status
     help: Display current status of all configured scripts
     flags:
@@ -184,10 +188,3 @@ commands:
         examples:
           - "bamon config reset"
           - "bamon config reset --force"
-flags:
-  - long: --version
-    short: -V
-    help: Show version information
-  - long: --help
-    short: -h
-    help: Show help information
