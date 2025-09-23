@@ -209,6 +209,38 @@ BAMON uses [Bashly](https://github.com/DannyBen/bashly) to generate the CLI fram
 
 For more information about Bashly, visit the [official repository](https://github.com/DannyBen/bashly) and [documentation](https://bashly.dannyb.co/).
 
+## 🔧 Shell Completions
+
+BAMON includes bash completions for all commands and options. To enable auto-completion:
+
+### Enable Completions (Temporary)
+```bash
+# Enable for current session
+eval "$(bamon completions)"
+```
+
+### Enable Completions (Permanent)
+
+**For Bash:**
+```bash
+# Add to ~/.bashrc
+echo 'eval "$(bamon completions)"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+**For Zsh:**
+```bash
+# Add to ~/.zshrc
+echo 'eval "$(bamon completions)"' >> ~/.zshrc
+source ~/.zshrc
+```
+
+### Completions Features
+- **Command completion**: `bamon <TAB>` shows all available commands
+- **Flag completion**: `bamon status --<TAB>` shows available flags
+- **Subcommand completion**: `bamon config <TAB>` shows config subcommands
+- **Context-aware**: Completions change based on current command context
+
 ## 🚀 Quick Start
 
 ### 1. Start the Daemon
