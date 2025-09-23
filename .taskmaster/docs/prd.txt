@@ -350,13 +350,14 @@ bamon/
   - **Version Update**: Update version in `src/bashly.yml` with new version
   - **Binary Regeneration**: Run `bashly generate` with updated version
   - **Tag Creation**: Create new git tag with incremented version
+- **Testing**: **No tests are run in release workflow** - CI workflow on main branch already handles all testing
 - **Release Assets**: Package and attach all required installation files:
   - `bamon` binary (generated with bashly)
   - `install.sh` installation script
   - `README.md` with updated installation instructions
   - `docs/` directory with all documentation
   - `samples/` directory with example scripts
-  - `test/` directory for testing
+  - `config.yaml` default configuration template
 - **GitHub Release**: Create GitHub release with:
   - Release notes based on commit messages since last release
   - All installation assets attached
@@ -388,8 +389,8 @@ bamon/
 - **Installation Script**: `install.sh`
 - **Documentation**: Complete `docs/` directory
 - **Examples**: `samples/` directory with monitoring scripts
-- **Tests**: `test/` directory for validation
 - **Configuration**: Default `config.yaml` template
+- **Note**: Tests are not included in release assets as they are only needed for development
 
 #### 2.3 Installation Instructions Update
 - **README.md**: Add installation step using latest GitHub release
