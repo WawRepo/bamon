@@ -58,7 +58,7 @@ function log_info() {
   local script_name="$2"
   
   local formatted_message=$(format_log_message "$message" "$script_name")
-  echo "$formatted_message"
+  echo "$formatted_message" >&2
   write_to_log "$formatted_message"
 }
 
