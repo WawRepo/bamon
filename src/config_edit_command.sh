@@ -1,5 +1,4 @@
-# Load required libraries
-source "$(dirname "${BASH_SOURCE[0]}")/lib/config.sh"
+# Libraries are included via bashly custom_includes
 
 # Config edit command implementation
 local editor="${args[--editor]:-${EDITOR:-vi}}"

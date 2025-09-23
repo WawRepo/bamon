@@ -3473,8 +3473,7 @@ bamon_performance_command() {
 bamon_config_edit_command() {
 
   # src/config_edit_command.sh
-  # Load required libraries
-  source "$(dirname "${BASH_SOURCE[0]}")/lib/config.sh"
+  # Libraries are included via bashly custom_includes
 
   # Config edit command implementation
   local editor="${args[--editor]:-${EDITOR:-vi}}"
@@ -3518,8 +3517,7 @@ bamon_config_edit_command() {
 bamon_config_show_command() {
 
   # src/config_show_command.sh
-  # Load required libraries
-  source "$(dirname "${BASH_SOURCE[0]}")/lib/config.sh"
+  # Libraries are included via bashly custom_includes
 
   # Config show command implementation
   local config_file
@@ -3551,8 +3549,7 @@ bamon_config_show_command() {
 bamon_config_validate_command() {
 
   # src/config_validate_command.sh
-  # Load required libraries
-  source "$(dirname "${BASH_SOURCE[0]}")/lib/config.sh"
+  # Libraries are included via bashly custom_includes
 
   # Config validate command implementation
   local config_file
@@ -3615,8 +3612,7 @@ bamon_config_validate_command() {
 bamon_config_reset_command() {
 
   # src/config_reset_command.sh
-  # Load required libraries
-  source "$(dirname "${BASH_SOURCE[0]}")/lib/config.sh"
+  # Libraries are included via bashly custom_includes
 
   # Config reset command
   config_reset() {

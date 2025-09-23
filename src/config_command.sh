@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 # src/config_command.sh
 
-# Load required libraries
-source "$(dirname "${BASH_SOURCE[0]}")/lib/config.sh"
+# Libraries are included via bashly custom_includes
 
 # Config edit command
 config_edit() {
