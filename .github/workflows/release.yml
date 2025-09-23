@@ -161,7 +161,7 @@ jobs:
         
         # Copy core files
         cp bamon release_assets/
-        cp install.sh release_assets/
+        cp install-repo.sh release_assets/
         cp README.md release_assets/
         
         # Copy directories
@@ -208,15 +208,18 @@ jobs:
           
           ### Installation
           
-          **Quick Install:**
+          **Quick Install (Recommended):**
           \`\`\`bash
-          curl -sSL https://github.com/${{ github.repository }}/releases/download/${{ steps.new_version.outputs.new_tag }}/install.sh | bash
+          curl -sSL https://github.com/${{ github.repository }}/releases/download/${{ steps.new_version.outputs.new_tag }}/install-repo.sh | bash
           \`\`\`
           
           **Manual Install:**
           1. Download the \`bamon\` binary
-          2. Download the \`install.sh\` script
-          3. Run: \`chmod +x install.sh && ./install.sh\`
+          2. Download the \`install-repo.sh\` script
+          3. Run: \`chmod +x install-repo.sh && ./install-repo.sh\`
+          
+          **Development Install:**
+          If you have the source code, use \`install.sh\` for local development.
           
           ### What's New
           
@@ -227,7 +230,7 @@ jobs:
           
           ### Files Included
           - \`bamon\` - Main executable
-          - \`install.sh\` - Installation script
+          - \`install-repo.sh\` - Installation script for releases
           - \`README.md\` - Documentation
           - \`docs/\` - Complete documentation
           - \`samples/\` - Example monitoring scripts
@@ -250,7 +253,7 @@ jobs:
         
         # Upload individual files to the release
         gh release upload ${{ steps.new_version.outputs.new_tag }} release_assets/bamon
-        gh release upload ${{ steps.new_version.outputs.new_tag }} release_assets/install.sh
+        gh release upload ${{ steps.new_version.outputs.new_tag }} release_assets/install-repo.sh
         gh release upload ${{ steps.new_version.outputs.new_tag }} release_assets/README.md
         gh release upload ${{ steps.new_version.outputs.new_tag }} release_assets/config.yaml
         

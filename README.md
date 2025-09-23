@@ -23,7 +23,7 @@ Install BAMON directly from the latest GitHub release:
 
 ```bash
 # Download and install from latest release
-curl -sSL https://github.com/WawRepo/bamon/releases/latest/download/install.sh | bash
+curl -sSL https://github.com/WawRepo/bamon/releases/latest/download/install-repo.sh | bash
 ```
 
 This will:
