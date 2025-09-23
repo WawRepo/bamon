@@ -315,7 +315,7 @@ bamon config validate
 ```yaml
 daemon:
   default_interval: 60
-  log_file: "~/.config/bamon/daemon.log"
+  log_file: "~/.local/share/bamon/logs/bamon.log"
   pid_file: "~/.config/bamon/bamon.pid"
   max_concurrent: 10
   history_file: "~/.config/bamon/execution_history.json"
@@ -576,7 +576,7 @@ daemon:
 bamon status
 
 # Check logs for errors
-tail -f ~/.config/bamon/bamon.log
+tail -f ~/.local/share/bamon/logs/bamon.log
 
 # Verify permissions
 ls -la ~/.config/bamon/

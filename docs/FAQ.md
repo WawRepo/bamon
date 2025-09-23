@@ -165,7 +165,7 @@ bamon now --name script_name
 
 2. **Check logs for errors:**
    ```bash
-   tail -f ~/.config/bamon/bamon.log
+   tail -f ~/.local/share/bamon/logs/bamon.log
    ```
 
 3. **Verify permissions:**
@@ -344,7 +344,7 @@ Yes, BAMON supports several integration methods:
 
 2. **Log file monitoring:**
    ```bash
-   tail -f ~/.config/bamon/bamon.log | logger -t bamon
+   tail -f ~/.local/share/bamon/logs/bamon.log | logger -t bamon
    ```
 
 3. **Custom webhooks:**
@@ -455,7 +455,7 @@ cp ~/.config/bamon/samples/ /backup/ -r
    - BAMON version (`bamon --version`)
    - System information (`uname -a`)
    - Configuration (`bamon config show`)
-   - Error logs (`tail -f ~/.config/bamon/bamon.log`)
+   - Error logs (`tail -f ~/.local/share/bamon/logs/bamon.log`)
    - Steps to reproduce
 
 ### How do I contribute to BAMON?

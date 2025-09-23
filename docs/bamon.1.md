@@ -153,7 +153,7 @@ BAMON runs as a daemon process that continuously monitors configured scripts and
 **~/.config/bamon/config.yaml**
 : Default configuration file
 
-**~/.config/bamon/bamon.log**
+**~/.local/share/bamon/logs/bamon.log**
 : Default log file
 
 **~/.config/bamon/bamon.pid**
@@ -174,7 +174,7 @@ BAMON uses YAML configuration files. The main configuration file is located at `
 ```yaml
 daemon:
   default_interval: 60
-  log_file: "~/.config/bamon/bamon.log"
+  log_file: "~/.local/share/bamon/logs/bamon.log"
   pid_file: "~/.config/bamon/bamon.pid"
   max_concurrent: 10
 
@@ -330,7 +330,7 @@ bamon performance --verbose
 **Daemon fails to start:**
 - Check if another instance is running: `bamon status`
 - Verify permissions on configuration directory: `ls -la ~/.config/bamon/`
-- Check logs for specific errors: `tail -f ~/.config/bamon/bamon.log`
+- Check logs for specific errors: `tail -f ~/.local/share/bamon/logs/bamon.log`
 
 **Scripts not executing:**
 - Verify script is enabled: `bamon list`
