@@ -9,7 +9,7 @@
         "testStrategy": "1. Verify the project structure is created correctly\n2. Test configuration loading with valid and invalid YAML files\n3. Verify default configuration is created when none exists\n4. Test configuration validation with missing required fields\n5. Verify environment variable overrides work correctly\n6. Test reading and writing configuration values\n7. Verify the Bashly configuration generates the expected CLI structure\n8. Test the config command and its subcommands",
         "priority": "high",
         "dependencies": [],
-        "status": "pending",
+        "status": "cancelled",
         "subtasks": []
       },
       {
@@ -22,7 +22,7 @@
         "dependencies": [
           25
         ],
-        "status": "pending",
+        "status": "cancelled",
         "subtasks": []
       },
       {
@@ -36,7 +36,7 @@
           25,
           26
         ],
-        "status": "pending",
+        "status": "cancelled",
         "subtasks": []
       },
       {
@@ -51,7 +51,7 @@
           26,
           27
         ],
-        "status": "pending",
+        "status": "cancelled",
         "subtasks": []
       },
       {
@@ -67,7 +67,7 @@
           27,
           28
         ],
-        "status": "pending",
+        "status": "cancelled",
         "subtasks": []
       },
       {
@@ -82,7 +82,7 @@
           26,
           27
         ],
-        "status": "pending",
+        "status": "cancelled",
         "subtasks": []
       },
       {
@@ -100,7 +100,7 @@
           29,
           30
         ],
-        "status": "pending",
+        "status": "cancelled",
         "subtasks": []
       },
       {
@@ -119,7 +119,7 @@
           30,
           31
         ],
-        "status": "pending",
+        "status": "cancelled",
         "subtasks": []
       },
       {
@@ -275,7 +275,7 @@
     ],
     "metadata": {
       "created": "2025-09-12T23:10:00.761Z",
-      "updated": "2025-09-23T15:51:56.685Z",
+      "updated": "2025-09-23T19:13:12.402Z",
       "description": "Tasks for master context"
     }
   }
