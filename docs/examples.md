@@ -752,7 +752,7 @@ bamon add "business_hours_check" \
 bash -c "your_script_command"
 
 # Run BAMON with debug logging
-BAMON_LOG_LEVEL=DEBUG bamon start
+BAMON_VERBOSE=true bamon start
 
 # Check specific script execution
 bamon now --name script_name

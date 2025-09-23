@@ -610,7 +610,7 @@ bamon --version
 
 ```bash
 # Run with verbose logging
-BAMON_LOG_LEVEL=DEBUG bamon start
+bamon start
 
 # Check configuration
 bamon config validate --verbose

@@ -202,8 +202,8 @@ scripts:
 **BAMON_CONFIG_FILE**
 : Override default configuration file path
 
-**BAMON_LOG_LEVEL**
-: Set logging level (DEBUG, INFO, WARN, ERROR)
+**BAMON_VERBOSE**
+: Enable verbose logging (true/false)
 
 **BAMON_LOG_FILE**
 : Override default log file path
@@ -345,7 +345,7 @@ bamon performance --verbose
 
 Run with verbose logging:
 ```bash
-BAMON_LOG_LEVEL=DEBUG bamon start
+BAMON_VERBOSE=true bamon start
 ```
 
 # SEE ALSO

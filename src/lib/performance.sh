@@ -129,7 +129,7 @@ function can_run_more_scripts() {
   local running=$(count_running_scripts)
   
   if [[ $running -ge $max_concurrent ]]; then
-    log_debug "At max concurrent capacity: $running/$max_concurrent"
+    log_info "At max concurrent capacity: $running/$max_concurrent"
     return 1  # false, at max capacity
   fi
   

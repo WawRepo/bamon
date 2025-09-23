@@ -3,58 +3,19 @@
 
 # Libraries are included via bashly custom_includes
 
-# Log levels
-LOG_LEVEL_ERROR=0
-LOG_LEVEL_WARN=1
-LOG_LEVEL_INFO=2
-LOG_LEVEL_DEBUG=3
-
-# Default log level
-DEFAULT_LOG_LEVEL=$LOG_LEVEL_INFO
-
-# Get current log level
-function get_log_level() {
-  local level=$(get_config_value "daemon.log_level" "$DEFAULT_LOG_LEVEL")
-  echo "${level:-$DEFAULT_LOG_LEVEL}"
-}
-
-# Check if we should log at this level
-function should_log() {
-  local level="$1"
-  local current_level=$(get_log_level)
-  
-  # Default to INFO level if log level is not set
-  if [[ -z "$current_level" || "$current_level" == "null" ]]; then
-    current_level=$LOG_LEVEL_INFO
-  fi
-  
-  if [[ $level -le $current_level ]]; then
-    return 0
-  else
-    return 1
-  fi
-}
+# Simple logging - no debug levels needed
+# All important information is logged
 
 # Format log message
 function format_log_message() {
-  local level="$1"
-  local message="$2"
-  local script_name="$3"
+  local message="$1"
+  local script_name="$2"
   local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
   
-  local level_name
-  case $level in
-    $LOG_LEVEL_ERROR) level_name="ERROR" ;;
-    $LOG_LEVEL_WARN)  level_name="WARN"  ;;
-    $LOG_LEVEL_INFO)  level_name="INFO"  ;;
-    $LOG_LEVEL_DEBUG) level_name="DEBUG" ;;
-    *)                level_name="INFO"  ;;
-  esac
-  
   if [[ -n "$script_name" ]]; then
-    echo "[$timestamp] [$level_name] [$script_name] $message"
+    echo "[$timestamp] [$script_name] $message"
   else
-    echo "[$timestamp] [$level_name] [bamon] $message"
+    echo "[$timestamp] [bamon] $message"
   fi
 }
 
@@ -76,11 +37,9 @@ function log_error() {
   local message="$1"
   local script_name="$2"
   
-  if should_log $LOG_LEVEL_ERROR; then
-    local formatted_message=$(format_log_message $LOG_LEVEL_ERROR "$message" "$script_name")
-    echo "$formatted_message" >&2
-    write_to_log "$formatted_message"
-  fi
+  local formatted_message=$(format_log_message "$message" "$script_name")
+  echo "$formatted_message" >&2
+  write_to_log "$formatted_message"
 }
 
 # Log warning message
@@ -88,11 +47,9 @@ function log_warn() {
   local message="$1"
   local script_name="$2"
   
-  if should_log $LOG_LEVEL_WARN; then
-    local formatted_message=$(format_log_message $LOG_LEVEL_WARN "$message" "$script_name")
-    echo "$formatted_message" >&2
-    write_to_log "$formatted_message"
-  fi
+  local formatted_message=$(format_log_message "$message" "$script_name")
+  echo "$formatted_message" >&2
+  write_to_log "$formatted_message"
 }
 
 # Log info message
@@ -100,23 +57,9 @@ function log_info() {
   local message="$1"
   local script_name="$2"
   
-  if should_log $LOG_LEVEL_INFO; then
-    local formatted_message=$(format_log_message $LOG_LEVEL_INFO "$message" "$script_name")
-    echo "$formatted_message"
-    write_to_log "$formatted_message"
-  fi
-}
-
-# Log debug message
-function log_debug() {
-  local message="$1"
-  local script_name="$2"
-  
-  if should_log $LOG_LEVEL_DEBUG; then
-    local formatted_message=$(format_log_message $LOG_LEVEL_DEBUG "$message" "$script_name")
-    echo "$formatted_message" >&2
-    write_to_log "$formatted_message"
-  fi
+  local formatted_message=$(format_log_message "$message" "$script_name")
+  echo "$formatted_message"
+  write_to_log "$formatted_message"
 }
 
 # Log script execution result

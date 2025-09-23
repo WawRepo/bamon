@@ -20,7 +20,7 @@ function execute_sandboxed() {
     return 1
   fi
   
-  log_debug "Executing '$script_name' in sandbox with ${timeout}s timeout"
+  log_info "Executing '$script_name' in sandbox with ${timeout}s timeout"
   
   # Create temporary directory for script
   local temp_dir
@@ -117,7 +117,7 @@ function execute_sandboxed_with_limits() {
     return 1
   fi
   
-  log_debug "Executing '$script_name' in sandbox with custom limits: timeout=${timeout}s, cpu=${max_cpu_time}s, file=${max_file_size}KB, mem=${max_virtual_memory}KB"
+  log_info "Executing '$script_name' in sandbox with custom limits: timeout=${timeout}s, cpu=${max_cpu_time}s, file=${max_file_size}KB, mem=${max_virtual_memory}KB"
   
   # Create temporary directory for script
   local temp_dir
@@ -275,6 +275,6 @@ function validate_sandbox_config() {
     return 1
   fi
   
-  log_debug "Sandbox configuration validation passed"
+  log_info "Sandbox configuration validation passed"
   return 0
 }
