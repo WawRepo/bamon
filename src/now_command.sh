@@ -5,12 +5,6 @@
 
 # Get parsed arguments from bashly
 SCRIPT_NAME="${args['--name']:-}"
-ASYNC=false
-
-# Check for async flag
-if [[ -n "${args['--async']:-}" ]]; then
-  ASYNC=true
-fi
 
 # Initialize configuration
 init_config

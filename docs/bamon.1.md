@@ -113,9 +113,6 @@ BAMON runs as a daemon process that continuously monitors configured scripts and
 **--name**, **-n** *script_name*
 : Execute only specific script by name
 
-**--async**, **-a**
-: Execute scripts asynchronously (default: sequential)
-
 ## Start Command Options
 
 **--daemon**, **-d**

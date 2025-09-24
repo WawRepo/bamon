@@ -75,13 +75,9 @@ commands:
         short: -n
         arg: script_name
         help: Execute only specific script by name
-      - long: --async
-        short: -a
-        help: Execute scripts asynchronously - default sequential
     examples:
       - "bamon now"
       - "bamon now --name health_check"
-      - "bamon now --async"
   - name: start
     help: Start the daemon process
     flags:

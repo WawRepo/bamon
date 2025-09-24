@@ -310,7 +310,6 @@ The testing environment is designed to work with CI/CD systems:
 | `bamon remove <name>` (preserves others) | Remove command preserves other scripts | test/commands/test_remove_command.bats |
 | `bamon now` | Now command executes all enabled scripts | test/commands/test_now_command.bats |
 | `bamon now --name <script>` | Now command executes specific script by name | test/commands/test_now_command.bats |
-| `bamon now --async` | N/A | N/A |
 | `bamon start` | N/A | N/A |
 | `bamon start --daemon` | Daemon starts successfully | test/daemon/test_daemon_execution.bats |
 | `bamon start --config <file>` | N/A | N/A |
@@ -344,7 +343,7 @@ The testing environment is designed to work with CI/CD systems:
 | **Status Command** | 5 | 5 | 100% |
 | **Add Command** | 6 | 6 | 100% |
 | **Remove Command** | 4 | 4 | 100% |
-| **Now Command** | 3 | 3 | 100% |
+| **Now Command** | 2 | 2 | 100% |
 | **Start Command** | 3 | 3 | 100% |
 | **Stop Command** | 2 | 2 | 100% |
 | **Restart Command** | 3 | 3 | 100% |
@@ -353,7 +352,7 @@ The testing environment is designed to work with CI/CD systems:
 | **Config Commands** | 6 | 6 | 100% |
 | **Multiline Output** | 7 | 7 | 100% |
 | **Global Flags** | 2 | 0 | 0% |
-| **TOTAL** | 49 | 49 | 100% |
+| **TOTAL** | 47 | 47 | 100% |
 
 ### Missing Test Coverage
 
@@ -364,7 +363,6 @@ The following commands still need test coverage:
 - `bamon restart --config <file>` - Custom config file support
 - `bamon --help` - Help display
 - `bamon --version` - Version display
-- `bamon now --async` - Async execution support
 
 #### Future Enhancements
 - Integration tests between commands
