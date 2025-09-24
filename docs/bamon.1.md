@@ -156,7 +156,7 @@ BAMON runs as a daemon process that continuously monitors configured scripts and
 **~/.local/share/bamon/logs/bamon.log**
 : Default log file
 
-**~/.config/bamon/bamon.pid**
+**~/.local/share/bamon/bamon.pid**
 : Default PID file
 
 **~/.config/bamon/execution_history.json**
@@ -175,7 +175,7 @@ BAMON uses YAML configuration files. The main configuration file is located at `
 daemon:
   default_interval: 60
   log_file: "~/.local/share/bamon/logs/bamon.log"
-  pid_file: "~/.config/bamon/bamon.pid"
+  pid_file: "~/.local/share/bamon/bamon.pid"
   max_concurrent: 10
 
 sandbox:
