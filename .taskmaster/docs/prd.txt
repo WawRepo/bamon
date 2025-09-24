@@ -496,6 +496,7 @@ bamon/
 ### 1. README.md Structure (Inspired by Helm)
 The main README should be concise and focused, similar to [Helm's README](https://github.com/helm/helm):
 - **Project Title**: Clear, descriptive title with tagline
+- **Logo**: Include BAMON logo from `docs/bamon_logo.png` at the top
 - **Quick Description**: What BAMON is and what it does (2-3 sentences)
 - **Installation**: Simple, one-command installation instructions
 - **Basic Usage**: 3-4 essential commands with examples
@@ -504,10 +505,12 @@ The main README should be concise and focused, similar to [Helm's README](https:
 
 ### 2. Documentation Framework
 - **Framework**: Use MkDocs with Material theme for modern, responsive documentation
+- **Reference**: Follow [MkDocs Getting Started Guide](https://www.mkdocs.org/getting-started/) for setup and best practices
 - **Structure**: Organized documentation in `docs/` directory
 - **Navigation**: Clear navigation structure with logical grouping
 - **Search**: Built-in search functionality for easy content discovery
 - **Mobile-friendly**: Responsive design that works on all devices
+- **Logo Integration**: Include BAMON logo from `docs/bamon_logo.png` in documentation header and favicon
 
 ### 3. Documentation Organization
 - **Home**: Overview and getting started guide
