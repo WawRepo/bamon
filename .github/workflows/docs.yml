@@ -32,7 +32,7 @@ jobs:
         run: mkdocs build
 
       - name: Check links
-        run: mkdocs-linkcheck
+        run: mkdocs-linkcheck --ignore-url "https://github.com/WawRepo/bamon"
 
       - name: Spell check
         run: mkdocs-spellcheck

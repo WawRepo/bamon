@@ -79,4 +79,4 @@ One-command installation from GitHub releases with automatic setup.
 
 ## Contributing
 
-We welcome contributions! Please see our [Contributing Guide](https://github.com/WawRepo/bamon/blob/main/CONTRIBUTING.md) for details on how to contribute to BAMON.
+We welcome contributions! Please see our [GitHub repository](https://github.com/WawRepo/bamon) for details on how to contribute to BAMON.
