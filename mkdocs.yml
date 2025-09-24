@@ -1,0 +1,72 @@
+site_name: BAMON
+site_description: Bash Daemon Monitor - A lightweight monitoring solution
+site_url: https://wawrepo.github.io/bamon/
+repo_url: https://github.com/WawRepo/bamon
+repo_name: WawRepo/bamon
+
+theme:
+  name: material
+  palette:
+    primary: indigo
+    accent: indigo
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+  logo: bamon_logo.png
+  favicon: bamon_logo.png
+
+markdown_extensions:
+  - admonition
+  - codehilite
+  - pymdownx.superfences
+  - pymdownx.tabbed
+  - pymdownx.snippets
+  - pymdownx.arithmatex
+  - pymdownx.critic
+  - pymdownx.details
+  - pymdownx.emoji
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.magiclink
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences
+  - pymdownx.tabbed
+  - pymdownx.tasklist
+  - pymdownx.tilde
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Installation: installation.md
+  - Uninstallation: uninstallation.md
+  - Commands:
+    - Commands Overview: commands/index.md
+    - status: commands/status.md
+    - add: commands/add.md
+    - remove: commands/remove.md
+    - list: commands/list.md
+    - now: commands/now.md
+    - start: commands/start.md
+    - stop: commands/stop.md
+    - restart: commands/restart.md
+    - performance: commands/performance.md
+    - config: commands/config.md
+  - Configuration: configuration.md
+  - Examples: examples.md
+  - Troubleshooting: troubleshooting.md
+  - API Reference: api.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/WawRepo/bamon
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/bamon_project
+  version:
+    provider: mike
