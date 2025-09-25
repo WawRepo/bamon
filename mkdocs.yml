@@ -34,6 +34,6 @@ nav:
   - Troubleshooting: troubleshooting.md
   - API Reference: api.md
 
-extra:
-  version:
-    provider: mike
+# extra:
+#   version:
+#     provider: mike

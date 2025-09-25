@@ -12,7 +12,6 @@ bamon status [options]
 
 | Option | Short | Argument | Description |
 |--------|-------|----------|-------------|
-| `--verbose` | `-v` | | Show detailed information including full output |
 | `--failed-only` | `-f` | | Show only failed scripts |
 | `--json` | `-j` | | Output in JSON format |
 | `--name` | `-n` | script_name | Check status of a specific script |
@@ -28,44 +27,11 @@ bamon status
 
 **Output:**
 ```
-Script Status Report
-===================
-
-Name            Status    Last Run           Next Run            Interval
-health_check    success   2024-01-15 10:30   2024-01-15 11:00   30s
-disk_usage      success   2024-01-15 10:25   2024-01-15 15:25   300s
-github_status   failed    2024-01-15 10:20   2024-01-15 10:50   30s
-```
-
-### Verbose Output
-
-```bash
-# Show detailed status with full output
-bamon status --verbose
-```
-
-**Output:**
-```
-Script Status Report
-===================
-
-Name: health_check
-Status: success
-Last Run: 2024-01-15 10:30:15
-Next Run: 2024-01-15 11:00:15
-Interval: 30s
-Command: curl -s https://httpbin.org/status/200
-Output:
-200
-
-Name: disk_usage
-Status: success
-Last Run: 2024-01-15 10:25:10
-Next Run: 2024-01-15 15:25:10
-Interval: 300s
-Command: df -h / | awk 'NR==2 {print $5}' | sed 's/%//'
-Output:
-45
+NAME                 STATUS     EXIT CODE  OUTPUT                         DURATION TIME SINCE      NEXT EXECUTION      
+=============================================================================================================================
+health_check         Success    0          301                            1s       1d ago          Overdue             
+disk_check           Success    0          1                              N/A      1d ago          Overdue             
+simple_test          Success    0          hello                          N/A      1d ago          Overdue   
 ```
 
 ### Failed Scripts Only
@@ -77,14 +43,9 @@ bamon status --failed-only
 
 **Output:**
 ```
-Failed Scripts
-=============
-
-Name: github_status
-Status: failed
-Last Run: 2024-01-15 10:20:05
-Error: Connection timeout
-Command: curl -s https://www.githubstatus.com/api/v2/status.json
+NAME                 STATUS     EXIT CODE  OUTPUT                         DURATION TIME SINCE      NEXT EXECUTION      
+=============================================================================================================================
+github_status        Failed     1          Connection timeout             2s       5m ago          In 25s             
 ```
 
 ### Specific Script Status
@@ -96,12 +57,9 @@ bamon status --name health_check
 
 **Output:**
 ```
-Script: health_check
-Status: success
-Last Run: 2024-01-15 10:30:15
-Next Run: 2024-01-15 11:00:15
-Interval: 30s
-Command: curl -s https://httpbin.org/status/200
+NAME                 STATUS     EXIT CODE  OUTPUT                         DURATION TIME SINCE      NEXT EXECUTION      
+=============================================================================================================================
+health_check         Success    0          301                            1s       1d ago          Overdue             
 ```
 
 ### JSON Output
@@ -117,21 +75,15 @@ bamon status --json
   "scripts": [
     {
       "name": "health_check",
-      "status": "success",
-      "last_run": "2024-01-15T10:30:15Z",
-      "next_run": "2024-01-15T11:00:15Z",
-      "interval": 30,
-      "command": "curl -s https://httpbin.org/status/200",
-      "output": "200"
-    },
-    {
-      "name": "disk_usage",
-      "status": "success",
-      "last_run": "2024-01-15T10:25:10Z",
-      "next_run": "2024-01-15T15:25:10Z",
-      "interval": 300,
-      "command": "df -h / | awk 'NR==2 {print $5}' | sed 's/%//'",
-      "output": "45"
+      "enabled": true,
+      "lastExecution": "2024-01-15 10:30:15",
+      "result": "Success",
+      "exitCode": "0",
+      "duration": "1s",
+      "timeSince": "1d ago",
+      "nextExecution": "Overdue",
+      "output": "301",
+      "error": null
     }
   ]
 }
@@ -141,11 +93,9 @@ bamon status --json
 
 | Status | Description |
 |--------|-------------|
-| `success` | Script executed successfully |
-| `failed` | Script execution failed |
-| `running` | Script is currently executing |
-| `disabled` | Script is disabled |
-| `never` | Script has never been executed |
+| `Success` | Script executed successfully |
+| `Failed` | Script execution failed |
+| `Unknown` | Script status is unknown |
 
 ## Use Cases
 
@@ -153,7 +103,7 @@ bamon status --json
 
 ```bash
 # Create a simple monitoring dashboard
-bamon status --json | jq -r '.scripts[] | "\(.name): \(.status)"'
+bamon status --json | jq -r '.scripts[] | "\(.name): \(.result)"'
 ```
 
 ### Health Check Script
@@ -170,7 +120,7 @@ fi
 
 ```bash
 # Check script execution times
-bamon status --verbose | grep -E "(Name|Last Run|Status)"
+bamon status | grep -E "(NAME|Success|Failed)"
 ```
 
 ## Related Commands
