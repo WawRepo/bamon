@@ -192,7 +192,7 @@ bamon now --name script_name
 
 3. **Check execution logs:**
    ```bash
-   bamon status --verbose
+   bamon status
    ```
 
 4. **Verify script permissions:**
@@ -255,9 +255,9 @@ This usually means the command isn't in the PATH when BAMON runs. Solutions:
    bash -c "your_script_command"
    ```
 
-3. **Check verbose status:**
+3. **Check status:**
    ```bash
-   bamon status --verbose
+   bamon status
    ```
 
 4. **View execution history:**

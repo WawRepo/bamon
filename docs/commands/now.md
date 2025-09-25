@@ -132,7 +132,7 @@ bamon list
 bamon status --name script_name
 
 # View detailed status
-bamon status --verbose --name script_name
+bamon status --name script_name
 ```
 
 ### Permission Issues

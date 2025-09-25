@@ -151,7 +151,7 @@ For detailed information about each command, see the individual command pages:
 bamon status --failed-only
 
 # View detailed status
-bamon status --verbose
+bamon status
 
 # Check configuration
 bamon config validate

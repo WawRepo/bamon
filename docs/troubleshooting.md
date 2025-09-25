@@ -91,7 +91,7 @@ Common issues and solutions for BAMON.
 
 4. **Review execution logs:**
    ```bash
-   bamon status --verbose
+   bamon status
    tail -f ~/.local/share/bamon/logs/bamon.log
    ```
 
@@ -106,7 +106,7 @@ Common issues and solutions for BAMON.
 
 1. **Check script output:**
    ```bash
-   bamon status --verbose --name script_name
+   bamon status --name script_name
    ```
 
 2. **Test script manually:**
@@ -356,7 +356,7 @@ tail -f ~/.local/share/bamon/logs/bamon.log
 bamon now --name script_name
 
 # Check detailed status
-bamon status --verbose --name script_name
+bamon status --name script_name
 
 # Review execution history
 bamon status --json | jq '.scripts[] | select(.name=="script_name")'

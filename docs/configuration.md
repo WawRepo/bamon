@@ -201,7 +201,6 @@ bamon config reset --force
 ```yaml
 daemon:
   log_file: "/var/log/bamon/custom.log"
-  log_level: "INFO"
 ```
 
 ### Resource Limits

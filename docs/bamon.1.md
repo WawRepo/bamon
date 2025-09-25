@@ -63,8 +63,6 @@ BAMON runs as a daemon process that continuously monitors configured scripts and
 
 ## Status Command Options
 
-**--verbose**, **-v**
-: Show detailed information including full output
 
 **--failed-only**, **-f**
 : Show only failed scripts
@@ -330,7 +328,7 @@ bamon performance --verbose
 **Scripts not executing:**
 - Verify script is enabled: `bamon list`
 - Check script syntax: `bash -n your_script.sh`
-- Review execution logs: `bamon status --verbose`
+- Review execution logs: `bamon status`
 
 **Configuration errors:**
 - Validate configuration: `bamon config validate`
