@@ -5,7 +5,7 @@ repo_url: https://github.com/WawRepo/bamon
 repo_name: WawRepo/bamon
 
 theme:
-  name: mkdocs
+  name: readthedocs
 
 markdown_extensions:
   - admonition
