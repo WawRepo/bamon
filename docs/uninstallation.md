@@ -175,5 +175,5 @@ rm -rf ~/.local/share/bamon
 
 If you encounter issues during uninstallation:
 
-1. Check the [Troubleshooting Guide](troubleshooting.md)
+1. Check the [Troubleshooting Guide](https://wawrepo.github.io/bamon/troubleshooting/)
 2. Open an issue on [GitHub](https://github.com/WawRepo/bamon/issues)

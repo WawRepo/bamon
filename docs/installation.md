@@ -208,6 +208,6 @@ command -v curl yq timeout bash
 
 If you encounter issues:
 
-1. Check the [Troubleshooting Guide](troubleshooting.md)
-2. Review the [Configuration Guide](configuration.md)
+1. Check the [Troubleshooting Guide](https://wawrepo.github.io/bamon/troubleshooting/)
+2. Review the [Configuration Guide](https://wawrepo.github.io/bamon/configuration/)
 3. Open an issue on [GitHub](https://github.com/WawRepo/bamon/issues)

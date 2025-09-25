@@ -465,8 +465,8 @@ cp ~/.config/bamon/samples/ /backup/ -r
 3. **Make changes and test**
 4. **Submit pull request**
 
-See the [Contributing Guide](CONTRIBUTING.md) for detailed instructions.
+See the [GitHub repository](https://github.com/WawRepo/bamon) for contribution guidelines.
 
 ---
 
-**Still have questions?** Open an [issue](https://github.com/WawRepo/bamon/issues) or check the [examples](examples.md) for more detailed usage scenarios.
+**Still have questions?** Open an [issue](https://github.com/WawRepo/bamon/issues) or check the [examples](https://wawrepo.github.io/bamon/examples/) for more detailed usage scenarios.

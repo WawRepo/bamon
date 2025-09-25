@@ -64,12 +64,12 @@ One-command installation from GitHub releases with automatic setup.
 
 ## Documentation Structure
 
-- **[Installation](installation.md)** - Detailed installation instructions for different platforms
-- **[Commands](commands/index.md)** - Complete CLI command reference
-- **[Configuration](configuration.md)** - Configuration options and examples
-- **[Examples](examples.md)** - Real-world usage examples and use cases
-- **[Troubleshooting](troubleshooting.md)** - Common issues and solutions
-- **[API Reference](api.md)** - Technical details for developers
+- **[Installation](https://wawrepo.github.io/bamon/installation/)** - Detailed installation instructions for different platforms
+- **[Commands](https://wawrepo.github.io/bamon/commands/)** - Complete CLI command reference
+- **[Configuration](https://wawrepo.github.io/bamon/configuration/)** - Configuration options and examples
+- **[Examples](https://wawrepo.github.io/bamon/examples/)** - Real-world usage examples and use cases
+- **[Troubleshooting](https://wawrepo.github.io/bamon/troubleshooting/)** - Common issues and solutions
+- **[API Reference](https://wawrepo.github.io/bamon/api/)** - Technical details for developers
 
 ## Getting Help
 
