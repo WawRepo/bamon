@@ -130,9 +130,6 @@ commands:
   - name: performance
     help: Show system performance metrics and optimization status
     flags:
-      - long: --verbose
-        short: -v
-        help: Show detailed performance information
       - long: --format
         short: -f
         arg: format
@@ -141,7 +138,6 @@ commands:
         help: Output in JSON format
     examples:
       - "bamon performance"
-      - "bamon performance --verbose"
       - "bamon performance --json"
   - name: config
     help: Configuration management commands

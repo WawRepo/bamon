@@ -12,7 +12,6 @@ bamon performance [options]
 
 | Option | Short | Description |
 |--------|-------|-------------|
-| `--verbose` | `-v` | Show detailed performance information |
 | `--format` | `-f` | Output format (table, json) |
 | `--json` | `-j` | Output in JSON format |
 
@@ -44,12 +43,6 @@ Failed Executions: 12
 Average Execution Time: 0.8s
 ```
 
-### Verbose Output
-
-```bash
-# Show detailed performance information
-bamon performance --verbose
-```
 
 **Output:**
 ```
