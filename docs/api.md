@@ -235,7 +235,6 @@ bamon config reset [options]
 | Variable | Type | Description |
 |----------|------|-------------|
 | `BAMON_CONFIG_FILE` | string | Override default configuration file path |
-| `BAMON_VERBOSE` | boolean | Enable verbose logging (true/false) |
 | `BAMON_LOG_FILE` | string | Override default log file path |
 
 ### Usage Examples
@@ -246,7 +245,6 @@ export BAMON_CONFIG_FILE="/path/to/custom/config.yaml"
 bamon status
 
 # Enable verbose logging
-export BAMON_VERBOSE=true
 bamon start --daemon
 
 # Custom log file
@@ -439,7 +437,6 @@ bamon --config test-config.yaml now --name script_name
 
 ```bash
 # Enable debug mode
-export BAMON_VERBOSE=true
 bamon start --daemon
 
 # Check debug logs

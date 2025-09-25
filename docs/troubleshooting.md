@@ -341,7 +341,6 @@ Common issues and solutions for BAMON.
 
 ```bash
 # Set environment variable
-export BAMON_VERBOSE=true
 
 # Start daemon with verbose logging
 bamon start --daemon

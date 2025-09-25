@@ -247,7 +247,7 @@ This usually means the command isn't in the PATH when BAMON runs. Solutions:
 
 1. **Run with debug logging:**
    ```bash
-   BAMON_VERBOSE=true bamon start
+   bamon start --daemon
    ```
 
 2. **Test script manually:**
@@ -446,7 +446,7 @@ cp ~/.config/bamon/samples/ /backup/ -r
 1. **Documentation**: Check the README.md and examples
 2. **Issues**: Open an issue on GitHub
 3. **Community**: Join discussions in the project repository
-4. **Verbose mode**: Use `BAMON_VERBOSE=true` for detailed logging
+4. **Check logs**: Review log files for detailed execution information
 
 ### How do I report bugs?
 

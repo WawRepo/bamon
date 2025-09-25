@@ -139,7 +139,6 @@ scripts:
 | Variable | Description |
 |----------|-------------|
 | `BAMON_CONFIG_FILE` | Override default configuration file path |
-| `BAMON_VERBOSE` | Enable verbose logging (true/false) |
 | `BAMON_LOG_FILE` | Override default log file path |
 
 ### Example
@@ -150,7 +149,6 @@ export BAMON_CONFIG_FILE="/path/to/custom/config.yaml"
 bamon status
 
 # Enable verbose logging
-export BAMON_VERBOSE=true
 bamon start --daemon
 ```
 
