@@ -5,6 +5,7 @@ on:
     paths:
       - 'docs/**'
       - 'mkdocs.yml'
+      - .github/workflows/docs.yml
   pull_request:
     paths:
       - 'docs/**'
