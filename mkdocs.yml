@@ -32,7 +32,6 @@ nav:
   - Configuration: configuration.md
   - Examples: examples.md
   - Troubleshooting: troubleshooting.md
-  - API Reference: api.md
 
 # extra:
 #   version:

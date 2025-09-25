@@ -69,7 +69,6 @@ One-command installation from GitHub releases with automatic setup.
 - **[Configuration](https://wawrepo.github.io/bamon/configuration/)** - Configuration options and examples
 - **[Examples](https://wawrepo.github.io/bamon/examples/)** - Real-world usage examples and use cases
 - **[Troubleshooting](https://wawrepo.github.io/bamon/troubleshooting/)** - Common issues and solutions
-- **[API Reference](https://wawrepo.github.io/bamon/api/)** - Technical details for developers
 
 ## Getting Help
 
