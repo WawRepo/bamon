@@ -1,10 +1,12 @@
 # BAMON: Bash Daemon Monitor
 
-![BAMON Logo](docs/bamon_logo.png)
+<div align="center">
+  <img src="docs/bamon_logo.png" alt="BAMON Logo" style="width: 50%; height: auto;">
+</div>
 
 A lightweight, configurable bash daemon for monitoring and executing bash scripts at specified intervals.
 
-[![CI](https://github.com/WawRepo/bamon/workflows/CI/badge.svg)](https://github.com/WawRepo/bamon/actions)
+[![Continuous Integration](https://github.com/WawRepo/bamon/actions/workflows/ci.yml/badge.svg)](https://github.com/WawRepo/bamon/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/WawRepo/bamon)](https://github.com/WawRepo/bamon/releases)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 

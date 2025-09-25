@@ -44,7 +44,7 @@ jobs:
       run: |
         # Install bashly for binary generation
         sudo gem install bashly
-        bashly generate
+        bashly generate --upgrade
         chmod +x bamon
         echo "Generated binary:"
         ls -la bamon

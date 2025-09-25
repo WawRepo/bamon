@@ -122,7 +122,7 @@ jobs:
     - name: Generate binary with new version
       run: |
         echo "Generating binary with new version..."
-        bashly generate
+        bashly generate --upgrade
         chmod +x bamon
         
         # Verify the binary has the correct version
