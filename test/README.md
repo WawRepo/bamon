@@ -152,9 +152,9 @@ The interactive container also includes the complete BATS test suite for manual 
    bats test_multiline_output.bats
    ```
 
-5. **Test with verbose output:**
+5. **Test with detailed output:**
    ```bash
-   bats --verbose test_status_command.bats
+   bats --tap test_status_command.bats
    ```
 
 **Note:** The interactive container sets up the correct directory structure (`~/tests/` and `~/container/`) to match the BATS test expectations, so all relative paths in the test files work correctly.
@@ -197,7 +197,6 @@ The `test/config.yaml` file contains test settings:
 test_settings:
   timeout: 60          # Test timeout in seconds
   retry_count: 3       # Number of retries for flaky tests
-  verbose: true        # Verbose output
 
 test_cases:
   - name: installation
@@ -263,9 +262,9 @@ The Ubuntu container includes:
 
 ### Debug Mode
 
-Run tests with verbose output:
+Run tests with detailed output:
 ```bash
-bats --verbose test/installation/*.bats
+bats --tap test/installation/*.bats
 ```
 
 ### Container Debugging
@@ -293,7 +292,6 @@ The testing environment is designed to work with CI/CD systems:
 | `bamon --help` | N/A | N/A |
 | `bamon --version` | N/A | N/A |
 | `bamon status` | Status command shows default scripts | test/commands/test_status_command.bats |
-| `bamon status --verbose` | Status command shows help | test/commands/test_status_command.bats |
 | `bamon status --failed-only` | Status command shows failed-only filter | test/commands/test_status_command.bats |
 | `bamon status --json` | Status command shows JSON output | test/commands/test_status_command.bats |
 | `bamon status --name <script>` | Status command shows specific script | test/commands/test_status_command.bats |
@@ -322,7 +320,6 @@ The testing environment is designed to work with CI/CD systems:
 | `bamon list --enabled-only` | List command shows only enabled scripts | test/commands/test_list_command.bats |
 | `bamon list --disabled-only` | List command shows only disabled scripts | test/commands/test_list_command.bats |
 | `bamon performance` | Performance command shows system metrics | test/performance/test_performance_monitoring.bats |
-| `bamon performance --verbose` | Performance command shows system metrics | test/performance/test_performance_monitoring.bats |
 | `bamon performance --format table` | Performance command shows system metrics | test/performance/test_performance_monitoring.bats |
 | `bamon performance --format json` | Performance command shows JSON output | test/performance/test_performance_monitoring.bats |
 | `bamon performance --json` | Performance command JSON output is valid | test/performance/test_json_output.bats |
@@ -331,28 +328,8 @@ The testing environment is designed to work with CI/CD systems:
 | `bamon config show` | Config show command displays current configuration | test/commands/test_config_command.bats |
 | `bamon config show --pretty` | Config show command with pretty flag | test/commands/test_config_command.bats |
 | `bamon config validate` | Config validate command validates configuration | test/commands/test_config_command.bats |
-| `bamon config validate --verbose` | Config validate command with verbose flag | test/commands/test_config_command.bats |
 | `bamon config reset` | Config reset command resets to default values (auto-backup) | test/commands/test_config_reset_command.bats |
 | `bamon config reset --force` | Config reset command with force flag | test/commands/test_config_reset_command.bats |
-
-### Test Coverage Summary
-
-| Command Category | Total Commands | Tested Commands | Coverage |
-|------------------|----------------|-----------------|----------|
-| **Core Commands** | 6 | 6 | 100% |
-| **Status Command** | 5 | 5 | 100% |
-| **Add Command** | 6 | 6 | 100% |
-| **Remove Command** | 4 | 4 | 100% |
-| **Now Command** | 2 | 2 | 100% |
-| **Start Command** | 3 | 3 | 100% |
-| **Stop Command** | 2 | 2 | 100% |
-| **Restart Command** | 3 | 3 | 100% |
-| **List Command** | 3 | 3 | 100% |
-| **Performance Command** | 5 | 5 | 100% |
-| **Config Commands** | 6 | 6 | 100% |
-| **Multiline Output** | 7 | 7 | 100% |
-| **Global Flags** | 2 | 0 | 0% |
-| **TOTAL** | 47 | 47 | 100% |
 
 ### Missing Test Coverage
 
@@ -369,25 +346,6 @@ The following commands still need test coverage:
 - Advanced error handling scenarios
 - Performance under load testing
 - Cross-platform compatibility testing
-
-## Current Test Status
-
-### Test Results (as of latest run):
-- **Installation Tests**: 16/16 PASSING ✅ (100% success rate)
-- **Command Tests**: 40/40 PASSING ✅ (100% success rate)
-- **Daemon Tests**: 7/7 PASSING ✅ (100% success rate)
-- **Performance Tests**: 10/10 PASSING ✅ (100% success rate)
-- **Overall**: 73/73 tests passing (100% success rate)
-
-### Test Coverage:
-- ✅ **Installation**: User/system installation, dependency detection, binary placement
-- ✅ **Status Command**: Help, default scripts, JSON output, filtering, specific scripts, multiline output
-- ✅ **Add/Remove Commands**: Complete coverage including edge cases and error handling
-- ✅ **Config Commands**: All configuration management commands tested
-- ✅ **Daemon Functionality**: Start/stop/restart, execution, logging
-- ✅ **Performance Monitoring**: System metrics, JSON output, monitoring integration
-- ✅ **Multiline Output**: Comprehensive testing of multiline output handling
-- ✅ **Core Functionality**: BAMON binary execution, configuration management
 
 ## Contributing
 
