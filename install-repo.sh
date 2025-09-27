@@ -2,6 +2,20 @@
 
 set -e
 
+# BAMON ASCII Art
+show_bamon_logo() {
+  echo ""
+  echo "  ██████╗  █████╗ ███╗   ███╗ ██████╗ ███╗   ██╗"
+  echo "  ██╔══██╗██╔══██╗████╗ ████║██╔═══██╗████╗  ██║"
+  echo "  ██████╔╝███████║██╔████╔██║██║   ██║██╔██╗ ██║"
+  echo "  ██╔══██╗██╔══██║██║╚██╔╝██║██║   ██║██║╚██╗██║"
+  echo "  ██████╔╝██║  ██║██║ ╚═╝ ██║╚██████╔╝██║ ╚████║"
+  echo "  ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝ ╚═════╝ ╚═╝  ╚═══╝"
+  echo ""
+  echo "  Bash Daemon Monitor - Lightweight script monitoring"
+  echo ""
+}
+
 # Default values
 REPO="WawRepo/bamon"
 VERSION="latest"
@@ -107,6 +121,8 @@ if [[ -f "$CONFIG_DIR/config.yaml" ]]; then
 else
   PRESERVE_CONFIG=false
 fi
+
+show_bamon_logo
 
 echo "BAMON Installation Script (GitHub Release)"
 echo "=========================================="

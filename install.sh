@@ -2,6 +2,20 @@
 
 set -e
 
+# BAMON ASCII Art
+show_bamon_logo() {
+  echo ""
+  echo "  ██████╗  █████╗ ███╗   ███╗ ██████╗ ███╗   ██╗"
+  echo "  ██╔══██╗██╔══██╗████╗ ████║██╔═══██╗████╗  ██║"
+  echo "  ██████╔╝███████║██╔████╔██║██║   ██║██╔██╗ ██║"
+  echo "  ██╔══██╗██╔══██║██║╚██╔╝██║██║   ██║██║╚██╗██║"
+  echo "  ██████╔╝██║  ██║██║ ╚═╝ ██║╚██████╔╝██║ ╚████║"
+  echo "  ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝ ╚═════╝ ╚═╝  ╚═══╝"
+  echo ""
+  echo "  Bash Daemon Monitor - Lightweight script monitoring"
+  echo ""
+}
+
 # Installation modes
 MODE=""
 INSTALL_DIR="/usr/local/bin"
@@ -87,6 +101,8 @@ if [[ -f "$CONFIG_DIR/config.yaml" ]]; then
 else
   PRESERVE_CONFIG=false
 fi
+
+show_bamon_logo
 
 echo "BAMON Installation Script"
 echo "========================="
