@@ -276,11 +276,9 @@ BAMON is designed to be lightweight:
 
 ### How many scripts can BAMON monitor simultaneously?
 
-The default limit is 10 concurrent scripts, but this can be configured:
 
 ```yaml
 daemon:
-  max_concurrent: 20  # Increase as needed
 ```
 
 ### How do I optimize BAMON performance?

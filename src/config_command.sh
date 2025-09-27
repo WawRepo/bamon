@@ -95,19 +95,16 @@ config_validate() {
       local default_interval
       local log_file
       local pid_file
-      local max_concurrent
       local script_count
       
       default_interval=$(get_config_value "daemon.default_interval" "$config_file")
       log_file=$(get_config_value "daemon.log_file" "$config_file")
       pid_file=$(get_config_value "daemon.pid_file" "$config_file")
-      max_concurrent=$(get_config_value "daemon.max_concurrent" "$config_file")
       script_count=$(yq eval '.scripts | length' "$config_file" 2>/dev/null || echo "0")
       
       echo "  Default interval: ${default_interval}s"
       echo "  Log file: $log_file"
       echo "  PID file: $pid_file"
-      echo "  Max concurrent: $max_concurrent"
       echo "  Scripts configured: $script_count"
       
       if [[ "$script_count" -gt 0 ]]; then
@@ -202,7 +199,6 @@ daemon:
   default_interval: 60
   log_file: "${log_dir}/bamon.log"
   pid_file: "${pid_dir}/bamon.pid"
-  max_concurrent: 10
   max_log_size: 10485760
 
 sandbox:
@@ -270,7 +266,7 @@ validate_config_file() {
   done
   
   # Validate daemon section
-  local daemon_required=("default_interval" "log_file" "pid_file" "max_concurrent")
+  local daemon_required=("default_interval" "log_file" "pid_file")
   for field in "${daemon_required[@]}"; do
     if ! yq eval ".daemon.$field" "$config_file" | grep -q -v "null"; then
       echo "Error: Missing required daemon field: $field"

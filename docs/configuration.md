@@ -15,7 +15,6 @@ daemon:
   default_interval: 60
   log_file: "~/.local/share/bamon/logs/bamon.log"
   pid_file: "~/.local/share/bamon/bamon.pid"
-  max_concurrent: 10
 
 sandbox:
   timeout: 30
@@ -45,7 +44,6 @@ scripts:
 | `default_interval` | 60 | Default execution interval in seconds |
 | `log_file` | `~/.local/share/bamon/logs/bamon.log` | Log file path |
 | `pid_file` | `~/.local/share/bamon/bamon.pid` | PID file path |
-| `max_concurrent` | 10 | Maximum concurrent script executions |
 
 ### Example
 
@@ -54,7 +52,6 @@ daemon:
   default_interval: 120
   log_file: "/var/log/bamon/bamon.log"
   pid_file: "/var/run/bamon.pid"
-  max_concurrent: 5
 ```
 
 ## Sandbox Configuration
@@ -220,7 +217,6 @@ performance:
   enable_monitoring: true
   load_threshold: 0.6
   optimize_scheduling: true
-  max_concurrent: 20
 ```
 
 ## Configuration Examples
@@ -231,7 +227,6 @@ performance:
 daemon:
   default_interval: 10
   log_file: "~/dev/bamon.log"
-  max_concurrent: 5
 
 sandbox:
   timeout: 60
@@ -251,7 +246,6 @@ daemon:
   default_interval: 60
   log_file: "/var/log/bamon/bamon.log"
   pid_file: "/var/run/bamon.pid"
-  max_concurrent: 10
 
 sandbox:
   timeout: 30

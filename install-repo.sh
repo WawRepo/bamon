@@ -243,7 +243,6 @@ daemon:
   default_interval: 60
   log_file: "$CONFIG_DIR/bamon.log"
   pid_file: "$CONFIG_DIR/bamon.pid"
-  max_concurrent: 10
 
 sandbox:
   timeout: 30

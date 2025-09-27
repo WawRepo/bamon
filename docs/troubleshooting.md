@@ -204,7 +204,6 @@ Common issues and solutions for BAMON.
    ```bash
    # Edit configuration
    bamon config edit
-   # Set max_concurrent to lower value
    ```
 
 3. **Increase script intervals:**

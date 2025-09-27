@@ -41,7 +41,6 @@ daemon:
   default_interval: 120
   log_file: "/tmp/custom.log"
   pid_file: "/tmp/custom.pid"
-  max_concurrent: 5
 
 sandbox:
   timeout: 60

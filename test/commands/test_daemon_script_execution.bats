@@ -15,7 +15,6 @@ daemon:
   default_interval: 300
   log_file: "/tmp/bamon.log"
   pid_file: "/tmp/bamon.pid"
-  max_concurrent: 3
 
 sandbox:
   timeout: 30
@@ -84,7 +83,6 @@ daemon:
   default_interval: 300
   log_file: "/tmp/bamon.log"
   pid_file: "/tmp/bamon.pid"
-  max_concurrent: 3
 
 sandbox:
   timeout: 30
@@ -147,7 +145,6 @@ daemon:
   default_interval: 300
   log_file: "/tmp/bamon.log"
   pid_file: "/tmp/bamon.pid"
-  max_concurrent: 3
 
 sandbox:
   timeout: 30
@@ -225,7 +222,6 @@ daemon:
   default_interval: 300
   log_file: "/tmp/bamon.log"
   pid_file: "/tmp/bamon.pid"
-  max_concurrent: 3
 
 sandbox:
   timeout: 30

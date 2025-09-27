@@ -124,22 +124,6 @@ function count_running_scripts() {
   echo "${count:-0}"
 }
 
-function can_run_more_scripts() {
-  local max_concurrent=$(get_max_concurrent)
-  local running=$(count_running_scripts)
-  
-  if [[ $running -ge $max_concurrent ]]; then
-    log_info "At max concurrent capacity: $running/$max_concurrent"
-    return 1  # false, at max capacity
-  fi
-  
-  # Check system load
-  if is_system_overloaded; then
-    return 1  # false, system is overloaded
-  fi
-  
-  return 0  # true, can run more scripts
-}
 
 
 # Script execution tracking using associative arrays (Bash 4.0+)
@@ -435,7 +419,6 @@ function collect_performance_metrics() {
   metrics+=("memory:$(get_memory_usage)")
   metrics+=("disk:$(get_disk_usage)")
   metrics+=("running_scripts:$(count_running_scripts)")
-  metrics+=("max_concurrent:$(get_max_concurrent)")
   
   printf '%s\n' "${metrics[@]}"
 }

@@ -44,7 +44,7 @@ function validate_config_file() {
   done
   
   # Validate daemon section
-  local daemon_required=("default_interval" "log_file" "pid_file" "max_concurrent")
+  local daemon_required=("default_interval" "log_file" "pid_file")
   for field in "${daemon_required[@]}"; do
     if ! yq eval ".daemon.$field" "$config_file" | grep -q -v "null"; then
       echo "Error: Missing required daemon field: $field"
@@ -127,7 +127,6 @@ daemon:
   default_interval: 60
   log_file: "${LOG_DIR}/bamon.log"
   pid_file: "${PID_DIR}/bamon.pid"
-  max_concurrent: 10
 
 sandbox:
   timeout: 30
@@ -335,10 +334,6 @@ function get_default_interval() {
   get_config_value "daemon.default_interval" "60"
 }
 
-# Get max concurrent executions
-function get_max_concurrent() {
-  get_config_value "daemon.max_concurrent" "10"
-}
 
 # Get sandbox timeout
 function get_sandbox_timeout() {
@@ -406,7 +401,6 @@ daemon:
   default_interval: 60
   log_file: "${log_dir}/bamon.log"
   pid_file: "${pid_dir}/bamon.pid"
-  max_concurrent: 10
   max_log_size: 10485760
 
 sandbox:

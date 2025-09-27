@@ -1274,11 +1274,6 @@ function execute_script() {
 
   log_info "Executing script '${script_name}': ${script_command}" "$script_name"
 
-  # Check if we can run more scripts (performance optimization)
-  if ! can_run_more_scripts; then
-    log_warn "Skipping script '$script_name' due to system load or capacity limits"
-    return 1
-  fi
 
   # Use sandboxed execution
   local result
