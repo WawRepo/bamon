@@ -306,8 +306,8 @@ function display_logs() {
     fi
   fi
   
-  # Apply context filters (before/after) - must be after search
-  if [[ -n "$BEFORE" || -n "$AFTER" ]]; then
+  # Apply context filters (before/after) - must be after search and only if search is provided
+  if [[ -n "$SEARCH" && ( -n "$BEFORE" || -n "$AFTER" ) ]]; then
     cmd=$(apply_context_filters "$cmd")
   fi
   
@@ -340,11 +340,11 @@ function apply_context_filters() {
   if [[ -n "$SEARCH" ]]; then
     # Add context lines if specified
     if [[ -n "$BEFORE" && -n "$AFTER" ]]; then
-      cmd="$cmd | grep -A $AFTER -B $BEFORE"
+      cmd="$cmd | grep -A $AFTER -B $BEFORE \"$SEARCH\""
     elif [[ -n "$BEFORE" ]]; then
-      cmd="$cmd | grep -B $BEFORE"
+      cmd="$cmd | grep -B $BEFORE \"$SEARCH\""
     elif [[ -n "$AFTER" ]]; then
-      cmd="$cmd | grep -A $AFTER"
+      cmd="$cmd | grep -A $AFTER \"$SEARCH\""
     fi
   fi
   
