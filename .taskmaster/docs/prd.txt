@@ -76,6 +76,12 @@ A configurable bash daemon that monitors and executes bash scripts/code snippets
 - **stop**: Stop the daemon process
 - **restart**: Restart the daemon process
 - **performance**: Show system performance metrics and optimization status
+- **log**: View and manage daemon log files
+  - Display recent log entries with optional filtering
+  - Support for following log output in real-time (tail -f functionality)
+  - Filter logs by log level (ERROR, WARN, INFO)
+  - Search logs by keyword or pattern
+  - Show log file location and size information
 - **config**: Configuration management commands
   - **config edit**: Open configuration file in default editor for manual editing
   - **config show**: Display current configuration in YAML format

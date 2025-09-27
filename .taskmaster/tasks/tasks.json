@@ -286,11 +286,119 @@
         "details": "1. **README.md Redesign**:\n   - Create a concise, Helm-style README (max 100 lines) with clear project title, tagline, brief description, installation instructions, basic usage examples, and links to detailed documentation\n   - Follow modern README best practices with badges, clear formatting, and visual hierarchy\n   - Include BAMON logo from `docs/bamon_logo.png` prominently at the top of README.md\n\n2. **MkDocs Setup and Configuration**:\n   - Install MkDocs and Material theme: `pip install mkdocs mkdocs-material`\n   - Follow the official [MkDocs Getting Started Guide](https://www.mkdocs.org/getting-started/) for setup and best practices\n   - Create initial mkdocs.yml configuration file with:\n     ```yaml\n     site_name: BAMON\n     site_description: Bash Daemon Monitor - A lightweight monitoring solution\n     theme:\n       name: material\n       palette:\n         primary: indigo\n         accent: indigo\n       features:\n         - navigation.tabs\n         - navigation.sections\n         - search.suggest\n         - search.highlight\n       logo: bamon_logo.png\n       favicon: bamon_logo.png\n     markdown_extensions:\n       - admonition\n       - codehilite\n       - pymdownx.superfences\n       - pymdownx.tabbed\n     ```\n   - Configure navigation structure in mkdocs.yml\n   - Implement recommended MkDocs features like navigation, search, and theming\n\n3. **Documentation Structure Implementation**:\n   - Create the following documentation pages in the docs/ directory:\n     - index.md (Home/Overview)\n     - installation.md (Detailed installation guide)\n     - uninstallation.md (Uninstallation instructions)\n     - commands/ (Directory for command reference pages)\n       - index.md (Commands overview)\n       - Individual .md files for each BAMON command\n     - configuration.md (Configuration reference)\n     - examples.md (Examples and use cases)\n     - troubleshooting.md (Troubleshooting guide)\n     - api.md (API reference for developers)\n   - Ensure consistent formatting and style across all pages\n   - Ensure consistent branding with logo across all documentation pages\n\n4. **Command Documentation Development**:\n   - Create a template for command documentation pages with:\n     - Command syntax and description\n     - Options/flags reference table\n     - 3-5 practical examples with expected output\n     - Related commands section\n   - Document each BAMON command using this template\n   - Include command output examples in code blocks\n\n5. **GitHub Pages Integration**:\n   - Create .github/workflows/docs.yml with:\n     ```yaml\n     name: Build and deploy documentation\n     on:\n       push:\n         paths:\n           - 'docs/**'\n           - 'mkdocs.yml'\n     jobs:\n       deploy:\n         runs-on: ubuntu-latest\n         steps:\n           - uses: actions/checkout@v3\n           - uses: actions/setup-python@v4\n             with:\n               python-version: 3.x\n           - run: pip install mkdocs-material\n           - run: mkdocs gh-deploy --force\n     ```\n   - Configure GitHub repository settings for GitHub Pages\n   - Add CNAME file if using custom domain\n\n6. **Content Migration and Quality Control**:\n   - Remove all current .md files from docs/ directory\n   - Extract and consolidate useful content from existing documentation\n   - Implement documentation quality controls:\n     - Test all code examples for accuracy\n     - Add automated link validation using mkdocs-linkcheck\n     - Integrate spell checking with mkdocs-spellcheck\n     - Create documentation review checklist\n\n7. **Local Testing and Preview**:\n   - Test documentation locally with `mkdocs serve`\n   - Verify responsive design on different devices\n   - Check search functionality\n   - Validate all links and examples\n\n8. **Logo Integration**:\n   - Ensure logo file is available at `docs/bamon_logo.png`\n   - Verify logo is properly sized and positioned in README.md\n   - Configure logo in MkDocs site header and as favicon\n   - Test logo display on different screen sizes for responsiveness\n   - Use high-resolution logo for crisp display across all platforms",
         "testStrategy": "1. **README.md Verification**:\n   - Verify README.md is under 100 lines\n   - Confirm it contains all required sections (title, tagline, description, installation, usage, links)\n   - Check that all links in README.md are valid and working\n   - Ensure README renders correctly on GitHub\n   - Verify BAMON logo displays correctly at the top of README.md\n\n2. **MkDocs Setup Testing**:\n   - Run `mkdocs build` and verify it completes without errors\n   - Run `mkdocs serve` and test local preview at http://127.0.0.1:8000/\n   - Test navigation structure and ensure all pages are accessible\n   - Verify search functionality works correctly\n   - Test responsive design by resizing browser window and using mobile device emulation\n   - Verify logo appears correctly in site header and as favicon\n\n3. **Documentation Structure Testing**:\n   - Verify all required pages exist and are properly linked in navigation\n   - Check that navigation hierarchy matches the planned structure\n   - Ensure consistent formatting across all pages\n   - Verify all internal links between documentation pages work correctly\n   - Check that branding and logo usage is consistent throughout documentation\n\n4. **Command Documentation Testing**:\n   - Review each command documentation page for completeness\n   - Test all command examples by executing them in a test environment\n   - Verify output examples match actual command output\n   - Check that all command options and flags are documented\n\n5. **GitHub Pages Deployment Testing**:\n   - Make a small change to a documentation file and push to trigger the workflow\n   - Verify GitHub Actions workflow runs successfully\n   - Check that documentation is properly deployed to GitHub Pages\n   - Test the deployed site for functionality and appearance\n   - Verify custom domain configuration if applicable\n   - Confirm logo displays correctly on the deployed site\n\n6. **Content Quality Testing**:\n   - Run spell check on all documentation files\n   - Validate all external links\n   - Review documentation for consistent tone and style\n   - Verify documentation version matches current code release\n   - Have at least one team member review the documentation for clarity and completeness\n\n7. **User Experience Testing**:\n   - Test documentation on different browsers (Chrome, Firefox, Safari)\n   - Test on mobile devices\n   - Verify print functionality works correctly\n   - Test documentation search with various search terms\n\n8. **Logo Testing**:\n   - Verify logo file exists at `docs/bamon_logo.png`\n   - Check logo quality and resolution on different devices\n   - Test logo appearance in both light and dark themes (if applicable)\n   - Verify logo is responsive and scales appropriately on mobile devices\n   - Ensure favicon displays correctly in browser tabs",
         "subtasks": []
+      },
+      {
+        "id": 36,
+        "title": "Implement BAMON Log CLI Command",
+        "description": "Create a CLI command for viewing and managing daemon log files with support for displaying, filtering, following in real-time, searching, and showing log file information.",
+        "details": "1. Create a new command file `log_command.sh` in the commands directory with the following features:\n\n   a. **Basic log viewing functionality**:\n      - Display the most recent log entries (default 50 lines)\n      - Support for specifying number of lines to display with `--lines` or `-n` flag\n      - Format output with timestamps, log levels, and messages clearly displayed\n      - Handle both daemon logs and execution logs\n\n   b. **Real-time log following (tail -f functionality)**:\n      - Implement `--follow` or `-f` flag to continuously display new log entries\n      - Include proper handling of SIGINT (Ctrl+C) to exit follow mode gracefully\n      - Display timestamp for each new entry in follow mode\n\n   c. **Log filtering capabilities**:\n      - Filter by log level with `--level` flag (ERROR, WARN, INFO, DEBUG)\n      - Support for multiple levels with comma separation (e.g., `--level ERROR,WARN`)\n      - Implement `--since` flag to show logs after a specific time (e.g., \"1h\", \"2d\", \"2023-01-01\")\n      - Add `--until` flag for specifying end time for log display\n\n   d. **Search functionality**:\n      - Implement `--search` or `-s` flag for keyword/pattern searching\n      - Support for regular expression patterns with `--regex` flag\n      - Add context options (`--before` and `--after`) to show lines before/after matches\n      - Highlight matching terms in the output\n\n   e. **Log file information**:\n      - Add `--info` flag to display log file location, size, creation date\n      - Show log rotation information and available log archives\n      - Include disk usage statistics for log directory\n\n   f. **Output formatting options**:\n      - Support for different output formats (text, JSON) with `--format` flag\n      - Color-coded output based on log level (ERROR in red, WARN in yellow, etc.)\n      - Option to disable colors with `--no-color` flag\n\n2. Update the main CLI command parser to include the new log command:\n   - Add log command to the command list in `bamon.sh`\n   - Include help text and usage examples\n\n3. Integrate with the existing logging system:\n   - Use functions from `logging.sh` to access and parse log files\n   - Ensure compatibility with the log rotation functionality\n   - Handle different log file formats and structures\n\n4. Implement error handling:\n   - Gracefully handle missing or corrupted log files\n   - Provide helpful error messages when logs cannot be accessed\n   - Check for necessary permissions to read log files\n\n5. Add documentation:\n   - Update help text with detailed usage examples\n   - Document all available flags and options\n   - Include examples for common troubleshooting scenarios",
+        "testStrategy": "1. **Basic functionality tests**:\n   - Verify the command displays the default number of log lines correctly\n   - Test with different values for `--lines` flag\n   - Check that log entries are properly formatted with timestamps and log levels\n   - Verify both daemon and execution logs can be viewed\n\n2. **Real-time following tests**:\n   - Test `--follow` flag and verify new log entries appear in real-time\n   - Verify that Ctrl+C properly exits follow mode\n   - Generate log entries while in follow mode to confirm they appear\n   - Test follow mode with filtering options enabled\n\n3. **Filtering tests**:\n   - Test filtering by each log level (ERROR, WARN, INFO, DEBUG)\n   - Verify multiple level filtering works correctly\n   - Test `--since` flag with various time formats (1h, 2d, YYYY-MM-DD)\n   - Verify `--until` flag correctly limits the end time of displayed logs\n   - Combine multiple filters and verify they work together correctly\n\n4. **Search functionality tests**:\n   - Test searching for various keywords and patterns\n   - Verify regex search works with different patterns\n   - Test context options (`--before` and `--after`) with different values\n   - Verify highlighting of matching terms works correctly\n   - Test search with follow mode enabled\n\n5. **Log information tests**:\n   - Verify `--info` flag displays correct file location and size\n   - Check that log rotation information is accurate\n   - Test with both existing and non-existing log files\n\n6. **Output formatting tests**:\n   - Verify color coding works correctly for different log levels\n   - Test `--no-color` flag disables all color output\n   - Verify JSON output format is valid and contains all necessary information\n   - Test all formatting options with various filtering and search options\n\n7. **Error handling tests**:\n   - Test behavior when log files are missing\n   - Verify appropriate error messages when permission is denied\n   - Test with corrupted log files to ensure graceful handling\n\n8. **Integration tests**:\n   - Verify the log command works correctly after daemon restart\n   - Test with log rotation occurring during command execution\n   - Verify compatibility with different log formats",
+        "status": "pending",
+        "dependencies": [
+          26
+        ],
+        "priority": "medium",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create log_command.sh file structure and argument parsing",
+            "description": "Set up the basic structure of the log_command.sh file with argument parsing for all required flags and options",
+            "dependencies": [],
+            "details": "Create the log_command.sh file in the commands directory with proper shebang and imports. Implement getopts or similar to parse all command-line arguments including: --lines/-n, --follow/-f, --level, --since, --until, --search/-s, --regex, --before, --after, --info, --format, and --no-color. Set up default values for all parameters and implement basic help text display.",
+            "status": "pending",
+            "testStrategy": "Test argument parsing with various combinations of flags. Verify help text is displayed correctly. Test error handling for invalid arguments and combinations."
+          },
+          {
+            "id": 2,
+            "title": "Implement basic log viewing functionality",
+            "description": "Create functions to display log entries with proper formatting and support for specifying the number of lines",
+            "dependencies": [
+              "36.1"
+            ],
+            "details": "Implement functions to read and display log files with proper formatting. Support displaying the most recent log entries (default 50 lines) with the --lines/-n flag. Format output to clearly show timestamps, log levels, and messages. Create functions to handle both daemon logs and execution logs from their respective locations.",
+            "status": "pending",
+            "testStrategy": "Test displaying logs with default line count. Test with different values for --lines flag. Verify formatting is correct with timestamps and log levels. Test with both daemon and execution logs."
+          },
+          {
+            "id": 3,
+            "title": "Implement real-time log following functionality",
+            "description": "Add support for continuously displaying new log entries (tail -f functionality)",
+            "dependencies": [
+              "36.2"
+            ],
+            "details": "Implement the --follow/-f flag to continuously display new log entries as they are added to the log file. Use tail -f or similar approach. Add proper handling of SIGINT (Ctrl+C) to exit follow mode gracefully. Ensure timestamps are displayed for each new entry in follow mode.",
+            "status": "pending",
+            "testStrategy": "Test follow mode by generating new log entries while following. Verify Ctrl+C exits gracefully. Test with different log files and verify new entries appear in real-time."
+          },
+          {
+            "id": 4,
+            "title": "Implement log filtering capabilities",
+            "description": "Add support for filtering logs by level and time range",
+            "dependencies": [
+              "36.2"
+            ],
+            "details": "Implement the --level flag to filter logs by severity level (ERROR, WARN, INFO, DEBUG). Support multiple levels with comma separation. Add --since flag to show logs after a specific time (supporting formats like '1h', '2d', '2023-01-01'). Implement --until flag for specifying end time for log display. Ensure filters can be combined.",
+            "status": "pending",
+            "testStrategy": "Test filtering by single and multiple log levels. Test time-based filtering with various formats. Verify combinations of filters work correctly. Test edge cases like empty results."
+          },
+          {
+            "id": 5,
+            "title": "Implement search functionality",
+            "description": "Add support for searching logs by keywords and regular expressions",
+            "dependencies": [
+              "36.2"
+            ],
+            "details": "Implement the --search/-s flag for keyword/pattern searching in log files. Add support for regular expression patterns with the --regex flag. Implement context options (--before and --after) to show lines before/after matches. Add highlighting for matching terms in the output.",
+            "status": "pending",
+            "testStrategy": "Test keyword searching with various terms. Test regex searching with simple and complex patterns. Verify context lines are displayed correctly. Test highlighting of matching terms."
+          },
+          {
+            "id": 6,
+            "title": "Implement log file information display",
+            "description": "Add functionality to display metadata about log files",
+            "dependencies": [
+              "36.1"
+            ],
+            "details": "Implement the --info flag to display log file metadata including location, size, and creation date. Show log rotation information and available log archives. Include disk usage statistics for the log directory. Format the information in a clear, readable way.",
+            "status": "pending",
+            "testStrategy": "Test info display for various log files. Verify all metadata is accurate. Test with rotated logs to ensure archive information is correct. Verify disk usage statistics match system values."
+          },
+          {
+            "id": 7,
+            "title": "Implement output formatting options",
+            "description": "Add support for different output formats and color coding",
+            "dependencies": [
+              "36.2",
+              "36.4",
+              "36.5"
+            ],
+            "details": "Implement the --format flag to support different output formats (text, JSON). Add color-coded output based on log level (ERROR in red, WARN in yellow, etc.). Implement the --no-color flag to disable colors. Ensure all output formatting is consistent across different command options.",
+            "status": "pending",
+            "testStrategy": "Test text and JSON output formats. Verify color coding works correctly for different log levels. Test --no-color flag disables all colors. Test formatting with various combinations of other flags."
+          },
+          {
+            "id": 8,
+            "title": "Implement error handling and integrate with main CLI",
+            "description": "Add robust error handling and integrate the log command with the main BAMON CLI",
+            "dependencies": [
+              "36.1",
+              "36.2",
+              "36.3",
+              "36.4",
+              "36.5",
+              "36.6",
+              "36.7"
+            ],
+            "details": "Implement error handling for missing or corrupted log files, permission issues, and invalid arguments. Provide helpful error messages when logs cannot be accessed. Update the main CLI command parser in bamon.sh to include the new log command. Add comprehensive help text and usage examples. Test integration with the existing logging system and log rotation functionality.",
+            "status": "pending",
+            "testStrategy": "Test error handling with missing files, permission issues, and corrupted logs. Verify helpful error messages are displayed. Test integration with main CLI. Verify help text is comprehensive and accurate."
+          }
+        ]
       }
     ],
     "metadata": {
       "created": "2025-09-12T23:10:00.761Z",
-      "updated": "2025-09-24T21:30:19.656Z",
+      "updated": "2025-09-27T22:29:06.453Z",
       "description": "Tasks for master context"
     }
   }

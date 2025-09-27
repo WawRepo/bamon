@@ -139,6 +139,60 @@ commands:
     examples:
       - "bamon performance"
       - "bamon performance --json"
+  - name: log
+    help: View and manage daemon log files
+    flags:
+      - long: --lines
+        short: -n
+        arg: number
+        help: "Number of lines to display (default: 50)"
+      - long: --follow
+        short: -f
+        help: "Follow log output in real-time (like tail -f)"
+      - long: --level
+        short: -l
+        arg: levels
+        help: "Filter by log level (ERROR, WARN, INFO, DEBUG) - comma separated"
+      - long: --since
+        short: -s
+        arg: time
+        help: "Show logs since time (e.g., '1h', '2d', '2023-01-01')"
+      - long: --until
+        short: -u
+        arg: time
+        help: "Show logs until time (e.g., '1h', '2d', '2023-01-01')"
+      - long: --search
+        short: -g
+        arg: pattern
+        help: "Search for keyword or pattern in logs"
+      - long: --regex
+        short: -r
+        help: "Treat search pattern as regular expression"
+      - long: --before
+        short: -b
+        arg: lines
+        help: "Show N lines before each match"
+      - long: --after
+        short: -a
+        arg: lines
+        help: "Show N lines after each match"
+      - long: --info
+        short: -i
+        help: "Show log file information (location, size, etc.)"
+      - long: --format
+        short: -o
+        arg: format
+        help: "Output format: text, json (default: text)"
+      - long: --no-color
+        help: "Disable color output"
+    examples:
+      - "bamon log"
+      - "bamon log --lines 100"
+      - "bamon log --follow"
+      - "bamon log --level ERROR,WARN"
+      - "bamon log --search 'timeout'"
+      - "bamon log --since '1h' --level ERROR"
+      - "bamon log --info"
   - name: config
     help: Configuration management commands
     commands:
