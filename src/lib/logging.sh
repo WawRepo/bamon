@@ -37,7 +37,7 @@ function log_error() {
   local message="$1"
   local script_name="$2"
   
-  local formatted_message=$(format_log_message "$message" "$script_name")
+  local formatted_message="[ERROR] $(format_log_message "$message" "$script_name")"
   echo "$formatted_message" >&2
   write_to_log "$formatted_message"
 }
@@ -47,7 +47,7 @@ function log_warn() {
   local message="$1"
   local script_name="$2"
   
-  local formatted_message=$(format_log_message "$message" "$script_name")
+  local formatted_message="[WARN] $(format_log_message "$message" "$script_name")"
   echo "$formatted_message" >&2
   write_to_log "$formatted_message"
 }
@@ -57,7 +57,7 @@ function log_info() {
   local message="$1"
   local script_name="$2"
   
-  local formatted_message=$(format_log_message "$message" "$script_name")
+  local formatted_message="[INFO] $(format_log_message "$message" "$script_name")"
   echo "$formatted_message" >&2
   write_to_log "$formatted_message"
 }

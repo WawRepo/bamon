@@ -430,11 +430,6 @@ bamon_performance_usage() {
 
     # :command.usage_flags
     # :flag.usage
-    printf "  %s\n" "--verbose, -v"
-    printf "    Show detailed performance information\n"
-    echo
-
-    # :flag.usage
     printf "  %s\n" "--format, -f FORMAT"
     printf "    Output format: table, json (default: table)\n"
     echo
@@ -452,7 +447,6 @@ bamon_performance_usage() {
     # :command.usage_examples
     printf "%s\n" "Examples:"
     printf "  bamon performance\n"
-    printf "  bamon performance --verbose\n"
     printf "  bamon performance --json\n"
     echo
 
@@ -731,7 +725,7 @@ function validate_config_file() {
   done
 
   # Validate daemon section
-  local daemon_required=("default_interval" "log_file" "pid_file" "max_concurrent")
+  local daemon_required=("default_interval" "log_file" "pid_file")
   for field in "${daemon_required[@]}"; do
     if ! yq eval ".daemon.$field" "$config_file" | grep -q -v "null"; then
       echo "Error: Missing required daemon field: $field"
@@ -813,7 +807,6 @@ daemon:
   default_interval: 60
   log_file: "${LOG_DIR}/bamon.log"
   pid_file: "${PID_DIR}/bamon.pid"
-  max_concurrent: 10
 
 sandbox:
   timeout: 30
@@ -1021,11 +1014,6 @@ function get_default_interval() {
   get_config_value "daemon.default_interval" "60"
 }
 
-# Get max concurrent executions
-function get_max_concurrent() {
-  get_config_value "daemon.max_concurrent" "10"
-}
-
 # Get sandbox timeout
 function get_sandbox_timeout() {
   get_config_value "sandbox.timeout" "30"
@@ -1092,7 +1080,6 @@ daemon:
   default_interval: 60
   log_file: "${log_dir}/bamon.log"
   pid_file: "${pid_dir}/bamon.pid"
-  max_concurrent: 10
   max_log_size: 10485760
 
 sandbox:
@@ -1273,7 +1260,6 @@ function execute_script() {
   local exit_code=0
 
   log_info "Executing script '${script_name}': ${script_command}" "$script_name"
-
 
   # Use sandboxed execution
   local result
@@ -1705,7 +1691,7 @@ function log_error() {
   local message="$1"
   local script_name="$2"
 
-  local formatted_message=$(format_log_message "$message" "$script_name")
+  local formatted_message="[ERROR] $(format_log_message "$message" "$script_name")"
   echo "$formatted_message" >&2
   write_to_log "$formatted_message"
 }
@@ -1715,7 +1701,7 @@ function log_warn() {
   local message="$1"
   local script_name="$2"
 
-  local formatted_message=$(format_log_message "$message" "$script_name")
+  local formatted_message="[WARN] $(format_log_message "$message" "$script_name")"
   echo "$formatted_message" >&2
   write_to_log "$formatted_message"
 }
@@ -1725,7 +1711,7 @@ function log_info() {
   local message="$1"
   local script_name="$2"
 
-  local formatted_message=$(format_log_message "$message" "$script_name")
+  local formatted_message="[INFO] $(format_log_message "$message" "$script_name")"
   echo "$formatted_message" >&2
   write_to_log "$formatted_message"
 }
@@ -1892,23 +1878,6 @@ function count_running_scripts() {
   fi
 
   echo "${count:-0}"
-}
-
-function can_run_more_scripts() {
-  local max_concurrent=$(get_max_concurrent)
-  local running=$(count_running_scripts)
-
-  if [[ $running -ge $max_concurrent ]]; then
-    log_info "At max concurrent capacity: $running/$max_concurrent"
-    return 1  # false, at max capacity
-  fi
-
-  # Check system load
-  if is_system_overloaded; then
-    return 1  # false, system is overloaded
-  fi
-
-  return 0  # true, can run more scripts
 }
 
 # Script execution tracking using associative arrays (Bash 4.0+)
@@ -2203,7 +2172,6 @@ function collect_performance_metrics() {
   metrics+=("memory:$(get_memory_usage)")
   metrics+=("disk:$(get_disk_usage)")
   metrics+=("running_scripts:$(count_running_scripts)")
-  metrics+=("max_concurrent:$(get_max_concurrent)")
 
   printf '%s\n' "${metrics[@]}"
 }
@@ -2569,7 +2537,7 @@ send_completions() {
   echo $'      ;;'
   echo $''
   echo $'    \'performance\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_bamon_completions_filter "--format --help --json --verbose -f -h -v")" -- "$cur")'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_bamon_completions_filter "--format --help --json -f -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'config edit\'*)'
@@ -3695,19 +3663,16 @@ bamon_config_validate_command() {
       local default_interval
       local log_file
       local pid_file
-      local max_concurrent
       local script_count
 
       default_interval=$(get_config_value "daemon.default_interval" "$config_file")
       log_file=$(get_config_value "daemon.log_file" "$config_file")
       pid_file=$(get_config_value "daemon.pid_file" "$config_file")
-      max_concurrent=$(get_config_value "daemon.max_concurrent" "$config_file")
       script_count=$(yq eval '.scripts | length' "$config_file" 2>/dev/null || echo "0")
 
       echo "  Default interval: ${default_interval}s"
       echo "  Log file: $log_file"
       echo "  PID file: $pid_file"
-      echo "  Max concurrent: $max_concurrent"
       echo "  Scripts configured: $script_count"
 
       if [[ "$script_count" -gt 0 ]]; then
@@ -4571,14 +4536,6 @@ bamon_performance_parse_requirements() {
   while [[ $# -gt 0 ]]; do
     key="$1"
     case "$key" in
-      # :flag.case
-      --verbose | -v)
-
-        # :flag.case_no_arg
-        args['--verbose']=1
-        shift
-        ;;
-
       # :flag.case
       --format | -f)
 

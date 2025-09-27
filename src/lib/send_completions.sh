@@ -43,7 +43,7 @@ send_completions() {
   echo $'      ;;'
   echo $''
   echo $'    \'performance\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_bamon_completions_filter "--format --help --json --verbose -f -h -v")" -- "$cur")'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_bamon_completions_filter "--format --help --json -f -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'config edit\'*)'
