@@ -266,7 +266,7 @@ scripts:
     interval: 300
     enabled: true
   - name: "github_status"
-    command: "curl -s https://www.githubstatus.com/api/v2/status.json | jq -e '.status.indicator == \"none\"' > /dev/null || { echo \"not green\"; exit 1; }"
+    command: "curl -s https://www.githubstatus.com/api/v2/status.json | jq -r '.status.indicator' | grep -q 'none' && echo 'Github ok' || echo 'Github not ok'"
     interval: 30
     enabled: true
   - name: "sample_health_check"
