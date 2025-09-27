@@ -45,6 +45,9 @@ BAMON runs as a daemon process that continuously monitors configured scripts and
 **config** *subcommand* [options]
 : Configuration management commands
 
+**log** [options]
+: View and manage daemon log files with filtering and real-time following
+
 **performance** [options]
 : Show system performance metrics and optimization status
 

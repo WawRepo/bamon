@@ -32,6 +32,7 @@ bamon <command> [options] [arguments]
 
 | Command | Description | Usage |
 |---------|-------------|-------|
+| `log` | View and manage daemon log files | `bamon log [options]` |
 | `performance` | Show system performance metrics | `bamon performance [options]` |
 | `config` | Configuration management | `bamon config <subcommand> [options]` |
 
@@ -131,6 +132,7 @@ For detailed information about each command, see the individual command pages:
 - **[start](start.md)** - Starting the daemon
 - **[stop](stop.md)** - Stopping the daemon
 - **[restart](restart.md)** - Restarting the daemon
+- **[log](log.md)** - View and manage daemon log files
 - **[performance](performance.md)** - Performance monitoring
 - **[config](config.md)** - Configuration management
 
