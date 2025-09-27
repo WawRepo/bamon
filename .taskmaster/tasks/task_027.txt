@@ -1,0 +1,44 @@
+# Task ID: 27
+# Title: Implement Script Execution and Sandboxing
+# Status: cancelled
+# Dependencies: 25, 26
+# Priority: high
+# Description: Create the core script execution engine with sandboxing and resource limits for running monitoring scripts safely.
+# Details:
+1. Implement the execution.sh library for script execution:
+   - Create functions to execute bash commands and scripts
+   - Implement interval-based execution scheduling
+   - Add support for different script types (commands, HTTP checks, scripts)
+   - Capture both stdout and stderr from script execution
+   - Track execution time, exit codes, and resource usage
+2. Implement the sandbox.sh library for script isolation:
+   - Use 'timeout' command (from GNU coreutils) for execution time limits
+   - Implement resource limits using ulimit for CPU, memory, and file size
+   - Create temporary directories for script execution
+   - Implement cleanup of temporary resources after execution
+   - Add error detection for various failure types (timeout, memory, permissions)
+3. Create the main daemon loop for continuous monitoring:
+   - Schedule script execution based on configured intervals
+   - Implement non-blocking execution to allow concurrent scripts
+   - Track next execution time for each script
+   - Handle script failures gracefully
+4. Implement execution history storage:
+   - Store execution results in JSON format
+   - Include success/failure status, exit codes, output, timestamps
+   - Implement history retention policy based on configuration
+   - Store history at ~/.config/bamon/execution_history.json (configurable)
+5. Add support for manual execution via 'now' command
+6. Implement concurrent execution management with configurable limits
+
+# Test Strategy:
+1. Test script execution with various script types
+2. Verify resource limits are enforced correctly
+3. Test timeout functionality with long-running scripts
+4. Verify stdout and stderr are captured correctly
+5. Test execution history storage and retrieval
+6. Verify interval-based scheduling works correctly
+7. Test concurrent execution with multiple scripts
+8. Verify cleanup of temporary resources
+9. Test manual execution via 'now' command
+10. Verify error handling for various script failure scenarios
+11. Test history retention policy

@@ -1,0 +1,144 @@
+# Task ID: 33
+# Title: Create GitHub Workflows for CI/CD and Release Automation
+# Status: done
+# Dependencies: 25, 31
+# Priority: high
+# Description: Implement GitHub Actions workflows for continuous integration testing and automated release management, including version control and asset packaging.
+# Details:
+1. Create the GitHub workflow directory structure:
+   ```
+   .github/
+   └── workflows/
+       ├── ci.yml
+       └── release.yml
+   ```
+
+2. Implement the CI workflow (ci.yml) with the following features:
+   - Configure workflow to trigger on push to main branch and pull requests
+   - Set up Ubuntu latest runner environment
+   - Install required dependencies (bash, curl, yq, jq, coreutils, bats, docker)
+   - Check out repository with fetch-depth: 0 for complete history
+   - Binary generation using bashly
+   - Run container-based tests using Docker
+   - Execute the test suite with proper error reporting (BATS tests + container tests)
+   - Installation script validation
+   - CLI command testing
+   - Cache dependencies to speed up workflow runs
+   - Add status badges to README.md
+
+3. Implement the release workflow (release.yml) with the following features:
+   - Configure manual trigger using workflow_dispatch
+   - Add inputs for version bump type (patch/minor/major)
+   - Add dry run capability for testing
+   - Set up Ubuntu latest runner environment
+   - Install required dependencies (bash, curl, yq, jq, coreutils, bashly)
+   - Check out repository with fetch-depth: 0 for complete history
+   - Implement version detection logic:
+     - Fetch all git tags
+     - Extract highest semantic version tag using `git describe --tags --abbrev=0`
+     - Increment version according to semver rules (patch by default)
+   - Update version in bashly.yml configuration
+   - Regenerate binary using bashly generate
+   - Create git tag with new version
+   - Package release assets:
+     - bamon binary
+     - install.sh script
+     - docs/ directory
+     - samples/ directory
+     - tests/ directory
+   - Create GitHub release with all assets
+   - Push changes back to repository
+
+4. Add GitHub token permissions configuration:
+   - contents: write (for creating releases and tags)
+   - packages: read (for dependency access)
+   - actions: read (for workflow runs)
+
+5. Implement error handling and notifications:
+   - Add failure notifications via GitHub notifications
+   - Implement detailed error reporting in workflow logs
+   - Add retry logic for network-dependent steps
+
+6. Document workflows in README.md:
+   - Add section explaining CI/CD process
+   - Include instructions for manual release triggering
+   - Document version bumping process
+
+# Test Strategy:
+1. Test CI workflow functionality:
+   - Make a test commit to main branch and verify workflow triggers automatically
+   - Create a pull request and confirm tests run on PR
+   - Intentionally break a test and verify the workflow fails appropriately
+   - Check that status badges update correctly
+   - Verify binary generation works correctly
+   - Test installation script validation
+   - Confirm CLI command testing works as expected
+
+2. Test release workflow functionality:
+   - Manually trigger the release workflow with patch version bump
+   - Test the dry run capability to verify workflow without creating actual releases
+   - Verify version detection correctly identifies the highest existing tag
+   - Confirm version in bashly.yml is updated correctly
+   - Validate that binary is regenerated with updated version
+   - Check that git tag is created with correct version format (v1.2.3)
+   - Verify all required assets are included in the GitHub release
+   - Test downloading assets from the release and verify integrity
+
+3. Test error handling:
+   - Simulate network failure during dependency installation
+   - Verify retry logic works as expected
+   - Test with invalid version format and verify appropriate error message
+
+4. Test permissions and security:
+   - Verify workflow runs with minimal required permissions
+   - Confirm secure handling of GitHub token
+   - Test that workflow cannot be triggered by unauthorized users
+
+5. Test in different environments:
+   - Verify release assets work on Ubuntu, macOS, and WSL2
+   - Test installation script from release assets
+   - Validate documentation accuracy for release process
+
+# Subtasks:
+## 1. Create GitHub workflows directory structure [done]
+### Dependencies: None
+### Description: Set up the .github/workflows/ directory structure for CI and release workflows
+### Details:
+
+
+## 2. Implement CI workflow (ci.yml) [done]
+### Dependencies: None
+### Description: Create the continuous integration workflow with automatic triggers, dependency installation, test execution, and error handling
+### Details:
+
+
+## 3. Implement Release workflow (release.yml) [done]
+### Dependencies: None
+### Description: Create the release automation workflow with version bumping, asset packaging, and GitHub release creation
+### Details:
+
+
+## 4. Test workflows in GitHub Actions [done]
+### Dependencies: None
+### Description: Verify both CI and release workflows function correctly in the GitHub Actions environment
+### Details:
+
+
+## 5. Verify version bumping logic [done]
+### Dependencies: None
+### Description: Test the semantic versioning bump logic for patch, minor, and major versions
+### Details:
+
+
+## 6. Test release asset creation and upload [done]
+### Dependencies: None
+### Description: Verify all release assets are correctly packaged and uploaded to GitHub releases
+### Details:
+
+
+## 7. Update README.md with CI/CD documentation [done]
+### Dependencies: None
+### Description: Add documentation about the CI/CD process, release automation, and installation instructions using the latest release
+### Details:
+
+

@@ -293,7 +293,7 @@
         "description": "Create a CLI command for viewing and managing daemon log files with support for displaying, filtering, following in real-time, searching, and showing log file information.",
         "details": "1. Create a new command file `log_command.sh` in the commands directory with the following features:\n\n   a. **Basic log viewing functionality**:\n      - Display the most recent log entries (default 50 lines)\n      - Support for specifying number of lines to display with `--lines` or `-n` flag\n      - Format output with timestamps, log levels, and messages clearly displayed\n      - Handle both daemon logs and execution logs\n\n   b. **Real-time log following (tail -f functionality)**:\n      - Implement `--follow` or `-f` flag to continuously display new log entries\n      - Include proper handling of SIGINT (Ctrl+C) to exit follow mode gracefully\n      - Display timestamp for each new entry in follow mode\n\n   c. **Log filtering capabilities**:\n      - Filter by log level with `--level` flag (ERROR, WARN, INFO, DEBUG)\n      - Support for multiple levels with comma separation (e.g., `--level ERROR,WARN`)\n      - Implement `--since` flag to show logs after a specific time (e.g., \"1h\", \"2d\", \"2023-01-01\")\n      - Add `--until` flag for specifying end time for log display\n\n   d. **Search functionality**:\n      - Implement `--search` or `-s` flag for keyword/pattern searching\n      - Support for regular expression patterns with `--regex` flag\n      - Add context options (`--before` and `--after`) to show lines before/after matches\n      - Highlight matching terms in the output\n\n   e. **Log file information**:\n      - Add `--info` flag to display log file location, size, creation date\n      - Show log rotation information and available log archives\n      - Include disk usage statistics for log directory\n\n   f. **Output formatting options**:\n      - Support for different output formats (text, JSON) with `--format` flag\n      - Color-coded output based on log level (ERROR in red, WARN in yellow, etc.)\n      - Option to disable colors with `--no-color` flag\n\n2. Update the main CLI command parser to include the new log command:\n   - Add log command to the command list in `bamon.sh`\n   - Include help text and usage examples\n\n3. Integrate with the existing logging system:\n   - Use functions from `logging.sh` to access and parse log files\n   - Ensure compatibility with the log rotation functionality\n   - Handle different log file formats and structures\n\n4. Implement error handling:\n   - Gracefully handle missing or corrupted log files\n   - Provide helpful error messages when logs cannot be accessed\n   - Check for necessary permissions to read log files\n\n5. Add documentation:\n   - Update help text with detailed usage examples\n   - Document all available flags and options\n   - Include examples for common troubleshooting scenarios",
         "testStrategy": "1. **Basic functionality tests**:\n   - Verify the command displays the default number of log lines correctly\n   - Test with different values for `--lines` flag\n   - Check that log entries are properly formatted with timestamps and log levels\n   - Verify both daemon and execution logs can be viewed\n\n2. **Real-time following tests**:\n   - Test `--follow` flag and verify new log entries appear in real-time\n   - Verify that Ctrl+C properly exits follow mode\n   - Generate log entries while in follow mode to confirm they appear\n   - Test follow mode with filtering options enabled\n\n3. **Filtering tests**:\n   - Test filtering by each log level (ERROR, WARN, INFO, DEBUG)\n   - Verify multiple level filtering works correctly\n   - Test `--since` flag with various time formats (1h, 2d, YYYY-MM-DD)\n   - Verify `--until` flag correctly limits the end time of displayed logs\n   - Combine multiple filters and verify they work together correctly\n\n4. **Search functionality tests**:\n   - Test searching for various keywords and patterns\n   - Verify regex search works with different patterns\n   - Test context options (`--before` and `--after`) with different values\n   - Verify highlighting of matching terms works correctly\n   - Test search with follow mode enabled\n\n5. **Log information tests**:\n   - Verify `--info` flag displays correct file location and size\n   - Check that log rotation information is accurate\n   - Test with both existing and non-existing log files\n\n6. **Output formatting tests**:\n   - Verify color coding works correctly for different log levels\n   - Test `--no-color` flag disables all color output\n   - Verify JSON output format is valid and contains all necessary information\n   - Test all formatting options with various filtering and search options\n\n7. **Error handling tests**:\n   - Test behavior when log files are missing\n   - Verify appropriate error messages when permission is denied\n   - Test with corrupted log files to ensure graceful handling\n\n8. **Integration tests**:\n   - Verify the log command works correctly after daemon restart\n   - Test with log rotation occurring during command execution\n   - Verify compatibility with different log formats",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           26
         ],
@@ -305,7 +305,7 @@
             "description": "Set up the basic structure of the log_command.sh file with argument parsing for all required flags and options",
             "dependencies": [],
             "details": "Create the log_command.sh file in the commands directory with proper shebang and imports. Implement getopts or similar to parse all command-line arguments including: --lines/-n, --follow/-f, --level, --since, --until, --search/-s, --regex, --before, --after, --info, --format, and --no-color. Set up default values for all parameters and implement basic help text display.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test argument parsing with various combinations of flags. Verify help text is displayed correctly. Test error handling for invalid arguments and combinations."
           },
           {
@@ -316,7 +316,7 @@
               "36.1"
             ],
             "details": "Implement functions to read and display log files with proper formatting. Support displaying the most recent log entries (default 50 lines) with the --lines/-n flag. Format output to clearly show timestamps, log levels, and messages. Create functions to handle both daemon logs and execution logs from their respective locations.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test displaying logs with default line count. Test with different values for --lines flag. Verify formatting is correct with timestamps and log levels. Test with both daemon and execution logs."
           },
           {
@@ -327,7 +327,7 @@
               "36.2"
             ],
             "details": "Implement the --follow/-f flag to continuously display new log entries as they are added to the log file. Use tail -f or similar approach. Add proper handling of SIGINT (Ctrl+C) to exit follow mode gracefully. Ensure timestamps are displayed for each new entry in follow mode.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test follow mode by generating new log entries while following. Verify Ctrl+C exits gracefully. Test with different log files and verify new entries appear in real-time."
           },
           {
@@ -338,7 +338,7 @@
               "36.2"
             ],
             "details": "Implement the --level flag to filter logs by severity level (ERROR, WARN, INFO, DEBUG). Support multiple levels with comma separation. Add --since flag to show logs after a specific time (supporting formats like '1h', '2d', '2023-01-01'). Implement --until flag for specifying end time for log display. Ensure filters can be combined.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test filtering by single and multiple log levels. Test time-based filtering with various formats. Verify combinations of filters work correctly. Test edge cases like empty results."
           },
           {
@@ -349,7 +349,7 @@
               "36.2"
             ],
             "details": "Implement the --search/-s flag for keyword/pattern searching in log files. Add support for regular expression patterns with the --regex flag. Implement context options (--before and --after) to show lines before/after matches. Add highlighting for matching terms in the output.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test keyword searching with various terms. Test regex searching with simple and complex patterns. Verify context lines are displayed correctly. Test highlighting of matching terms."
           },
           {
@@ -360,7 +360,7 @@
               "36.1"
             ],
             "details": "Implement the --info flag to display log file metadata including location, size, and creation date. Show log rotation information and available log archives. Include disk usage statistics for the log directory. Format the information in a clear, readable way.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test info display for various log files. Verify all metadata is accurate. Test with rotated logs to ensure archive information is correct. Verify disk usage statistics match system values."
           },
           {
@@ -373,7 +373,7 @@
               "36.5"
             ],
             "details": "Implement the --format flag to support different output formats (text, JSON). Add color-coded output based on log level (ERROR in red, WARN in yellow, etc.). Implement the --no-color flag to disable colors. Ensure all output formatting is consistent across different command options.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test text and JSON output formats. Verify color coding works correctly for different log levels. Test --no-color flag disables all colors. Test formatting with various combinations of other flags."
           },
           {
@@ -390,15 +390,24 @@
               "36.7"
             ],
             "details": "Implement error handling for missing or corrupted log files, permission issues, and invalid arguments. Provide helpful error messages when logs cannot be accessed. Update the main CLI command parser in bamon.sh to include the new log command. Add comprehensive help text and usage examples. Test integration with the existing logging system and log rotation functionality.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test error handling with missing files, permission issues, and corrupted logs. Verify helpful error messages are displayed. Test integration with main CLI. Verify help text is comprehensive and accurate."
+          },
+          {
+            "id": 9,
+            "title": "Create comprehensive tests for log command functionality",
+            "description": "Create test cases for all log command features including basic viewing, filtering, searching, real-time following, JSON output, and error handling",
+            "details": "Create test files in test/commands/ directory to test:\n1. Basic log viewing with --lines flag\n2. Level filtering with --level flag (single and multiple levels)\n3. Search functionality with --search flag (keyword and regex)\n4. Real-time following with --follow flag\n5. JSON output format with --format json\n6. Log file information with --info flag\n7. Error handling for missing log files\n8. Context lines with --before and --after flags\n9. No-color output with --no-color flag\n10. Integration with existing test framework",
+            "status": "pending",
+            "dependencies": [],
+            "parentTaskId": 36
           }
         ]
       }
     ],
     "metadata": {
       "created": "2025-09-12T23:10:00.761Z",
-      "updated": "2025-09-27T22:29:06.453Z",
+      "updated": "2025-09-27T23:14:16.460Z",
       "description": "Tasks for master context"
     }
   }

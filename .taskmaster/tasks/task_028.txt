@@ -1,0 +1,41 @@
+# Task ID: 28
+# Title: Implement Script Management Commands
+# Status: cancelled
+# Dependencies: 25, 26, 27
+# Priority: medium
+# Description: Create the CLI commands for managing monitoring scripts, including add, remove, list, and status functionality.
+# Details:
+1. Implement the add_command.sh for adding new scripts:
+   - Accept script name, command, and interval parameters
+   - Validate input parameters
+   - Add new script to configuration file
+   - Support for enabling/disabling scripts
+   - Handle duplicate script names
+2. Implement the remove_command.sh for removing scripts:
+   - Accept script name parameter
+   - Remove script from configuration
+   - Handle non-existent script names
+3. Implement the list_command.sh for listing scripts:
+   - Display all configured scripts with details
+   - Show enabled/disabled status
+   - Include interval and command information
+   - Support for filtering and sorting options
+4. Implement the now_command.sh for immediate execution:
+   - Execute all scripts immediately
+   - Show execution results
+   - Support for executing specific scripts
+5. Create helper functions for script management operations
+6. Implement validation for script commands and intervals
+7. Add support for script enabling/disabling
+8. Implement proper error handling and user feedback
+
+# Test Strategy:
+1. Test adding scripts with various parameters
+2. Verify duplicate script names are handled correctly
+3. Test removing scripts and verify they're removed from configuration
+4. Verify list command shows all configured scripts
+5. Test immediate execution with 'now' command
+6. Verify validation works for script commands and intervals
+7. Test enabling and disabling scripts
+8. Verify error handling for various failure scenarios
+9. Test with invalid inputs and verify appropriate error messages

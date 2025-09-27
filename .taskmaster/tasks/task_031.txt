@@ -1,0 +1,47 @@
+# Task ID: 31
+# Title: Create Installation Script and Documentation
+# Status: cancelled
+# Dependencies: 25, 26, 27, 28, 29, 30
+# Priority: medium
+# Description: Develop the installation script for different environments and create comprehensive documentation for the project.
+# Details:
+1. Implement the install.sh script with the following features:
+   - Support for user installation (default to ~/.local/bin/)
+   - Support for system installation (with --system flag)
+   - Support for custom installation path (with --prefix flag)
+   - Dependency checking and installation
+   - Configuration directory setup
+   - Sample script installation
+   - PATH setup assistance
+2. Create comprehensive documentation:
+   - README.md with project overview, installation, and usage
+   - Command reference with examples for all commands
+   - Configuration guide with YAML examples
+   - Sample script documentation
+   - Troubleshooting guide
+   - Development setup instructions
+3. Implement platform-specific installation support:
+   - macOS with Homebrew dependencies
+   - Linux with package manager dependencies
+   - WSL2 support
+4. Create man pages for all commands:
+   - Main man page (bamon.1)
+   - Command-specific man pages (bamon-status.1, etc.)
+5. Add installation validation and rollback:
+   - Verify installation was successful
+   - Provide rollback in case of failure
+   - Check for required dependencies
+6. Implement uninstall functionality
+7. Create sample scripts for common monitoring tasks
+
+# Test Strategy:
+1. Test installation on different platforms (macOS, Linux, WSL2)
+2. Verify dependency checking works correctly
+3. Test user, system, and custom installation paths
+4. Verify configuration directory is created correctly
+5. Test PATH setup assistance
+6. Verify sample scripts are installed
+7. Test uninstall functionality
+8. Verify documentation accuracy and completeness
+9. Test installation validation and rollback
+10. Verify man pages are installed correctly

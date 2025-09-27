@@ -1,0 +1,127 @@
+# Task ID: 34
+# Title: Implement Install Script Configuration Preservation
+# Status: done
+# Dependencies: 31
+# Priority: medium
+# Description: Enhance the install.sh script to detect and preserve existing BAMON configurations, preventing accidental overrides while still updating the binary.
+# Details:
+1. Modify the install.sh script to include configuration preservation logic:
+   - Add a check for the existence of ~/.config/bamon/config.yaml before attempting to create or modify configuration
+   - Implement conditional logic to skip configuration setup when an existing config is detected
+   - Add code to skip sample script installation when preserving existing configuration
+   - Ensure the binary is still updated regardless of configuration status
+   - Display clear, user-friendly messages about configuration preservation
+
+2. Implementation approach:
+```bash
+# Check for existing configuration
+if [ -f "${CONFIG_DIR}/config.yaml" ]; then
+    echo "ℹ️ Existing BAMON configuration detected at ${CONFIG_DIR}/config.yaml"
+    echo "ℹ️ Preserving your current configuration and scripts"
+    PRESERVE_CONFIG=true
+else
+    PRESERVE_CONFIG=false
+fi
+
+# Update binary regardless of configuration status
+echo "📦 Installing BAMON binary to ${INSTALL_PATH}..."
+cp ./bamon "${INSTALL_PATH}/bamon"
+chmod +x "${INSTALL_PATH}/bamon"
+
+# Only setup configuration if not preserving
+if [ "$PRESERVE_CONFIG" = false ]; then
+    echo "🔧 Setting up configuration directory at ${CONFIG_DIR}..."
+    mkdir -p "${CONFIG_DIR}"
+    # Configuration setup code here...
+    
+    echo "📝 Installing sample scripts..."
+    # Sample script installation code here...
+else
+    echo "🔒 Skipping configuration setup to preserve existing settings"
+    echo "✅ BAMON binary has been updated successfully"
+fi
+```
+
+3. Ensure proper error handling:
+   - Add appropriate error messages if binary update fails
+   - Implement verbose logging with the --verbose flag to help troubleshoot installation issues
+   - Add a --force flag option to override existing configuration if explicitly requested
+
+4. Update help text and usage information to reflect the new behavior:
+```bash
+echo "Usage: ./install.sh [OPTIONS]"
+echo "Options:"
+echo "  --prefix PATH    Install to custom location (default: ~/.local/bin)"
+echo "  --system         Install system-wide (requires sudo)"
+echo "  --force          Override existing configuration (use with caution)"
+echo "  --verbose        Show detailed installation information"
+echo "  --help           Show this help message"
+```
+
+# Test Strategy:
+1. Test installation with no existing configuration:
+   - Remove any existing ~/.config/bamon directory
+   - Run the install script
+   - Verify that both the binary and configuration are installed correctly
+   - Check that sample scripts are installed
+
+2. Test installation with existing configuration:
+   - Create a test configuration at ~/.config/bamon/config.yaml with known content
+   - Run the install script
+   - Verify that the binary is updated
+   - Confirm the existing configuration file is unchanged
+   - Verify that no sample scripts were added or modified
+   - Check that appropriate messages about configuration preservation are displayed
+
+3. Test with --force flag:
+   - Create a test configuration
+   - Run install script with --force flag
+   - Verify that both binary and configuration are updated, overriding existing files
+   - Confirm sample scripts are installed
+
+4. Test in different environments:
+   - Test on Ubuntu, Debian, and other major Linux distributions
+   - Test on macOS
+   - Test on Windows Subsystem for Linux (WSL)
+
+5. Test with different installation paths:
+   - Test with default user installation
+   - Test with --system flag for system-wide installation
+   - Test with --prefix flag for custom installation location
+
+6. Verify error handling:
+   - Test with read-only configuration directory
+   - Test with insufficient permissions
+   - Verify appropriate error messages are displayed
+
+# Subtasks:
+## 1. Implement Configuration Detection Logic [done]
+### Dependencies: None
+### Description: Add logic to detect existing configuration files and set appropriate flags for preservation
+### Details:
+Create the initial detection mechanism that checks for ~/.config/bamon/config.yaml existence. Implement the PRESERVE_CONFIG flag that will control the installation flow. Add clear user messages that inform about configuration detection and preservation intent.
+
+## 2. Implement Binary Update Mechanism [done]
+### Dependencies: 34.1
+### Description: Ensure the BAMON binary is updated regardless of configuration preservation status
+### Details:
+Modify the install script to always copy and set permissions for the BAMON binary, regardless of whether configuration is being preserved. Add appropriate error handling for binary installation failures. Implement verbose logging for the binary update process when --verbose flag is used.
+
+## 3. Implement Conditional Configuration Setup [done]
+### Dependencies: 34.1, 34.2
+### Description: Add conditional logic to skip configuration setup when preserving existing configuration
+### Details:
+Modify the configuration setup section to only execute when PRESERVE_CONFIG is false. This includes directory creation, config file copying, and sample script installation. Ensure all configuration-related operations are properly wrapped in the conditional block.
+
+## 4. Implement Force Override Option [done]
+### Dependencies: 34.1, 34.3
+### Description: Add a --force flag to allow users to explicitly override existing configuration
+### Details:
+Add command-line argument parsing for the --force flag. Modify the configuration detection logic to respect the force flag, overriding the PRESERVE_CONFIG value when --force is specified. Add appropriate warning messages when force override is used.
+
+## 5. Update Help Text and Documentation [done]
+### Dependencies: 34.1, 34.2, 34.3, 34.4
+### Description: Update the script's help text and usage information to reflect the new behavior
+### Details:
+Update the help text to include information about configuration preservation behavior. Add documentation for the new --force flag. Ensure all usage examples and option descriptions are accurate. Add a section explaining the configuration preservation feature in the main documentation.
+

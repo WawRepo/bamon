@@ -1,0 +1,174 @@
+# Task ID: 36
+# Title: Implement BAMON Log CLI Command
+# Status: done
+# Dependencies: 26
+# Priority: medium
+# Description: Create a CLI command for viewing and managing daemon log files with support for displaying, filtering, following in real-time, searching, and showing log file information.
+# Details:
+1. Create a new command file `log_command.sh` in the commands directory with the following features:
+
+   a. **Basic log viewing functionality**:
+      - Display the most recent log entries (default 50 lines)
+      - Support for specifying number of lines to display with `--lines` or `-n` flag
+      - Format output with timestamps, log levels, and messages clearly displayed
+      - Handle both daemon logs and execution logs
+
+   b. **Real-time log following (tail -f functionality)**:
+      - Implement `--follow` or `-f` flag to continuously display new log entries
+      - Include proper handling of SIGINT (Ctrl+C) to exit follow mode gracefully
+      - Display timestamp for each new entry in follow mode
+
+   c. **Log filtering capabilities**:
+      - Filter by log level with `--level` flag (ERROR, WARN, INFO, DEBUG)
+      - Support for multiple levels with comma separation (e.g., `--level ERROR,WARN`)
+      - Implement `--since` flag to show logs after a specific time (e.g., "1h", "2d", "2023-01-01")
+      - Add `--until` flag for specifying end time for log display
+
+   d. **Search functionality**:
+      - Implement `--search` or `-s` flag for keyword/pattern searching
+      - Support for regular expression patterns with `--regex` flag
+      - Add context options (`--before` and `--after`) to show lines before/after matches
+      - Highlight matching terms in the output
+
+   e. **Log file information**:
+      - Add `--info` flag to display log file location, size, creation date
+      - Show log rotation information and available log archives
+      - Include disk usage statistics for log directory
+
+   f. **Output formatting options**:
+      - Support for different output formats (text, JSON) with `--format` flag
+      - Color-coded output based on log level (ERROR in red, WARN in yellow, etc.)
+      - Option to disable colors with `--no-color` flag
+
+2. Update the main CLI command parser to include the new log command:
+   - Add log command to the command list in `bamon.sh`
+   - Include help text and usage examples
+
+3. Integrate with the existing logging system:
+   - Use functions from `logging.sh` to access and parse log files
+   - Ensure compatibility with the log rotation functionality
+   - Handle different log file formats and structures
+
+4. Implement error handling:
+   - Gracefully handle missing or corrupted log files
+   - Provide helpful error messages when logs cannot be accessed
+   - Check for necessary permissions to read log files
+
+5. Add documentation:
+   - Update help text with detailed usage examples
+   - Document all available flags and options
+   - Include examples for common troubleshooting scenarios
+
+# Test Strategy:
+1. **Basic functionality tests**:
+   - Verify the command displays the default number of log lines correctly
+   - Test with different values for `--lines` flag
+   - Check that log entries are properly formatted with timestamps and log levels
+   - Verify both daemon and execution logs can be viewed
+
+2. **Real-time following tests**:
+   - Test `--follow` flag and verify new log entries appear in real-time
+   - Verify that Ctrl+C properly exits follow mode
+   - Generate log entries while in follow mode to confirm they appear
+   - Test follow mode with filtering options enabled
+
+3. **Filtering tests**:
+   - Test filtering by each log level (ERROR, WARN, INFO, DEBUG)
+   - Verify multiple level filtering works correctly
+   - Test `--since` flag with various time formats (1h, 2d, YYYY-MM-DD)
+   - Verify `--until` flag correctly limits the end time of displayed logs
+   - Combine multiple filters and verify they work together correctly
+
+4. **Search functionality tests**:
+   - Test searching for various keywords and patterns
+   - Verify regex search works with different patterns
+   - Test context options (`--before` and `--after`) with different values
+   - Verify highlighting of matching terms works correctly
+   - Test search with follow mode enabled
+
+5. **Log information tests**:
+   - Verify `--info` flag displays correct file location and size
+   - Check that log rotation information is accurate
+   - Test with both existing and non-existing log files
+
+6. **Output formatting tests**:
+   - Verify color coding works correctly for different log levels
+   - Test `--no-color` flag disables all color output
+   - Verify JSON output format is valid and contains all necessary information
+   - Test all formatting options with various filtering and search options
+
+7. **Error handling tests**:
+   - Test behavior when log files are missing
+   - Verify appropriate error messages when permission is denied
+   - Test with corrupted log files to ensure graceful handling
+
+8. **Integration tests**:
+   - Verify the log command works correctly after daemon restart
+   - Test with log rotation occurring during command execution
+   - Verify compatibility with different log formats
+
+# Subtasks:
+## 1. Create log_command.sh file structure and argument parsing [done]
+### Dependencies: None
+### Description: Set up the basic structure of the log_command.sh file with argument parsing for all required flags and options
+### Details:
+Create the log_command.sh file in the commands directory with proper shebang and imports. Implement getopts or similar to parse all command-line arguments including: --lines/-n, --follow/-f, --level, --since, --until, --search/-s, --regex, --before, --after, --info, --format, and --no-color. Set up default values for all parameters and implement basic help text display.
+
+## 2. Implement basic log viewing functionality [done]
+### Dependencies: 36.1
+### Description: Create functions to display log entries with proper formatting and support for specifying the number of lines
+### Details:
+Implement functions to read and display log files with proper formatting. Support displaying the most recent log entries (default 50 lines) with the --lines/-n flag. Format output to clearly show timestamps, log levels, and messages. Create functions to handle both daemon logs and execution logs from their respective locations.
+
+## 3. Implement real-time log following functionality [done]
+### Dependencies: 36.2
+### Description: Add support for continuously displaying new log entries (tail -f functionality)
+### Details:
+Implement the --follow/-f flag to continuously display new log entries as they are added to the log file. Use tail -f or similar approach. Add proper handling of SIGINT (Ctrl+C) to exit follow mode gracefully. Ensure timestamps are displayed for each new entry in follow mode.
+
+## 4. Implement log filtering capabilities [done]
+### Dependencies: 36.2
+### Description: Add support for filtering logs by level and time range
+### Details:
+Implement the --level flag to filter logs by severity level (ERROR, WARN, INFO, DEBUG). Support multiple levels with comma separation. Add --since flag to show logs after a specific time (supporting formats like '1h', '2d', '2023-01-01'). Implement --until flag for specifying end time for log display. Ensure filters can be combined.
+
+## 5. Implement search functionality [done]
+### Dependencies: 36.2
+### Description: Add support for searching logs by keywords and regular expressions
+### Details:
+Implement the --search/-s flag for keyword/pattern searching in log files. Add support for regular expression patterns with the --regex flag. Implement context options (--before and --after) to show lines before/after matches. Add highlighting for matching terms in the output.
+
+## 6. Implement log file information display [done]
+### Dependencies: 36.1
+### Description: Add functionality to display metadata about log files
+### Details:
+Implement the --info flag to display log file metadata including location, size, and creation date. Show log rotation information and available log archives. Include disk usage statistics for the log directory. Format the information in a clear, readable way.
+
+## 7. Implement output formatting options [done]
+### Dependencies: 36.2, 36.4, 36.5
+### Description: Add support for different output formats and color coding
+### Details:
+Implement the --format flag to support different output formats (text, JSON). Add color-coded output based on log level (ERROR in red, WARN in yellow, etc.). Implement the --no-color flag to disable colors. Ensure all output formatting is consistent across different command options.
+
+## 8. Implement error handling and integrate with main CLI [done]
+### Dependencies: 36.1, 36.2, 36.3, 36.4, 36.5, 36.6, 36.7
+### Description: Add robust error handling and integrate the log command with the main BAMON CLI
+### Details:
+Implement error handling for missing or corrupted log files, permission issues, and invalid arguments. Provide helpful error messages when logs cannot be accessed. Update the main CLI command parser in bamon.sh to include the new log command. Add comprehensive help text and usage examples. Test integration with the existing logging system and log rotation functionality.
+
+## 9. Create comprehensive tests for log command functionality [pending]
+### Dependencies: None
+### Description: Create test cases for all log command features including basic viewing, filtering, searching, real-time following, JSON output, and error handling
+### Details:
+Create test files in test/commands/ directory to test:
+1. Basic log viewing with --lines flag
+2. Level filtering with --level flag (single and multiple levels)
+3. Search functionality with --search flag (keyword and regex)
+4. Real-time following with --follow flag
+5. JSON output format with --format json
+6. Log file information with --info flag
+7. Error handling for missing log files
+8. Context lines with --before and --after flags
+9. No-color output with --no-color flag
+10. Integration with existing test framework
+

@@ -1,0 +1,56 @@
+# Task ID: 32
+# Title: Implement CI/CD and Release Automation
+# Status: cancelled
+# Dependencies: 25, 26, 27, 28, 29, 30, 31
+# Priority: medium
+# Description: Set up GitHub workflows for continuous integration, testing, and automated release management.
+# Details:
+1. Create GitHub workflow files:
+   - ci.yml for continuous integration
+   - release.yml for release automation
+2. Implement CI workflow with the following features:
+   - Trigger on commits to main branch
+   - Run tests in Ubuntu container environment
+   - Install dependencies (bash, curl, yq, coreutils)
+   - Execute test suite
+   - Report status to GitHub PR/commit
+3. Implement release workflow:
+   - Manual trigger (workflow_dispatch)
+   - Version detection and bumping
+   - Update version in bashly.yml
+   - Regenerate binary with bashly
+   - Create git tag with new version
+   - Package release assets
+   - Create GitHub release with assets and notes
+4. Implement version management:
+   - Use semantic versioning (MAJOR.MINOR.PATCH)
+   - Automated patch bumping
+   - Git tag format with 'v' prefix (e.g., v0.1.0)
+5. Set up release asset packaging:
+   - Include bamon binary
+   - Include install.sh script
+   - Include documentation and samples
+   - Include tests
+6. Create test environment in Ubuntu container:
+   - Fresh Ubuntu container (latest LTS)
+   - Install dependencies
+   - Run installation script
+   - Execute test suite
+7. Implement BATS (Bash Automated Testing System) tests:
+   - Command functionality tests
+   - Daemon execution tests
+   - Configuration management tests
+   - Performance monitoring tests
+   - Installation tests
+
+# Test Strategy:
+1. Verify CI workflow runs on commits to main branch
+2. Test release workflow with manual trigger
+3. Verify version bumping works correctly
+4. Test binary regeneration with bashly
+5. Verify git tag creation
+6. Test release asset packaging
+7. Verify GitHub release creation
+8. Test in Ubuntu container environment
+9. Verify BATS tests run correctly
+10. Test installation from release assets

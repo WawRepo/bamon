@@ -1,0 +1,38 @@
+# Task ID: 26
+# Title: Implement Logging System and Daemon Process Management
+# Status: cancelled
+# Dependencies: 25
+# Priority: high
+# Description: Create the logging system with configurable levels and implement daemon process management functionality.
+# Details:
+1. Implement the logging.sh library with the following features:
+   - Support for configurable log levels (DEBUG, INFO, WARN, ERROR)
+   - Log rotation functionality to prevent disk space issues
+   - Functions for logging to both console and file
+   - Timestamp and log level prefixing
+   - Support for redirecting both stdout and stderr to log file in daemon mode
+2. Implement daemon process management:
+   - Create functions to start the daemon in background mode
+   - Implement PID file management for tracking the daemon process
+   - Create stop functionality to terminate the daemon gracefully
+   - Implement restart functionality
+   - Add signal handling for graceful shutdown (SIGTERM, SIGINT)
+3. Set up log file location at ~/.config/bamon/daemon.log (configurable)
+4. Implement foreground mode (without --daemon flag) that outputs to terminal
+5. Create functions to check daemon status (running/stopped)
+6. Implement proper error handling for daemon management operations
+7. Use 'nohup' and output redirection (2>&1) for background operation
+8. Add log rotation based on file size or time interval
+9. Implement log level filtering based on configuration
+
+# Test Strategy:
+1. Test logging at different log levels
+2. Verify log rotation works when log file reaches size limit
+3. Test daemon start in both foreground and background modes
+4. Verify PID file is created and managed correctly
+5. Test daemon stop and verify process is terminated
+6. Test restart functionality
+7. Verify signal handling for graceful shutdown
+8. Test log output redirection in daemon mode
+9. Verify error handling for various failure scenarios
+10. Test log level filtering based on configuration

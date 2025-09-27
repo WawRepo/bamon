@@ -1,0 +1,44 @@
+# Task ID: 29
+# Title: Implement Status Command with Enhanced Output
+# Status: cancelled
+# Dependencies: 25, 26, 27, 28
+# Priority: high
+# Description: Create the status command with comprehensive reporting, including context-aware output display and JSON format support.
+# Details:
+1. Implement the status_command.sh with the following features:
+   - Display current status of all monitored scripts
+   - Show success/failure status with clear indicators
+   - Include exit codes, output, execution duration, and timestamps
+   - Support for JSON output format with --json flag
+   - Implement filtering with --failed-only flag
+   - Support for sorting by status, execution time, or script name
+2. Implement context-aware output display:
+   - Show stdout for successful executions
+   - Show intelligent error messages for failures based on error type
+   - Handle timeout, memory, permission, file, and network errors
+   - Implement proper truncation for table view (30 characters)
+   - Show truncation message "(truncated - use --json)" for long output
+   - Handle multiline output appropriately
+3. Implement JSON output format:
+   - Include complete execution details without truncation
+   - Proper JSON formatting for multiline output (as array)
+   - Include all metadata (timestamps, duration, exit codes)
+   - No base64 encoding, use proper JSON escaping
+4. Create tabular output format:
+   - Define columns: NAME | STATUS | EXIT CODE | OUTPUT | DURATION | TIME SINCE | NEXT EXECUTION
+   - Implement consistent column widths and alignment
+   - Handle long values with truncation
+   - Use color coding for status (if supported)
+5. Implement intelligent error message generation based on exit codes and output patterns
+
+# Test Strategy:
+1. Test status command with various script states
+2. Verify JSON output format contains complete data
+3. Test output truncation in table view
+4. Verify filtering with --failed-only flag
+5. Test sorting options
+6. Verify intelligent error messages for different failure types
+7. Test with multiline output and verify proper handling
+8. Verify column alignment and truncation in table view
+9. Test with various output lengths and verify consistent truncation
+10. Verify color coding works in supported terminals
