@@ -29,7 +29,7 @@ curl -sSL https://github.com/WawRepo/bamon/releases/latest/download/install-repo
 bamon add health_check --command "curl -s https://httpbin.org/status/200" --interval 30
 
 # GitHub status check example
-bamon add github_check --command "curl -s https://www.githubstatus.com/api/v2/status.json | jq -e '.status.indicator == \"none\"' > /dev/null || { echo \"not green\"; exit 1; }" --interval 30
+bamon add github_check --command "curl -s https://www.githubstatus.com/api/v2/status.json | jq -r '.status.indicator' | grep -q 'none'" --interval 30
 ```
 
 ### Run
