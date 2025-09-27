@@ -6,7 +6,7 @@ Welcome to the BAMON documentation! BAMON (Bash Daemon Monitor) is a tool for mo
 
 ## Why BAMON?
 
-Countless monitoring tools exist, but BAMON fills a specific gap. We all have those commands we run in the terminal just to check something - maybe a GitHub status check, SSH to a dev VM to check load, or in my case, getting a full overview of multiple ArgoCD applications.
+Countless monitoring tools exist, but BAMON fills a specific gap. We all have those commands we run in the terminal just to check something - maybe a GitHub status check, SSH to a dev VM to check load, or in my case, getting a full overview of multiple non production ArgoCD applications.
 
 The goal of BAMON is simple: when you have a command or script you'd like to run in a repetitive manner, that just needs the context of your user environment, BAMON is the tool for you.
 
