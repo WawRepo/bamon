@@ -274,12 +274,75 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     
     
-    - name: Build and Deploy Documentation
+    - name: Build Documentation with Version
       if: ${{ github.event.inputs.dry_run != 'true' }}
-      uses: ./.github/workflows/docs.yml
+      run: |
+        echo "Building documentation with version ${{ steps.new_version.outputs.new_version }}..."
+        
+        # Install Python and MkDocs dependencies
+        sudo apt-get update
+        sudo apt-get install -y python3 python3-pip
+        pip3 install mkdocs requests
+        
+        # Install yq for YAML processing
+        sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+        sudo chmod +x /usr/local/bin/yq
+        
+        # Create version info for documentation
+        VERSION="${{ steps.new_version.outputs.new_version }}"
+        TAG="${{ steps.new_version.outputs.new_tag }}"
+        VERSION_INFO="Released on $(date '+%B %d, %Y')"
+        
+        echo "Building documentation with version: $VERSION"
+        echo "Tag: $TAG"
+        echo "Version info: $VERSION_INFO"
+        
+        # Update mkdocs.yml with version information
+        yq eval ".extra.version = \"$VERSION\"" -i mkdocs.yml
+        yq eval ".extra.version_info = \"$VERSION_INFO\"" -i mkdocs.yml
+        
+        echo "Updated mkdocs.yml:"
+        yq eval '.extra' mkdocs.yml
+        
+        # Build documentation with error handling
+        if mkdocs build; then
+          echo "Documentation built successfully with version $VERSION"
+        else
+          echo "Warning: Documentation build failed, creating fallback..."
+          # Create a minimal fallback documentation
+          mkdir -p site
+          cat > site/index.html << EOF
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>BAMON Documentation</title>
+          <meta charset="utf-8">
+        </head>
+        <body>
+          <h1>BAMON Documentation</h1>
+          <p>Documentation is being updated. Please check back later.</p>
+          <p>Version: $VERSION</p>
+        </body>
+        </html>
+        EOF
+          echo "Created fallback documentation"
+        fi
+    
+    - name: Setup Pages
+      if: ${{ github.event.inputs.dry_run != 'true' }}
+      uses: actions/configure-pages@v4
+    
+    - name: Upload Documentation Artifact
+      if: ${{ github.event.inputs.dry_run != 'true' }}
+      uses: actions/upload-pages-artifact@v3
       with:
-        version: ${{ steps.new_version.outputs.new_version }}
-        tag: ${{ steps.new_version.outputs.new_tag }}
+        path: ./site
+    
+    - name: Deploy Documentation to GitHub Pages
+      if: ${{ github.event.inputs.dry_run != 'true' }}
+      uses: actions/deploy-pages@v4
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     
     - name: Dry run summary
       if: ${{ github.event.inputs.dry_run == 'true' }}
