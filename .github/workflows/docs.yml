@@ -12,7 +12,7 @@ on:
     paths:
       - 'docs/**'
       - 'mkdocs.yml'
-  workflow_dispatch:
+  workflow_call:
     inputs:
       version:
         description: 'Version to display in documentation'
@@ -48,9 +48,9 @@ jobs:
       - name: Set version information
         run: |
           # Use provided version or get from git
-          if [[ -n "${{ github.event.inputs.version }}" ]]; then
-            VERSION="${{ github.event.inputs.version }}"
-            TAG="${{ github.event.inputs.tag }}"
+          if [[ -n "${{ inputs.version }}" ]]; then
+            VERSION="${{ inputs.version }}"
+            TAG="${{ inputs.tag }}"
           else
             # Get version from git tag or default
             VERSION=$(git describe --tags --abbrev=0 2>/dev/null | sed 's/^v//' || echo "dev")
@@ -117,7 +117,7 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.version != ''
+    if: github.event_name == 'workflow_call' && inputs.version != ''
     permissions:
       contents: read
       pages: write

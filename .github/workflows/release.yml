@@ -274,19 +274,13 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     
     
-    - name: Trigger Documentation Build
+    - name: Build and Deploy Documentation
       if: ${{ github.event.inputs.dry_run != 'true' }}
-      run: |
-        NEW_VERSION="${{ steps.new_version.outputs.new_version }}"
-        NEW_TAG="${{ steps.new_version.outputs.new_tag }}"
-        echo "Triggering documentation build for version $NEW_VERSION"
-        
-        # Trigger the documentation workflow with version information
-        gh workflow run docs.yml -f version="$NEW_VERSION" -f tag="$NEW_TAG"
-        
-        echo "Documentation build triggered for version $NEW_VERSION"
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      uses: ./.github/workflows/docs.yml
+      with:
+        version: ${{ steps.new_version.outputs.new_version }}
+        tag: ${{ steps.new_version.outputs.new_tag }}
+      secrets: inherit
     
     - name: Dry run summary
       if: ${{ github.event.inputs.dry_run == 'true' }}
