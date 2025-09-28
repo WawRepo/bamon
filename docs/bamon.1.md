@@ -138,6 +138,44 @@ BAMON runs as a daemon process that continuously monitors configured scripts and
 **validate**
 : Validate configuration file syntax and structure
 
+## Log Command Options
+
+**--lines**, **-n** *number*
+: Number of lines to display (default: 50)
+
+**--follow**, **-f**
+: Follow log output in real-time (like tail -f)
+
+**--level**, **-l** *levels*
+: Filter by log level (ERROR, WARN, INFO, DEBUG) - comma separated
+
+**--since**, **-s** *time*
+: Show logs since time (e.g., '1h', '2d', '2023-01-01')
+
+**--until**, **-u** *time*
+: Show logs until time (e.g., '1h', '2d', '2023-01-01')
+
+**--search**, **-g** *pattern*
+: Search for keyword or pattern in logs
+
+**--regex**, **-r**
+: Treat search pattern as regular expression
+
+**--before**, **-b** *lines*
+: Show N lines before each match
+
+**--after**, **-a** *lines*
+: Show N lines after each match
+
+**--info**, **-i**
+: Show log file information (location, size, etc.)
+
+**--format**, **-o** *format*
+: Output format: text, json (default: text)
+
+**--no-color**
+: Disable color output
+
 ## Performance Command Options
 
 **--json**
@@ -278,6 +316,38 @@ Validate configuration:
 bamon config validate
 ```
 
+## Log Management
+
+View recent log entries:
+```bash
+bamon log
+```
+
+Follow logs in real-time:
+```bash
+bamon log --follow
+```
+
+Filter logs by level:
+```bash
+bamon log --level ERROR,WARN
+```
+
+Search for specific patterns:
+```bash
+bamon log --search "timeout" --before 2 --after 2
+```
+
+Get log file information:
+```bash
+bamon log --info
+```
+
+Export logs in JSON format:
+```bash
+bamon log --format json --lines 100
+```
+
 ## Performance Monitoring
 
 View performance metrics:
@@ -325,7 +395,7 @@ bamon performance --verbose
 **Daemon fails to start:**
 - Check if another instance is running: `bamon status`
 - Verify permissions on configuration directory: `ls -la ~/.config/bamon/`
-- Check logs for specific errors: `tail -f ~/.local/share/bamon/logs/bamon.log`
+- Check logs for specific errors: `bamon log --level ERROR`
 
 **Scripts not executing:**
 - Verify script is enabled: `bamon list`
@@ -335,6 +405,12 @@ bamon performance --verbose
 **Configuration errors:**
 - Validate configuration: `bamon config validate`
 - Check YAML syntax: `yq eval . ~/.config/bamon/config.yaml`
+
+**Log file issues:**
+- Check log file location: `bamon log --info`
+- View recent errors: `bamon log --level ERROR --lines 20`
+- Follow logs in real-time: `bamon log --follow`
+- Search for specific issues: `bamon log --search "error" --level ERROR`
 
 ## Debug Mode
 
