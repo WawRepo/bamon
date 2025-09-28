@@ -14,7 +14,6 @@ The goal of BAMON is simple: when you have a command or script you'd like to run
 [![Continuous Integration](https://github.com/WawRepo/bamon/actions/workflows/ci.yml/badge.svg)](https://github.com/WawRepo/bamon/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/WawRepo/bamon)](https://github.com/WawRepo/bamon/releases)
 [![Documentation](https://github.com/WawRepo/bamon/actions/workflows/docs.yml/badge.svg)](https://github.com/WawRepo/bamon/actions/workflows/docs.yml)
-[![Version](https://img.shields.io/badge/version-{{ version }}-blue.svg)](https://github.com/WawRepo/bamon/releases)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 ## 🚀 Quick Start

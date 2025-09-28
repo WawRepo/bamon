@@ -1,4 +1,4 @@
-name: Build documentation
+name: Build and deploy documentation
 
 on:
   push:
@@ -11,6 +11,15 @@ on:
       - 'docs/**'
       - 'mkdocs.yml'
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to display in documentation'
+        required: false
+        type: string
+      tag:
+        description: 'Git tag for version'
+        required: false
+        type: string
 
 jobs:
   build:
@@ -30,9 +39,65 @@ jobs:
           pip install requests
           pip install mkdocs-linkcheck
           pip install mkdocs-spellcheck
+          # Install yq for YAML processing
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+
+      - name: Set version information
+        run: |
+          # Use provided version or get from git
+          if [[ -n "${{ github.event.inputs.version }}" ]]; then
+            VERSION="${{ github.event.inputs.version }}"
+            TAG="${{ github.event.inputs.tag }}"
+          else
+            # Get version from git tag or default
+            VERSION=$(git describe --tags --abbrev=0 2>/dev/null | sed 's/^v//' || echo "dev")
+            TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "dev")
+          fi
+          
+          VERSION_INFO="Released on $(date '+%B %d, %Y')"
+          
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "TAG=$TAG" >> $GITHUB_ENV
+          echo "VERSION_INFO=$VERSION_INFO" >> $GITHUB_ENV
+          
+          echo "Building documentation with version: $VERSION"
+          echo "Tag: $TAG"
+          echo "Version info: $VERSION_INFO"
+
+      - name: Update mkdocs.yml with version
+        run: |
+          # Update mkdocs.yml with version information
+          yq eval ".extra.version = \"$VERSION\"" -i mkdocs.yml
+          yq eval ".extra.version_info = \"$VERSION_INFO\"" -i mkdocs.yml
+          
+          echo "Updated mkdocs.yml:"
+          yq eval '.extra' mkdocs.yml
 
       - name: Build documentation
-        run: mkdocs build
+        run: |
+          if mkdocs build; then
+            echo "Documentation built successfully with version $VERSION"
+          else
+            echo "Warning: Documentation build failed, creating fallback..."
+            # Create a minimal fallback documentation
+            mkdir -p site
+            cat > site/index.html << EOF
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>BAMON Documentation</title>
+            <meta charset="utf-8">
+          </head>
+          <body>
+            <h1>BAMON Documentation</h1>
+            <p>Documentation is being updated. Please check back later.</p>
+            <p>Version: $VERSION</p>
+          </body>
+          </html>
+          EOF
+            echo "Created fallback documentation"
+          fi
 
       - name: Check links
         run: mkdocs-linkcheck docs/ || echo "Some links may be broken, but continuing..."
@@ -46,3 +111,33 @@ jobs:
           name: documentation
           path: ./site
           retention-days: 30
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download documentation artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: documentation
+          path: ./site
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

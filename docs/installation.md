@@ -7,8 +7,8 @@ BAMON can be installed in several ways depending on your needs and environment.
 The easiest way to install BAMON is using our installation script:
 
 ```bash
-# Download and install from latest release
-curl -sSL https://github.com/WawRepo/bamon/releases/latest/download/install-repo.sh | bash
+# Download and install from version {{ version }}
+curl -sSL https://github.com/WawRepo/bamon/releases/download/{{ tag }}/install-repo.sh | bash
 ```
 
 This will:
@@ -23,7 +23,7 @@ This will:
 
 ```bash
 # Install to user directory
-curl -sSL https://github.com/WawRepo/bamon/releases/latest/download/install-repo.sh | bash
+curl -sSL https://github.com/WawRepo/bamon/releases/download/{{ tag }}/install-repo.sh | bash
 ```
 
 **Installation location**: `~/.local/bin/bamon`
@@ -34,7 +34,7 @@ curl -sSL https://github.com/WawRepo/bamon/releases/latest/download/install-repo
 
 ```bash
 # Install system-wide (requires sudo)
-curl -sSL https://github.com/WawRepo/bamon/releases/latest/download/install-repo.sh | bash -s -- --system
+curl -sSL https://github.com/WawRepo/bamon/releases/download/{{ tag }}/install-repo.sh | bash -s -- --system
 ```
 
 **Installation location**: `/usr/local/bin/bamon`
@@ -45,7 +45,7 @@ curl -sSL https://github.com/WawRepo/bamon/releases/latest/download/install-repo
 
 ```bash
 # Install to custom directory
-curl -sSL https://github.com/WawRepo/bamon/releases/latest/download/install-repo.sh | bash -s -- --prefix=/opt/bamon
+curl -sSL https://github.com/WawRepo/bamon/releases/download/{{ tag }}/install-repo.sh | bash -s -- --prefix=/opt/bamon
 ```
 
 ## Prerequisites
@@ -89,8 +89,8 @@ If you prefer to install manually:
 ### 1. Download Binary
 
 ```bash
-# Download latest release
-wget https://github.com/WawRepo/bamon/releases/latest/download/bamon
+# Download version {{ version }}
+wget https://github.com/WawRepo/bamon/releases/download/{{ tag }}/bamon
 chmod +x bamon
 ```
 
