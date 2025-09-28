@@ -335,7 +335,12 @@ bamon log --level ERROR,WARN
 
 Search for specific patterns:
 ```bash
+# Literal search
 bamon log --search "timeout" --before 2 --after 2
+
+# Regex search
+bamon log --search ".*failed.*" --regex
+bamon log --search "github.*completed" --regex
 ```
 
 Get log file information:

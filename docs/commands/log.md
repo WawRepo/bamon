@@ -56,10 +56,13 @@ bamon log --level INFO --lines 20
 ### Searching Logs
 
 ```bash
-# Search for specific keyword
+# Search for specific keyword (literal search)
 bamon log --search "github"
 
 # Search with regex pattern
+bamon log --search "github.*completed" --regex
+
+# Search for error patterns with regex
 bamon log --search ".*failed.*" --regex
 
 # Search with context lines
@@ -91,6 +94,28 @@ bamon log --search "github" --before 1 --after 1 --format json
 # Follow logs with level filtering
 bamon log --follow --level ERROR,WARN
 ```
+
+## Search Types
+
+### Literal Search (Default)
+By default, the `--search` option performs literal string matching:
+
+```bash
+# Searches for the exact string "github"
+bamon log --search "github"
+```
+
+### Regex Search
+Use the `--regex` flag for pattern matching:
+
+```bash
+# Regex patterns
+bamon log --search "github.*completed" --regex    # Lines containing "github" followed by "completed"
+bamon log --search ".*failed.*" --regex           # Lines containing "failed" anywhere
+bamon log --search "^\[ERROR\]" --regex           # Lines starting with "[ERROR]"
+```
+
+**Note**: Without `--regex`, the search treats the pattern as a literal string. With `--regex`, it uses regular expression syntax.
 
 ## Log File Information
 
