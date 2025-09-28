@@ -1,4 +1,4 @@
-name: Build and deploy documentation
+name: Build documentation
 
 on:
   push:
@@ -40,39 +40,9 @@ jobs:
       - name: Spell check
         run: mkdocs-spellcheck || echo "Spell check found issues, but continuing..."
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v4
+      - name: Upload documentation artifact
+        uses: actions/upload-artifact@v4
         with:
-          python-version: '3.x'
-
-      - name: Install dependencies
-        run: |
-          pip install mkdocs
-          pip install requests
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-
-      - name: Build documentation
-        run: mkdocs build
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
+          name: documentation
           path: ./site
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          retention-days: 30

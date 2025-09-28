@@ -22,6 +22,8 @@ permissions:
   contents: write
   packages: read
   actions: read
+  pages: write
+  id-token: write
 
 jobs:
   release:
@@ -246,6 +248,64 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     
+    - name: Build Documentation with Version
+      if: ${{ github.event.inputs.dry_run != 'true' }}
+      run: |
+        echo "Building documentation with version ${{ steps.new_version.outputs.new_version }}..."
+        
+        # Install Python and MkDocs dependencies
+        sudo apt-get update
+        sudo apt-get install -y python3 python3-pip
+        pip3 install mkdocs requests
+        
+        # Create version info for documentation
+        VERSION="${{ steps.new_version.outputs.new_version }}"
+        VERSION_INFO="Released on $(date '+%B %d, %Y')"
+        
+        # Update mkdocs.yml with version information
+        yq eval ".extra.version = \"$VERSION\"" -i mkdocs.yml
+        yq eval ".extra.version_info = \"$VERSION_INFO\"" -i mkdocs.yml
+        
+        # Build documentation with error handling
+        if mkdocs build; then
+          echo "Documentation built successfully with version $VERSION"
+        else
+          echo "Warning: Documentation build failed, but continuing with release..."
+          # Create a minimal fallback documentation
+          mkdir -p site
+          cat > site/index.html << 'EOF'
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>BAMON Documentation</title>
+          <meta charset="utf-8">
+        </head>
+        <body>
+          <h1>BAMON Documentation</h1>
+          <p>Documentation is being updated. Please check back later.</p>
+          <p>Version: $VERSION</p>
+        </body>
+        </html>
+        EOF
+          echo "Created fallback documentation"
+        fi
+    
+    - name: Setup Pages
+      if: ${{ github.event.inputs.dry_run != 'true' }}
+      uses: actions/configure-pages@v4
+    
+    - name: Upload Documentation Artifact
+      if: ${{ github.event.inputs.dry_run != 'true' }}
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: ./site
+    
+    - name: Deploy Documentation to GitHub Pages
+      if: ${{ github.event.inputs.dry_run != 'true' }}
+      uses: actions/deploy-pages@v4
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     - name: Upload Release Assets
       if: ${{ github.event.inputs.dry_run != 'true' }}
       run: |
@@ -274,12 +334,18 @@ jobs:
     - name: Update README with latest version
       if: ${{ github.event.inputs.dry_run != 'true' }}
       run: |
-        NEW_TAG="${{ steps.new_version.outputs.new_tag }}"
-        echo "Updating README with latest version $NEW_TAG"
+        NEW_VERSION="${{ steps.new_version.outputs.new_version }}"
+        echo "Updating README with latest version $NEW_VERSION"
         
-        # Update installation instructions in README.md
-        # This is a placeholder - in practice, you'd update the README with the new version
-        echo "README would be updated with version $NEW_TAG"
+        # Update version badge in README.md
+        sed -i "s/{{ version }}/$NEW_VERSION/g" README.md
+        
+        # Commit the updated README
+        git add README.md
+        git commit -m "docs: update version badge to $NEW_VERSION" || echo "No changes to commit"
+        git push origin main || echo "No changes to push"
+        
+        echo "README updated with version $NEW_VERSION"
     
     - name: Dry run summary
       if: ${{ github.event.inputs.dry_run == 'true' }}

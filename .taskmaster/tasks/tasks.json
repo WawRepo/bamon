@@ -403,11 +403,120 @@
             "parentTaskId": 36
           }
         ]
+      },
+      {
+        "id": 37,
+        "title": "Integrate Documentation Deployment into Release Workflow",
+        "description": "Modify the documentation system to keep the build process in a separate workflow while moving deployment to the release workflow, and ensure the application version is embedded and visible in the generated documentation.",
+        "details": "1. **Maintain Existing Documentation Build Workflow**:\n   - Keep the existing GitHub Actions workflow that builds documentation on changes to the docs folder\n   - Modify it to store the built documentation as an artifact that can be used by other workflows\n   - Add a step to generate a version information file during the build process\n   - Example workflow modification:\n     ```yaml\n     name: Build Documentation\n     \n     on:\n       push:\n         paths:\n           - 'docs/**'\n           - 'mkdocs.yml'\n     \n     jobs:\n       build:\n         runs-on: ubuntu-latest\n         steps:\n           - uses: actions/checkout@v3\n             with:\n               fetch-depth: 0\n           \n           - name: Set up Python\n             uses: actions/setup-python@v4\n             with:\n               python-version: '3.10'\n           \n           - name: Install dependencies\n             run: |\n               python -m pip install --upgrade pip\n               pip install mkdocs-material\n               # Install any other required packages\n           \n           - name: Extract version information\n             id: version\n             run: |\n               VERSION=$(cat VERSION || echo \"development\")\n               echo \"VERSION=$VERSION\" >> $GITHUB_ENV\n           \n           - name: Generate version info file\n             run: |\n               echo \"version: $VERSION\" > docs/version_info.md\n               echo \"build_date: $(date -u +'%Y-%m-%d %H:%M:%S UTC')\" >> docs/version_info.md\n               echo \"commit: $(git rev-parse --short HEAD)\" >> docs/version_info.md\n           \n           - name: Build documentation\n             run: mkdocs build\n           \n           - name: Upload documentation artifact\n             uses: actions/upload-artifact@v3\n             with:\n               name: documentation\n               path: site/\n               retention-days: 7\n     ```\n\n2. **Update MkDocs Configuration**:\n   - Modify `mkdocs.yml` to include version information at the beginning of the documentation\n   - Add a version display in the navigation or header section\n   - Example configuration changes:\n     ```yaml\n     # Add to mkdocs.yml\n     extra:\n       version:\n         provider: mike\n         default: latest\n     \n     markdown_extensions:\n       - meta\n       - admonition\n     \n     nav:\n       - Home: index.md\n       - Version Info: version_info.md\n       # Other navigation items\n     ```\n\n3. **Create Documentation Template with Version Display**:\n   - Update the main documentation template to prominently display version information\n   - Add to the main.html or home.html template in the docs theme:\n     ```html\n     {% if config.extra.version %}\n     <div class=\"md-version\">\n       <span class=\"md-version__current\">Version: {{ config.extra.version }}</span>\n     </div>\n     {% endif %}\n     ```\n\n4. **Modify Release Workflow to Deploy Documentation**:\n   - Update the release.yml workflow to include a documentation deployment step\n   - Download the documentation artifact from the most recent successful build\n   - Deploy to GitHub Pages as part of the release process\n   - Example workflow modification:\n     ```yaml\n     name: Release\n     \n     on:\n       workflow_dispatch:\n         inputs:\n           version:\n             description: 'Version to release'\n             required: true\n     \n     jobs:\n       # Existing release jobs...\n       \n       deploy-docs:\n         runs-on: ubuntu-latest\n         needs: [release] # Make sure this runs after the main release job\n         steps:\n           - uses: actions/checkout@v3\n           \n           - name: Download documentation artifact\n             uses: actions/download-artifact@v3\n             with:\n               name: documentation\n               path: site\n           \n           - name: Deploy to GitHub Pages\n             uses: peaceiris/actions-gh-pages@v3\n             with:\n               github_token: ${{ secrets.GITHUB_TOKEN }}\n               publish_dir: ./site\n               force_orphan: true\n               commit_message: \"Deploy documentation for version ${{ github.event.inputs.version }}\"\n         \n     ```\n\n5. **Fallback Documentation Build in Release Workflow**:\n   - Add a conditional step in the release workflow to build documentation if no artifact is available\n   - This ensures documentation is always deployed even if the separate build workflow hasn't run recently\n   - Example:\n     ```yaml\n     - name: Check for documentation artifact\n       id: check_artifact\n       run: |\n         if [ -d \"site\" ] && [ \"$(ls -A site)\" ]; then\n           echo \"artifact_exists=true\" >> $GITHUB_OUTPUT\n         else\n           echo \"artifact_exists=false\" >> $GITHUB_OUTPUT\n         fi\n     \n     - name: Build documentation if needed\n       if: steps.check_artifact.outputs.artifact_exists != 'true'\n       run: |\n         python -m pip install --upgrade pip\n         pip install mkdocs-material\n         # Generate version info\n         echo \"version: ${{ github.event.inputs.version }}\" > docs/version_info.md\n         echo \"build_date: $(date -u +'%Y-%m-%d %H:%M:%S UTC')\" >> docs/version_info.md\n         echo \"commit: $(git rev-parse --short HEAD)\" >> docs/version_info.md\n         # Build docs\n         mkdocs build\n     ```\n\n6. **Update Documentation README**:\n   - Update the documentation README to explain the new build and deployment process\n   - Include information about how version information is now included in the docs",
+        "testStrategy": "1. **Test Documentation Build Workflow**:\n   - Make a change to a file in the docs directory\n   - Push the change and verify the build workflow triggers\n   - Check that the documentation builds successfully\n   - Verify the artifact is created and contains the complete site directory\n   - Confirm the version information file is generated correctly\n\n2. **Test Version Information Display**:\n   - Build the documentation locally with different version values\n   - Verify the version information appears at the beginning of the documentation\n   - Check that the version is displayed correctly in the navigation or header\n   - Ensure the version information page contains all required details (version, build date, commit)\n\n3. **Test Release Workflow Documentation Deployment**:\n   - Trigger a manual release with a specific version\n   - Verify the release workflow downloads the documentation artifact\n   - Confirm the documentation is deployed to GitHub Pages\n   - Check that the deployed documentation shows the correct version information\n   - Verify all links and resources work correctly in the deployed documentation\n\n4. **Test Fallback Documentation Build**:\n   - Delete any existing documentation artifacts\n   - Trigger a release\n   - Verify the workflow detects missing artifacts and builds documentation\n   - Confirm the built documentation is deployed correctly\n   - Check that version information is still included\n\n5. **Test Workflow Dependencies and Timing**:\n   - Verify the documentation deployment step runs after the main release steps\n   - Confirm that documentation deployment doesn't block or delay the main release process\n   - Test that a failed documentation deployment doesn't cause the entire release to fail\n\n6. **Cross-Browser Testing**:\n   - Check the deployed documentation with version information in multiple browsers\n   - Verify the version display is visible and correctly formatted on mobile devices\n   - Test the documentation site's responsiveness with the added version information",
+        "status": "pending",
+        "dependencies": [
+          33,
+          35
+        ],
+        "priority": "medium",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Modify Existing Documentation Build Workflow",
+            "description": "Update the GitHub Actions workflow to build documentation and store it as an artifact for use by other workflows.",
+            "dependencies": [],
+            "details": "- Modify the existing GitHub Actions workflow that builds documentation on changes to the docs folder\n- Add steps to store the built documentation as an artifact with a 7-day retention period\n- Implement version information extraction from the VERSION file\n- Create a version_info.md file during the build process containing version, build date, and commit hash\n- Ensure the workflow runs on changes to docs/** and mkdocs.yml",
+            "status": "pending",
+            "testStrategy": "- Make a change to a file in the docs directory\n- Push the change and verify the build workflow triggers\n- Check that the documentation builds successfully\n- Verify the artifact is created and contains the complete site directory\n- Confirm the version_info.md file is generated with correct information"
+          },
+          {
+            "id": 2,
+            "title": "Update MkDocs Configuration for Version Display",
+            "description": "Modify the MkDocs configuration to include and display version information throughout the documentation.",
+            "dependencies": [
+              "37.1"
+            ],
+            "details": "- Update mkdocs.yml to include version information configuration\n- Add version provider settings in the extra section\n- Configure markdown extensions to support meta and admonition\n- Add version_info.md to the navigation structure\n- Ensure the configuration properly references the version information file",
+            "status": "pending",
+            "testStrategy": "- Build the documentation locally to verify configuration changes\n- Check that version information appears in the navigation\n- Verify that the version_info.md page is accessible\n- Ensure the configuration doesn't break existing documentation features"
+          },
+          {
+            "id": 3,
+            "title": "Create Documentation Template with Version Display",
+            "description": "Update the main documentation template to prominently display version information in the UI.",
+            "dependencies": [
+              "37.2"
+            ],
+            "details": "- Create or modify the main.html or home.html template in the docs theme\n- Add HTML/template code to display version information prominently\n- Implement conditional display based on version availability\n- Style the version display to be visible but not intrusive\n- Ensure compatibility with the MkDocs Material theme",
+            "status": "pending",
+            "testStrategy": "- Build the documentation locally to verify template changes\n- Check that version information appears correctly in the rendered documentation\n- Test with different version values to ensure proper display\n- Verify the template changes don't break responsive design"
+          },
+          {
+            "id": 4,
+            "title": "Implement Documentation Deployment in Release Workflow",
+            "description": "Update the release.yml workflow to include steps for deploying documentation to GitHub Pages.",
+            "dependencies": [
+              "37.1"
+            ],
+            "details": "- Modify the release.yml workflow to add a documentation deployment job\n- Configure the job to run after the main release job completes\n- Add steps to download the documentation artifact built by the separate workflow\n- Implement GitHub Pages deployment using peaceiris/actions-gh-pages action\n- Configure deployment with appropriate settings (force_orphan, commit message with version)",
+            "status": "pending",
+            "testStrategy": "- Trigger a test release workflow\n- Verify the documentation deployment job runs after the main release job\n- Check that the artifact is correctly downloaded\n- Confirm the documentation is successfully deployed to GitHub Pages\n- Verify the deployed documentation shows the correct version information"
+          },
+          {
+            "id": 5,
+            "title": "Create Fallback Documentation Build in Release Workflow",
+            "description": "Add conditional steps in the release workflow to build documentation if no artifact is available.",
+            "dependencies": [
+              "37.4"
+            ],
+            "details": "- Add a step to check if the documentation artifact exists and is not empty\n- Implement conditional logic to build documentation if the artifact is missing\n- Install required dependencies (mkdocs-material and other packages)\n- Generate version_info.md with the release version\n- Build documentation using mkdocs build command\n- Ensure this fallback process uses the same version information as the main build",
+            "status": "pending",
+            "testStrategy": "- Test the release workflow without a pre-built documentation artifact\n- Verify the fallback build process executes correctly\n- Check that the documentation is built with the correct version information\n- Confirm the fallback-built documentation deploys successfully to GitHub Pages"
+          },
+          {
+            "id": 6,
+            "title": "Update Documentation README and Process Documentation",
+            "description": "Update the documentation README and process documentation to explain the new build and deployment workflow.",
+            "dependencies": [
+              "37.4",
+              "37.5"
+            ],
+            "details": "- Update the documentation README to explain the new build and deployment process\n- Document how version information is included in the documentation\n- Explain the separation between build and deployment workflows\n- Provide information on how to manually trigger documentation builds\n- Include troubleshooting steps for common issues",
+            "status": "pending",
+            "testStrategy": "- Review the updated README for clarity and completeness\n- Verify all documented processes match the implemented workflows\n- Check that troubleshooting steps are accurate\n- Ensure the documentation is understandable for new contributors"
+          },
+          {
+            "id": 7,
+            "title": "Implement Version Badge in Documentation",
+            "description": "Add a version badge to the documentation that clearly displays the current version of the application.",
+            "dependencies": [
+              "37.2",
+              "37.3"
+            ],
+            "details": "- Design a version badge that displays the current application version\n- Add the badge to the documentation homepage and/or header\n- Ensure the badge is updated automatically when the version changes\n- Style the badge to be visually distinct and easily noticeable\n- Make the badge link to the version history or release notes if available",
+            "status": "pending",
+            "testStrategy": "- Build documentation with different version values\n- Verify the badge displays the correct version\n- Check that the badge is visible on different screen sizes\n- Confirm the badge links to the appropriate page if configured"
+          },
+          {
+            "id": 8,
+            "title": "Test and Validate Complete Documentation Workflow",
+            "description": "Perform comprehensive testing of the entire documentation build and deployment process across different scenarios.",
+            "dependencies": [
+              "37.1",
+              "37.2",
+              "37.3",
+              "37.4",
+              "37.5",
+              "37.6",
+              "37.7"
+            ],
+            "details": "- Test the complete workflow from documentation changes to deployment\n- Verify the process works when triggered by documentation changes\n- Test the process during a release workflow\n- Validate the fallback build process works correctly\n- Ensure version information is correctly displayed in all scenarios\n- Check that all links and navigation elements work in the deployed documentation\n- Verify the documentation is accessible and properly formatted on GitHub Pages",
+            "status": "pending",
+            "testStrategy": "- Make changes to documentation and verify the build workflow triggers\n- Trigger a release and verify documentation deploys correctly\n- Test with and without pre-built documentation artifacts\n- Check version display in various parts of the documentation\n- Verify all pages load correctly on the deployed GitHub Pages site\n- Test on different browsers and devices to ensure responsive design"
+          }
+        ]
       }
     ],
     "metadata": {
       "created": "2025-09-12T23:10:00.761Z",
-      "updated": "2025-09-27T23:14:16.460Z",
+      "updated": "2025-09-28T13:13:31.491Z",
       "description": "Tasks for master context"
     }
   }
