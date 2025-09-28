@@ -27,6 +27,7 @@ nav:
     - start: commands/start.md
     - stop: commands/stop.md
     - restart: commands/restart.md
+    - log: commands/log.md
     - performance: commands/performance.md
     - config: commands/config.md
   - Configuration: configuration.md
