@@ -3,6 +3,7 @@ site_description: Bash Daemon Monitor - A lightweight monitoring solution
 site_url: https://wawrepo.github.io/bamon/
 repo_url: https://github.com/WawRepo/bamon
 repo_name: WawRepo/bamon
+edit_uri: edit/main/docs/
 
 theme:
   name: readthedocs
