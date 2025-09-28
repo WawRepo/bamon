@@ -36,6 +36,7 @@ test/
 │   ├── test_remove_command.bats        # Remove command tests
 │   ├── test_list_command.bats          # List command tests
 │   ├── test_now_command.bats           # Now command tests
+│   ├── test_log_command.bats           # Log command tests
 │   ├── test_config_command.bats        # Config command tests
 │   ├── test_config_reset_command.bats  # Config reset command tests
 │   └── test_multiline_output.bats      # Multiline output handling tests
@@ -174,6 +175,7 @@ The interactive container also includes the complete BATS test suite for manual 
 - **Remove Command**: Tests script removal functionality
 - **List Command**: Tests script listing
 - **Now Command**: Tests manual script execution
+- **Log Command**: Tests log viewing, filtering, searching, and real-time following
 - **Multiline Output**: Tests multiline output handling in table and JSON views
 - **Start/Stop/Restart**: Tests daemon management
 
@@ -330,6 +332,30 @@ The testing environment is designed to work with CI/CD systems:
 | `bamon config validate` | Config validate command validates configuration | test/commands/test_config_command.bats |
 | `bamon config reset` | Config reset command resets to default values (auto-backup) | test/commands/test_config_reset_command.bats |
 | `bamon config reset --force` | Config reset command with force flag | test/commands/test_config_reset_command.bats |
+
+### Log Command Test Coverage
+
+The `bamon log` command has comprehensive test coverage with 20 test cases:
+
+| Test Case | Description | Test File |
+|-----------|-------------|-----------|
+| `bamon log` | Log command displays recent entries by default | test/commands/test_log_command.bats |
+| `bamon log --lines <number>` | Log command displays specified number of lines | test/commands/test_log_command.bats |
+| `bamon log --follow` | Log command follows log output in real-time | test/commands/test_log_command.bats |
+| `bamon log --level <levels>` | Log command filters by single or multiple log levels | test/commands/test_log_command.bats |
+| `bamon log --search <pattern>` | Log command searches for keywords or patterns | test/commands/test_log_command.bats |
+| `bamon log --search <pattern> --regex` | Log command searches with regex patterns | test/commands/test_log_command.bats |
+| `bamon log --search <pattern> --before <lines> --after <lines>` | Log command shows context lines around matches | test/commands/test_log_command.bats |
+| `bamon log --info` | Log command shows log file information | test/commands/test_log_command.bats |
+| `bamon log --format json` | Log command outputs JSON format | test/commands/test_log_command.bats |
+| `bamon log --no-color` | Log command disables color output | test/commands/test_log_command.bats |
+| `bamon log` (missing log file) | Log command handles missing log file gracefully | test/commands/test_log_command.bats |
+| `bamon log` (empty log file) | Log command handles empty log file | test/commands/test_log_command.bats |
+| `bamon log --level INVALID` | Log command handles invalid log levels | test/commands/test_log_command.bats |
+| `bamon log --search <nonexistent>` | Log command handles searches with no matches | test/commands/test_log_command.bats |
+| `bamon log --level <level> --search <pattern>` | Log command combines multiple filters | test/commands/test_log_command.bats |
+| `bamon log --search <special_chars>` | Log command handles special characters in search | test/commands/test_log_command.bats |
+| `bamon log --search <multiline>` | Log command handles multiline log entries | test/commands/test_log_command.bats |
 
 ### Missing Test Coverage
 
