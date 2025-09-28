@@ -280,7 +280,6 @@ jobs:
       with:
         version: ${{ steps.new_version.outputs.new_version }}
         tag: ${{ steps.new_version.outputs.new_tag }}
-      secrets: inherit
     
     - name: Dry run summary
       if: ${{ github.event.inputs.dry_run == 'true' }}
